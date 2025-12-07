@@ -36,5 +36,7 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Starting Islamic AI Backend Server...")
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    logger.info("🚀 Starting Islamic AI Backend Server...")
+    port = int(os.getenv("PORT", 8000))  # ✅ Use PORT from environment
+    host = os.getenv("BACKEND_HOST", "0.0.0.0")
+    uvicorn.run(app, host=host, port=port, log_level="info")
