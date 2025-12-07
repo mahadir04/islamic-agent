@@ -1,3 +1,11 @@
+from dotenv import load_dotenv
+import os
+
+# Load .env file FIRST
+load_dotenv()
+
+# Verify it's loaded
+print(f"✅ GEMINI_API_KEY loaded: {os.getenv('GEMINI_API_KEY')[:20]}..." if os.getenv('GEMINI_API_KEY') else "❌ Not loaded")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router

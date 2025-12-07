@@ -335,15 +335,27 @@ def get_scholar_recommendation_topic(question: str) -> str:
         return "this specific Islamic ruling"
 
 # ===== ENHANCED PROMPT SELECTION =====
-def get_prompt_for_question(question: str, context: str, context_quality: str) -> str:
+def get_prompt_for_question(question: str, context: str, context_quality: str, conversation_history: list = None) -> str:
     """
     Select appropriate prompt based on context quality and question type
+    Now includes conversation history for context-aware responses
     """
-    # First check for complex fiqh questions - route directly to Gemini
+    # Build conversation history context
+    history_context = ""
+    if conversation_history and len(conversation_history) > 0:
+        history_context = "\n\nPREVIOUS CONVERSATION:\n"
+        for msg in conversation_history[-6:]:  # Last 6 messages (3 exchanges)
+            role = "User" if msg["role"] == "user" else "Assistant"
+            history_context += f"{role}: {msg['content'][:200]}\n"
+        history_context += "\nCurrent question is a follow-up to this conversation. Provide context-aware response.\n"
+    
+    # First check for complex fiqh questions
     if requires_detailed_fiqh(question):
-        return SYSTEM_BASE + PROMPT_DETAILED_FIQH.format(question=question, context=context)
+        prompt = SYSTEM_BASE + PROMPT_DETAILED_FIQH.format(question=question, context=context)
+        return prompt + history_context
     elif is_complex_fiqh_question(question):
-        return SYSTEM_BASE + PROMPT_COMPLEX_FIQH.format(question=question, context=context)
+        prompt = SYSTEM_BASE + PROMPT_COMPLEX_FIQH.format(question=question, context=context)
+        return prompt + history_context
     
     # Then handle other question types
     question_type = _classify_question_type(question)
@@ -357,7 +369,7 @@ def get_prompt_for_question(question: str, context: str, context_quality: str) -
         base_prompt = PROMPT_ETHICAL_DILEMMA.format(context=context, question=question)
     elif context_quality in ["rich", "good", "minimal"]:
         base_prompt = PROMPT_WITH_CONTEXT.format(context=context, question=question)
-    else:  # poor or no context
+    else:
         base_prompt = PROMPT_WITHOUT_CONTEXT.format(question=question)
     
     # Add topic-specific guidance if applicable
@@ -365,7 +377,8 @@ def get_prompt_for_question(question: str, context: str, context_quality: str) -
     if topic_guidance:
         base_prompt += f"\n\nTOPIC GUIDANCE: {topic_guidance}"
     
-    return SYSTEM_BASE + base_prompt
+    return SYSTEM_BASE + base_prompt + history_context
+
 
 def _classify_question_type(question: str) -> str:
     """Classify the type of question for specialized handling"""

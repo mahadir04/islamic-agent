@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { askQuestion } from "./api";
+import { askQuestion, getSession } from "./api";
 
-export default function Chat({ isDarkMode }) {
+export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
   const [messages, setMessages] = useState([
     { 
       role: "bot", 
@@ -10,6 +10,7 @@ export default function Chat({ isDarkMode }) {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -20,6 +21,51 @@ export default function Chat({ isDarkMode }) {
     scrollToBottom();
   }, [messages]);
 
+  // Load session messages when sessionId changes
+  useEffect(() => {
+    if (sessionId) {
+      loadSessionMessages(sessionId);
+    } else {
+      // Reset to welcome message if no session
+      setMessages([
+        { 
+          role: "bot", 
+          content: "As-salamu alaykum! I'm your Islamic AI assistant. I can answer questions based on Quran, Hadith, and authentic Islamic sources. How can I help you today?" 
+        }
+      ]);
+    }
+  }, [sessionId]);
+
+  const loadSessionMessages = async (sid) => {
+    setLoadingSession(true);
+    try {
+      const session = await getSession(sid);
+      if (session && session.messages && session.messages.length > 0) {
+        setMessages(session.messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        })));
+      } else {
+        setMessages([
+          { 
+            role: "bot", 
+            content: "As-salamu alaykum! I'm your Islamic AI assistant. How can I help you today?" 
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error("Error loading session:", error);
+      setMessages([
+        { 
+          role: "bot", 
+          content: "As-salamu alaykum! I'm your Islamic AI assistant. How can I help you today?" 
+        }
+      ]);
+    } finally {
+      setLoadingSession(false);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     
@@ -29,8 +75,13 @@ export default function Chat({ isDarkMode }) {
     setLoading(true);
 
     try {
-      const answer = await askQuestion(userMessage);
-      setMessages(prev => [...prev, { role: "bot", content: answer }]);
+      const response = await askQuestion(userMessage, sessionId);
+      setMessages(prev => [...prev, { role: "bot", content: response.answer }]);
+      
+      // Update session list
+      if (onSessionUpdate) {
+        onSessionUpdate();
+      }
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: "bot", 
@@ -48,41 +99,25 @@ export default function Chat({ isDarkMode }) {
     }
   };
 
-  const clearChat = () => {
-    setMessages([
-      { 
-        role: "bot", 
-        content: "As-salamu alaykum! The conversation has been cleared. How can I assist you with Islamic knowledge today?" 
-      }
-    ]);
-  };
+  if (loadingSession) {
+    return (
+      <div className={`flex-1 flex items-center justify-center ${
+        isDarkMode ? 'bg-gray-900' : 'bg-white'
+      }`}>
+        <div className="text-center">
+          <div className={`inline-block animate-spin rounded-full h-12 w-12 border-b-2 ${
+            isDarkMode ? 'border-green-400' : 'border-green-600'
+          }`}></div>
+          <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            Loading conversation...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-[70vh]">
-      {/* Chat Header */}
-      <div className={`border-b ${
-        isDarkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gradient-to-r from-green-50 to-blue-50'
-      } p-4 flex justify-between items-center`}>
-        <div className="flex items-center space-x-3">
-          <div className={`w-3 h-3 rounded-full ${
-            loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-500'
-          }`}></div>
-          <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            {loading ? 'Searching Islamic sources...' : 'Online'}
-          </span>
-        </div>
-        <button
-          onClick={clearChat}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-            isDarkMode
-              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Clear Chat
-        </button>
-      </div>
-
+    <div className="flex flex-col h-full">
       {/* Messages Area */}
       <div className={`flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar ${
         isDarkMode ? 'bg-gray-900' : 'bg-white'
@@ -114,13 +149,6 @@ export default function Chat({ isDarkMode }) {
               }`}>
                 <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
                   {message.content}
-                </div>
-                <div className={`text-xs mt-2 ${
-                  message.role === "user" 
-                    ? 'text-blue-100' 
-                    : isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  {message.role === "user" ? 'You' : 'Islamic AI Assistant'}
                 </div>
               </div>
             </div>

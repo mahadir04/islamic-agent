@@ -18,15 +18,16 @@ logger = logging.getLogger(__name__)
 class IslamicAgent:
     def __init__(self):
         self.retriever = EnhancedRetriever()
-        self.model_name = "gemini-2.5-flash"  # ✅ FIXED: moved before _initialize_gemini
+        self.model_name = "gemini-2.5-flash"
         self.gemini_available = self._initialize_gemini()
 
     def _initialize_gemini(self):
         """Initialize Google Gemini AI"""
         try:
-            api_key = "AIzaSyCd7Jk4v86NEJDGOVqL0gqbl765waHmstE"
-            if not api_key or api_key == "YOUR_GEMINI_API_KEY_HERE":
-                logger.error("❌ Gemini API key not configured")
+            # USE ENVIRONMENT VARIABLE - DO NOT HARDCODE API KEY
+            api_key = os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                logger.error("❌ GEMINI_API_KEY environment variable not set")
                 return False
 
             genai.configure(api_key=api_key)
@@ -52,7 +53,14 @@ class IslamicAgent:
             logger.error(f"❌ Failed to initialize Google Gemini AI: {e}")
             return False
 
-    async def answer_question(self, question: str) -> str:
+    async def answer_question(self, question: str, conversation_history: list = None) -> str:
+        """
+        Answer question with conversation history context
+        
+        Args:
+            question: User's question
+            conversation_history: List of previous messages [{"role": "user/bot", "content": "..."}]
+        """
         try:
             logger.info(f"📝 Processing question: {question}")
 
@@ -65,26 +73,28 @@ class IslamicAgent:
 
             if is_complex_fiqh_question(question) or requires_detailed_fiqh(question):
                 logger.info("🎯 Complex fiqh question detected - routing directly to Gemini")
-                return await self._get_complex_fiqh_response(question)
+                return await self._get_complex_fiqh_response(question, conversation_history)
 
             local_results = self.retriever.search_local_knowledge(question)
             context_quality = self._assess_context_quality(question, local_results)
             logger.info(f"🔍 Context quality: {context_quality}")
 
-            return await self._get_smart_response(question, local_results, context_quality)
+            return await self._get_smart_response(question, local_results, context_quality, conversation_history)
 
         except Exception as e:
             logger.error(f"💥 Error in answer_question: {e}")
             return self._get_fallback_response(question)
 
-    async def _get_complex_fiqh_response(self, question: str) -> str:
+    async def _get_complex_fiqh_response(self, question: str, conversation_history: list = None) -> str:
         if not self.gemini_available:
             return self._get_fiqh_fallback_response(question)
 
         try:
             minimal_context = self.retriever.search_local_knowledge(question, max_results=2)
             context = "\n\n".join(minimal_context) if minimal_context else "General Islamic principles."
-            prompt = get_prompt_for_question(question, context, "complex")
+            
+            # Add conversation history to prompt
+            prompt = get_prompt_for_question(question, context, "complex", conversation_history)
             gemini_response = await self._call_gemini(prompt)
 
             if gemini_response and self._is_quality_response(gemini_response):
@@ -97,12 +107,12 @@ class IslamicAgent:
             logger.error(f"Gemini complex fiqh response failed: {e}")
             return self._get_fiqh_fallback_response(question)
 
-    async def _get_smart_response(self, question: str, local_results: list, context_quality: str) -> str:
+    async def _get_smart_response(self, question: str, local_results: list, context_quality: str, conversation_history: list = None) -> str:
         context = "\n\n".join(local_results) if local_results else "General Islamic knowledge base."
 
         if self.gemini_available:
             try:
-                prompt = get_prompt_for_question(question, context, context_quality)
+                prompt = get_prompt_for_question(question, context, context_quality, conversation_history)
                 gemini_response = await self._call_gemini(prompt)
 
                 if gemini_response and self._is_quality_response(gemini_response):
