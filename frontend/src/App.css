@@ -1,77 +1,264 @@
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
+/* ========== RESPONSIVE DESIGN ADDITIONS ========== */
 
-@media (min-width: 768px) {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
+/* Mobile First Base Styles */
+@media (max-width: 768px) {
+  /* Sidebar adjustments */
+  .w-80 {
+    width: 100% !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(0);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
   }
-}
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Dark mode scrollbar */
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-/* Responsive animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+  /* Sidebar hidden state */
+  .sidebar-hidden {
+    transform: translateX(-100%) !important;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  /* Main content when sidebar is open */
+  .main-content-shifted {
+    margin-left: 0 !important;
+    opacity: 0.3;
+    pointer-events: none;
   }
-}
 
-.animate-slideIn {
-  animation: slideIn 0.2s ease-out;
-}
-
-@media (min-width: 768px) {
-  .animate-slideIn {
-    animation-duration: 0.3s;
+  /* Header mobile adjustments */
+  .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
   }
-}
 
-/* Mobile optimizations */
-@media (max-width: 640px) {
-  .message-bubble {
+  .py-4 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  /* Title adjustments */
+  h1.text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  /* Hide title text on very small screens */
+  @media (max-width: 480px) {
+    h1 span:last-child {
+      display: none !important;
+    }
+  }
+
+  /* Chat area adjustments */
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  /* Message bubbles */
+  .max-w-\[85\%\] {
     max-width: 95% !important;
-    font-size: 14px;
   }
-  
-  .suggestion-chips {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+
+  .p-4 {
+    padding: 0.75rem !important;
   }
-  
-  .suggestion-chips::-webkit-scrollbar {
-    display: none;
+
+  .text-\[15px\] {
+    font-size: 14px !important;
+  }
+
+  /* Input area */
+  .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0.5rem !important;
+  }
+
+  textarea {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    padding: 0.75rem !important;
+  }
+
+  /* Send button */
+  .px-6 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .py-3 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  /* Quick suggestions */
+  .gap-2 {
+    gap: 0.5rem !important;
+  }
+
+  .px-3 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+
+  .py-2 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .text-sm {
+    font-size: 0.8125rem !important;
+  }
+
+  /* Avatar adjustments */
+  .w-8, .h-8 {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+
+  .text-sm.font-bold {
+    font-size: 0.75rem !important;
+  }
+
+  /* Loading indicator */
+  .w-2.h-2 {
+    width: 0.375rem !important;
+    height: 0.375rem !important;
+  }
+
+  /* Footer */
+  .text-xs {
+    font-size: 0.6875rem !important;
+  }
+
+  /* Mobile overlay when sidebar is open */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+  }
+
+  .sidebar-overlay.visible {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
-/* Safe area for modern mobile devices */
+/* Tablet Adjustments (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Sidebar */
+  .w-80 {
+    width: 280px !important;
+  }
+
+  /* Header */
+  .px-6 {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+
+  /* Message bubbles */
+  .max-w-\[85\%\] {
+    max-width: 80% !important;
+  }
+
+  /* Quick suggestions grid */
+  .flex-wrap.gap-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .flex-wrap.gap-2 button {
+    width: 100%;
+    text-align: left;
+  }
+}
+
+/* Small Desktop (1025px - 1280px) */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  /* Sidebar */
+  .w-80 {
+    width: 300px !important;
+  }
+
+  /* Message bubbles */
+  .max-w-\[85\%\] {
+    max-width: 75% !important;
+  }
+}
+
+/* Large Desktop (1281px and above) */
+@media (min-width: 1281px) {
+  /* Message bubbles */
+  .max-w-\[85\%\] {
+    max-width: 70% !important;
+  }
+}
+
+/* Landscape Mode for Mobile */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Adjust height for landscape */
+  .flex-1.overflow-hidden {
+    height: calc(100vh - 120px) !important;
+  }
+
+  /* Make messages area shorter */
+  .flex-1.overflow-y-auto {
+    max-height: calc(100vh - 200px) !important;
+  }
+
+  /* Reduce padding in landscape */
+  .p-6 {
+    padding: 0.75rem !important;
+  }
+
+  .py-4 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+}
+
+/* Mobile Menu Toggle Button - Add to your App.jsx */
+.mobile-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block !important;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  button, 
+  [role="button"],
+  .cursor-pointer {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .hover\:bg-gray-100:hover,
+  .hover\:bg-gray-700:hover,
+  .hover\:from-green-600:hover {
+    transform: none !important;
+  }
+
+  /* Better spacing for touch */
+  .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1rem !important;
+  }
+}
+
+/* Safe area insets for modern mobile devices */
 @supports (padding: max(0px)) {
   .safe-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
@@ -80,95 +267,144 @@
   .safe-top {
     padding-top: max(env(safe-area-inset-top), 1rem);
   }
-}
-
-/* Touch-friendly targets */
-@media (max-width: 768px) {
-  button, 
-  [role="button"],
-  input,
-  textarea {
-    min-height: 44px;
-    min-width: 44px;
+  
+  .safe-left {
+    padding-left: max(env(safe-area-inset-left), 1rem);
   }
   
-  button {
-    padding: 12px 16px;
-  }
-  
-  textarea {
-    padding: 12px;
-    font-size: 16px !important; /* Prevents zoom on iOS */
+  .safe-right {
+    padding-right: max(env(safe-area-inset-right), 1rem);
   }
 }
 
-/* Loading states */
-@keyframes pulse-ring {
+/* Loading skeleton for messages */
+@keyframes shimmer-mobile {
   0% {
-    transform: scale(0.9);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1);
-    opacity: 1;
+    background-position: -1000px 0;
   }
   100% {
-    transform: scale(0.9);
-    opacity: 0.7;
+    background-position: 1000px 0;
   }
 }
 
-.pulse-ring {
-  animation: pulse-ring 1.5s ease-in-out infinite;
+.loading-skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer-mobile 2s infinite linear;
+  border-radius: 1rem;
+  height: 60px;
+  margin-bottom: 1rem;
 }
 
-/* Responsive typography */
+.dark .loading-skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+}
+
+/* Prevent text overflow on mobile */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Better scrolling on iOS */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for 100vh on mobile */
+.h-screen {
+  height: 100vh; /* Fallback */
+  height: 100dvh;
+}
+
+/* Responsive font sizes */
 @media (max-width: 480px) {
-  h1 {
-    font-size: 1.5rem !important;
-  }
-  
-  .text-xl {
-    font-size: 1.1rem !important;
+  .text-2xl {
+    font-size: 1.25rem !important;
   }
   
   .text-lg {
     font-size: 1rem !important;
   }
-}
-
-/* Better hover states for touch devices */
-@media (hover: hover) {
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  }
-}
-
-/* Landscape mode optimization */
-@media (orientation: landscape) and (max-height: 600px) {
-  .chat-container {
-    max-height: 100vh;
+  
+  .text-base {
+    font-size: 0.875rem !important;
   }
   
-  .messages-area {
-    max-height: 50vh;
+  .text-sm {
+    font-size: 0.75rem !important;
+  }
+  
+  .text-xs {
+    font-size: 0.625rem !important;
   }
 }
 
-/* Dark mode transitions */
-@media (prefers-color-scheme: dark) {
-  .transition-colors {
-    transition: background-color 0.3s ease, color 0.3s ease;
+/* Grid adjustments for quick suggestions on tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .flex-wrap.gap-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+/* Message bubble max-width progression */
+@media (min-width: 1280px) {
+  .max-w-\[85\%\] {
+    max-width: 60% !important;
+  }
+}
+
+/* Fix for modal/dialog on mobile */
+@media (max-width: 768px) {
+  .fixed.inset-0 {
+    padding: 1rem;
+  }
+}
+
+/* Ensure images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Improve readability on mobile */
+.whitespace-pre-wrap {
+  word-break: break-word;
+}
+
+/* Responsive padding for main container */
+@media (max-width: 640px) {
+  .px-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+}
+
+/* Smooth transitions for responsive changes */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, transform, width, height, padding, margin;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hide elements on specific breakpoints */
+@media (max-width: 480px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-on-desktop {
+    display: none !important;
   }
 }
