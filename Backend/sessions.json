@@ -39,23 +39,33 @@
       }
     ]
   },
-  "8e060e60-6ef6-49b3-a723-02dd5ec624ec": {
-    "id": "8e060e60-6ef6-49b3-a723-02dd5ec624ec",
-    "name": "Chat 2026-02-21 04:06",
-    "created_at": "2026-02-21T04:06:35.181544",
-    "updated_at": "2026-02-21T04:07:19.546265",
-    "message_count": 2,
-    "preview": "How to perform wudu?",
+  "6639a63e-1669-4f9a-9c13-b376f5648594": {
+    "id": "6639a63e-1669-4f9a-9c13-b376f5648594",
+    "name": "Chat 2026-02-21 05:00",
+    "created_at": "2026-02-21T05:00:02.244942",
+    "updated_at": "2026-02-21T05:00:24.747033",
+    "message_count": 4,
+    "preview": "What are the five pillars of Islam?",
     "messages": [
       {
         "role": "user",
-        "content": "How to perform wudu?",
-        "timestamp": "2026-02-21T04:07:19.544271"
+        "content": "What are the five pillars of Islam?",
+        "timestamp": "2026-02-21T05:00:10.644009"
       },
       {
         "role": "bot",
-        "content": "As-salamu alaykum. Wudu (ablution) is a beautiful act of physical and spiritual purification that prepares a Muslim for standing before Allah in prayer. Allah says in the Quran:\n\n> *\"O you who have believed, when you rise to [perform] prayer, wash your faces and your forearms to the elbows and wipe over your heads and wash your feet to the ankles...\"* (Surah Al-Ma\u2019idah, 5:6)\n\nBelow is a step-by-step guide on how to perform Wudu according to the Sunnah (practice) of the Prophet Muhammad (peace be upon him).\n\n### 1. Make the Intention (Niyyah)\nStart by having the intention in your heart that you are performing Wudu for the sake of Allah to prepare for prayer. You do not need to say this out loud.\n\n### 2. Say Bismillah\nBegin by saying **\"Bismillah\"** (In the name of Allah).\n\n### 3. Wash the Hands\nWash your hands up to the wrists three times. Ensure that water reaches between your fingers.\n\n### 4. Rinse the Mouth (Madmadah)\nTake a handful of water into your mouth, swirl it around, and spit it out. Do this three times.\n\n### 5. Sniff Water into the Nose (Istinshaq)\nTake a little water in your right hand, sniff it into your nostrils, and then blow it out using your left hand. Do this three times.\n\n### 6. Wash the Face\nWash your entire face three times, from the hairline to the chin and from ear to ear. If you have a beard, run your wet fingers through it (Khilal).\n\n### 7. Wash the Arms\nWash your right arm from the fingertips up to and including the elbow three times. Then, do the same for the left arm three times.\n\n### 8. Wipe the Head (Masah)\nWet your hands and move them from the front of your hairline to the back of your head, and then back to the front. This is done once.\n\n### 9. Wipe the Ears\nImmediately after wiping the head, use your index fingers to wipe the inside of your ears and your thumbs to wipe the back of your ears. This is done once.\n\n### 10. Wash the Feet\nWash your right foot up to and including the ankle three times, ensuring water reaches between the toes (using your pinky finger). Then, do the same for the left foot three times.\n\n---\n\n### After Completing Wudu\nIt is highly recommended to recite the **Shahada** (the Testimony of Faith) after finishing:\n\n> *\"Ash-hadu alla ilaha illallah, wahdahu la sharika lah, wa ash-hadu anna Muhammadan \u2018abduhu wa rasuluh.\"*\n>\n> (I bear witness that there is no god but Allah, alone, without partner, and I bear witness that Muhammad is His servant and Messenger.)\n\nThe Prophet (peace be upon him) said that for whoever says this after Wudu, the eight gates of Paradise are opened for them to enter through whichever they choose (Sahih Muslim).\n\n### Important Reminders:\n*   **Order and Continuity:** Perform the steps in the order mentioned and do not leave long gaps between steps (one body part should not dry before you move to the next).\n*   **Water Conservation:** Our Prophet (peace be upon him) encouraged us not to waste water, even if we are by a flowing river. Use only as much as you need.\n*   **Spiritual Benefit:** Remember that as the water washes away the physical dirt, it is also a means for Allah to forgive the small sins committed by those parts of the body.\n\nMay Allah accept your purification and your prayers.\n\nAnd Allah knows best.",
-        "timestamp": "2026-02-21T04:07:19.546265"
+        "content": "An error occurred. Please try again.",
+        "timestamp": "2026-02-21T05:00:10.646421"
+      },
+      {
+        "role": "user",
+        "content": "who is ali",
+        "timestamp": "2026-02-21T05:00:24.744593"
+      },
+      {
+        "role": "bot",
+        "content": "An error occurred. Please try again.",
+        "timestamp": "2026-02-21T05:00:24.747033"
       }
     ]
   }

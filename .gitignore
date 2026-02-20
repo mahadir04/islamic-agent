@@ -1,13 +1,27 @@
+_# Python
 __pycache__/
 *.py[cod]
 *$py.class
+.venv/
+venv/
+env/
+
+# Dependencies
 node_modules/
 frontend/node_modules/
 Backend/node_modules/
-package-lock.json
+
+# Environment / Secrets
 .env
 Backend/.env
 frontend/.env
-venv/
+.env.local
+
+# Logs and OS files
 *.log
 .DS_Store
+Thumbs.db
+
+# Build outputs (Optional but recommended)
+frontend/build/
+frontend/dist/
