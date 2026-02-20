@@ -8,9 +8,11 @@ export default function Sidebar({
   onSelectSession,
   onNewChat,
   onDeleteSession,
-  isLoading
+  isLoading,
+  isMobile
 }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleDelete = (e, sessionId) => {
     e.stopPropagation();
@@ -38,12 +40,17 @@ export default function Sidebar({
     return date.toLocaleDateString();
   };
 
+  const filteredSessions = sessions.filter(session =>
+    session.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (!isOpen) return null;
 
   return (
-    <div className={`w-80 border-r flex flex-col transition-colors duration-300 ${
+    <div className={`w-80 border-r flex flex-col transition-all duration-300 ${
       isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    } ${isMobile && !isOpen ? 'sidebar-hidden' : ''}`}>
+      
       {/* Sidebar Header */}
       <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
         <button
@@ -59,36 +66,56 @@ export default function Sidebar({
           </svg>
           <span>New Chat</span>
         </button>
+
+        {/* Search Bar */}
+        <div className="mt-4 relative">
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={`w-full py-2 px-3 pl-9 rounded-lg text-sm transition-colors duration-200 ${
+              isDarkMode
+                ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-green-500'
+                : 'bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-green-500'
+            } focus:outline-none focus:ring-1 focus:ring-green-500`}
+          />
+          <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
       </div>
 
       {/* Sessions List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
         {isLoading ? (
           <div className="p-4 text-center">
             <div className={`inline-block animate-spin rounded-full h-8 w-8 border-b-2 ${
               isDarkMode ? 'border-green-400' : 'border-green-600'
             }`}></div>
             <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Loading sessions...
+              Loading chats...
             </p>
           </div>
-        ) : sessions.length === 0 ? (
+        ) : filteredSessions.length === 0 ? (
           <div className="p-4 text-center">
-            <div className={`text-6xl mb-4`}>💬</div>
+            <div className={`text-6xl mb-4 opacity-50`}>💬</div>
             <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              No conversations yet
+              {searchTerm ? 'No chats found' : 'No chats yet'}
             </p>
-            <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
-              Start a new chat to begin
-            </p>
+            {!searchTerm && (
+              <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                Start a new chat to begin
+              </p>
+            )}
           </div>
         ) : (
-          <div className="p-2 space-y-2">
-            {sessions.map((session) => (
+          <div className="space-y-2">
+            {filteredSessions.map((session) => (
               <div
                 key={session.id}
                 onClick={() => onSelectSession(session.id)}
-                className={`group relative p-4 rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                   currentSessionId === session.id
                     ? isDarkMode
                       ? 'bg-gray-800 border-2 border-green-600'
@@ -98,43 +125,52 @@ export default function Sidebar({
                       : 'bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                 }`}
               >
-                {/* Session Name */}
-                <div className={`font-medium mb-1 pr-8 truncate ${
-                  isDarkMode ? 'text-gray-200' : 'text-gray-800'
-                }`}>
-                  {session.name}
-                </div>
-
-                {/* Session Preview */}
-                <div className={`text-xs mb-2 truncate ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  {session.preview || 'No messages yet'}
-                </div>
-
-                {/* Session Meta */}
-                <div className="flex items-center justify-between text-xs">
-                  <span className={isDarkMode ? 'text-gray-500' : 'text-gray-500'}>
-                    {formatDate(session.updated_at)}
-                  </span>
-                  <span className={`px-2 py-1 rounded ${
-                    isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+                {/* Chat Icon and Name */}
+                <div className="flex items-start space-x-3">
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    isDarkMode ? 'bg-gray-700' : 'bg-green-100'
                   }`}>
-                    {session.message_count} msgs
-                  </span>
+                    <span className="text-sm">💬</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-medium text-sm mb-1 truncate ${
+                      isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                    }`}>
+                      {session.name || 'New Chat'}
+                    </div>
+                    
+                    {/* Message Preview */}
+                    <div className={`text-xs mb-2 truncate ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {session.preview || 'No messages yet'}
+                    </div>
+
+                    {/* Session Meta */}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className={isDarkMode ? 'text-gray-500' : 'text-gray-500'}>
+                        {formatDate(session.updated_at)}
+                      </span>
+                      <span className={`px-2 py-1 rounded ${
+                        isDarkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {session.message_count || 0} msgs
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Delete Button */}
                 <button
                   onClick={(e) => handleDelete(e, session.id)}
-                  className={`absolute top-2 right-2 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 ${
+                  className={`absolute top-2 right-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 ${
                     deleteConfirm === session.id
                       ? 'bg-red-500 text-white'
                       : isDarkMode
                         ? 'bg-gray-700 text-gray-300 hover:bg-red-600 hover:text-white'
                         : 'bg-white text-gray-600 hover:bg-red-500 hover:text-white'
                   }`}
-                  title={deleteConfirm === session.id ? 'Click again to confirm' : 'Delete session'}
+                  title={deleteConfirm === session.id ? 'Click again to confirm' : 'Delete chat'}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -152,6 +188,7 @@ export default function Sidebar({
       }`}>
         <p>Islamic AI Assistant</p>
         <p className="mt-1">Based on authentic sources</p>
+        <p className="mt-1 text-[10px]">{sessions.length} conversations</p>
       </div>
     </div>
   );

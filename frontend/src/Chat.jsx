@@ -2,12 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { askQuestion, getSession } from "./api";
 
 export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
-  const [messages, setMessages] = useState([
-    { 
-      role: "bot", 
-      content: "As-salamu alaykum! I'm your Islamic AI assistant. I can answer questions based on Quran, Hadith, and authentic Islamic sources. How can I help you today?" 
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingSession, setLoadingSession] = useState(false);
@@ -25,14 +20,6 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
   useEffect(() => {
     if (sessionId) {
       loadSessionMessages(sessionId);
-    } else {
-      // Reset to welcome message if no session
-      setMessages([
-        { 
-          role: "bot", 
-          content: "As-salamu alaykum! I'm your Islamic AI assistant. I can answer questions based on Quran, Hadith, and authentic Islamic sources. How can I help you today?" 
-        }
-      ]);
     }
   }, [sessionId]);
 
@@ -41,15 +28,12 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
     try {
       const session = await getSession(sid);
       if (session && session.messages && session.messages.length > 0) {
-        setMessages(session.messages.map(msg => ({
-          role: msg.role,
-          content: msg.content
-        })));
+        setMessages(session.messages);
       } else {
         setMessages([
           { 
             role: "bot", 
-            content: "As-salamu alaykum! I'm your Islamic AI assistant. How can I help you today?" 
+            content: "As-salamu alaykum! I'm your Islamic AI assistant. I can answer questions based on Quran, Hadith, and authentic Islamic sources. How can I help you today?" 
           }
         ]);
       }
@@ -66,26 +50,30 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const sendMessage = async (messageText = input) => {
+    if (!messageText.trim() || loading) return;
     
-    const userMessage = input.trim();
+    const userMessage = messageText.trim();
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { role: "user", content: userMessage, timestamp: new Date().toISOString() }]);
     setLoading(true);
 
     try {
       const response = await askQuestion(userMessage, sessionId);
-      setMessages(prev => [...prev, { role: "bot", content: response.answer }]);
+      setMessages(prev => [...prev, { 
+        role: "bot", 
+        content: response.answer,
+        timestamp: new Date().toISOString()
+      }]);
       
-      // Update session list
       if (onSessionUpdate) {
         onSessionUpdate();
       }
     } catch (error) {
       setMessages(prev => [...prev, { 
         role: "bot", 
-        content: "As-salamu alaykum. I apologize, but I'm having trouble connecting to the knowledge base. Please try again later or consult with a local scholar." 
+        content: "I apologize, but I'm having trouble connecting. Please try again later.",
+        timestamp: new Date().toISOString()
       }]);
     } finally {
       setLoading(false);
@@ -98,6 +86,13 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
       sendMessage();
     }
   };
+
+  const quickQuestions = [
+    "What are the five pillars of Islam?",
+    "How to perform wudu?",
+    "Zakat calculation rules",
+    "Hanafi ruling on music"
+  ];
 
   if (loadingSession) {
     return (
@@ -150,6 +145,15 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
                 <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
                   {message.content}
                 </div>
+                {message.timestamp && (
+                  <div className={`text-xs mt-2 ${
+                    message.role === "user" 
+                      ? 'text-blue-100' 
+                      : isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    {new Date(message.timestamp).toLocaleTimeString()}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -183,6 +187,30 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Quick Questions */}
+      {messages.length <= 1 && (
+        <div className={`px-6 py-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
+          <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Try asking:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {quickQuestions.map((q, i) => (
+              <button
+                key={i}
+                onClick={() => sendMessage(q)}
+                className={`px-3 py-2 text-sm rounded-lg transition-all ${
+                  isDarkMode
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                }`}
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       
       {/* Input Area */}
       <div className={`border-t p-6 ${
@@ -204,11 +232,11 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
               disabled={loading}
             />
             <div className="absolute right-3 bottom-3 text-gray-400 text-sm">
-              ↵ Enter to send
+              ↵ Enter
             </div>
           </div>
           <button
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
             className={`self-end px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center space-x-2 ${
               loading || !input.trim()
@@ -223,28 +251,6 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
-        </div>
-        
-        {/* Quick Suggestions */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {[
-            "What are the five pillars of Islam?",
-            "How to perform wudu?",
-            "Zakat calculation rules",
-            "Hanafi ruling on music"
-          ].map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => setInput(suggestion)}
-              className={`px-3 py-2 rounded-full text-sm transition-all duration-200 ${
-                isDarkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
-            >
-              {suggestion}
-            </button>
-          ))}
         </div>
       </div>
     </div>
