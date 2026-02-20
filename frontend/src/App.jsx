@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Chat from "./Chat";
 import Sidebar from "./Sidebar";
@@ -17,32 +17,36 @@ function MainApp({ isDarkMode, setIsDarkMode, user, setUser }) {
 
   // Handle window resize
   useEffect(() => {
+    let timeout;
+
     const handleResize = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      if (mobile) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const mobile = window.innerWidth < 768;
+        setIsMobile(mobile);
+        setIsSidebarOpen(!mobile);
+      }, 100);
     };
-    
-    window.addEventListener('resize', handleResize);
+
+    window.addEventListener("resize", handleResize);
     handleResize();
-    return () => window.removeEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
-  // Load sessions
-  const loadSessions = async () => {
+  // Memoized loadSessions function
+  const loadSessions = useCallback(async () => {
     setIsLoadingSessions(true);
     try {
       const loadedSessions = await getSessions();
       setSessions(loadedSessions);
-      
+
       if (loadedSessions.length > 0 && !currentSessionId) {
         setCurrentSessionId(loadedSessions[0].id);
       } else if (loadedSessions.length === 0) {
-        // Create a default session if none exists
         const newId = await createNewSession();
         setCurrentSessionId(newId);
       }
@@ -51,13 +55,14 @@ function MainApp({ isDarkMode, setIsDarkMode, user, setUser }) {
     } finally {
       setIsLoadingSessions(false);
     }
-  };
+  }, [currentSessionId]);
 
+  // Load sessions when user is available
   useEffect(() => {
     if (user) {
       loadSessions();
     }
-  }, [user]);
+  }, [user, loadSessions]);
 
   const handleNewChat = async () => {
     try {
@@ -80,7 +85,7 @@ function MainApp({ isDarkMode, setIsDarkMode, user, setUser }) {
   const handleDeleteSession = async (sessionId) => {
     try {
       await deleteSession(sessionId);
-      
+
       if (sessionId === currentSessionId) {
         const remaining = sessions.filter(s => s.id !== sessionId);
         if (remaining.length > 0) {
@@ -90,6 +95,7 @@ function MainApp({ isDarkMode, setIsDarkMode, user, setUser }) {
           setCurrentSessionId(newId);
         }
       }
+
       await loadSessions();
     } catch (error) {
       console.error("Error deleting session:", error);
