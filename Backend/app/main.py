@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
