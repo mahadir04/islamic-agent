@@ -9,11 +9,7 @@ from datetime import datetime, timedelta
 import logging
 import httpx
 import os
-from dotenv import load_dotenv
-
-# Load environment variables at the very beginning
-load_dotenv()
-
+# Environment variables are now loaded in main.py
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
