@@ -114,8 +114,8 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area */}
-      <div className={`flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar ${
-        isDarkMode ? 'bg-gray-900' : 'bg-white'
+      <div className={`flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar relative mx-auto w-full max-w-5xl ${
+        isDarkMode ? 'bg-[#0f0f11]' : 'bg-transparent'
       }`}>
         {messages.map((message, index) => (
           <div
@@ -133,14 +133,14 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
               </div>
               
               {/* Message Bubble */}
-              <div className={`rounded-2xl p-4 shadow-sm ${
+              <div className={`rounded-3xl px-5 py-3.5 max-w-full animate-fade-in ${
                 message.role === "user"
                   ? isDarkMode
-                    ? 'bg-blue-600 text-white rounded-br-none'
-                    : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-none'
+                    ? 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-br-sm'
+                    : 'bg-[#101010] text-gray-100 shadow-sm rounded-br-sm'
                   : isDarkMode
-                    ? 'bg-gray-800 text-gray-100 border border-gray-700 rounded-bl-none'
-                    : 'bg-gradient-to-r from-green-50 to-blue-50 text-gray-800 border border-green-100 rounded-bl-none'
+                    ? 'bg-[#0f0f11] text-gray-300 border border-white/5 rounded-bl-sm'
+                    : 'bg-white text-gray-700 border border-gray-100 shadow-sm rounded-bl-sm'
               }`}>
                 <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
                   {message.content}
@@ -166,10 +166,10 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
                 AI
               </div>
-              <div className={`rounded-2xl p-4 shadow-sm ${
+              <div className={`rounded-3xl px-5 py-4 animate-fade-in ${
                 isDarkMode
-                  ? 'bg-gray-800 text-gray-100 border border-gray-700 rounded-bl-none'
-                  : 'bg-gradient-to-r from-green-50 to-blue-50 text-gray-800 border border-green-100 rounded-bl-none'
+                  ? 'bg-transparent text-gray-400 border border-white/5 rounded-bl-sm'
+                  : 'bg-white text-gray-500 border border-gray-100 shadow-sm rounded-bl-sm'
               }`}>
                 <div className="flex items-center space-x-2">
                   <div className="flex space-x-1">
@@ -190,19 +190,16 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
 
       {/* Quick Questions */}
       {messages.length <= 1 && (
-        <div className={`px-6 py-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
-          <p className={`text-sm mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Try asking:
-          </p>
-          <div className="flex flex-wrap gap-2">
+        <div className={`px-6 py-4 flex flex-col items-center justify-center`}>
+          <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
             {quickQuestions.map((q, i) => (
               <button
                 key={i}
                 onClick={() => sendMessage(q)}
-                className={`px-3 py-2 text-sm rounded-lg transition-all ${
+                className={`px-4 py-2 text-sm rounded-full transition-all duration-300 transform hover:scale-105 ${
                   isDarkMode
-                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-                    : 'bg-white text-gray-700 hover:bg-green-50 hover:text-green-700 border border-gray-200'
+                    ? 'bg-[#1a1a1a] text-gray-400 hover:text-gray-200 border border-white/5 hover:border-white/20'
+                    : 'bg-white text-gray-600 shadow-sm hover:shadow border border-gray-100 hover:border-gray-200'
                 }`}
               >
                 {q}
@@ -213,41 +210,37 @@ export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
       )}
       
       {/* Input Area */}
-      <div className={`border-t p-6 ${
-        isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'
-      }`}>
-        <div className="flex space-x-4">
-          <div className="flex-1 relative">
+      <div className="p-4 md:p-6 w-full max-w-4xl mx-auto backdrop-blur-md sticky bottom-0 z-10">
+        <div className={`flex items-end space-x-2 rounded-[2rem] p-2 shadow-sm transition-all duration-300 ${
+          isDarkMode ? 'bg-[#1a1a1a]/80 border border-white/10 focus-within:border-white/20' : 'bg-white border border-gray-200 focus-within:border-gray-300'
+        }`}>
+          <div className="flex-1 relative flex items-center">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask your question about Islam (prayer, fasting, zakat, fiqh rulings, etc.)..."
-              className={`w-full border rounded-2xl p-4 pr-12 resize-none focus:outline-none focus:ring-2 transition-all duration-200 custom-scrollbar ${
-                isDarkMode
-                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-green-500 focus:border-green-500'
-                  : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-green-500 focus:border-green-500'
+              placeholder="Ask anything..."
+              className={`w-full bg-transparent border-none py-3 pl-4 pr-10 resize-none focus:outline-none max-h-32 text-[15px] custom-scrollbar ${
+                isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-800 placeholder-gray-400'
               }`}
-              rows="3"
+              rows="1"
               disabled={loading}
+              style={{ minHeight: '48px' }}
             />
-            <div className="absolute right-3 bottom-3 text-gray-400 text-sm">
-              ↵ Enter
+            <div className={`absolute right-3 text-xs opacity-0 md:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>
+              ↵
             </div>
           </div>
           <button
             onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
-            className={`self-end px-6 py-3 rounded-2xl font-medium transition-all duration-200 flex items-center space-x-2 ${
+            className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 ${
               loading || !input.trim()
-                ? isDarkMode
-                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                ? isDarkMode ? 'bg-[#2a2a2a] text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                : isDarkMode ? 'bg-white text-black hover:scale-105' : 'bg-[#101010] text-white shadow-xl shadow-black/10 hover:scale-105'
             }`}
           >
-            <span>Send</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

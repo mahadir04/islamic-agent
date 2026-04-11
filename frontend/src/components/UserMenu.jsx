@@ -1,9 +1,22 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Profile from './Profile';
 
 export default function UserMenu({ isDarkMode, user, setUser }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   if (!user) return null;
 
@@ -16,7 +29,7 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
 
   return (
     <>
-      <div className="relative">
+      <div className="relative" ref={menuRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center space-x-2 focus:outline-none"
@@ -36,12 +49,7 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
-            <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-50 overflow-hidden ${
+          <div className={`absolute right-0 mt-2 w-64 rounded-xl shadow-2xl z-50 overflow-hidden ${
               isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
             }`}>
               {/* User Info */}
@@ -64,7 +72,22 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
               </div>
 
               {/* Menu Items */}
-              <div className="p-2">
+              <div className="p-2 space-y-1">
+                <button
+                  onClick={() => {
+                    window.location.href = '/dashboard';
+                    setIsOpen(false);
+                  }}
+                  className={`w-full px-4 py-2 text-left rounded-lg flex items-center space-x-3 transition-colors ${
+                    isDarkMode
+                      ? 'hover:bg-gray-700 text-gray-300'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <span>📊</span>
+                  <span>Dashboard</span>
+                </button>
+
                 <button
                   onClick={() => {
                     setShowProfile(true);
@@ -93,7 +116,6 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
                 </button>
               </div>
             </div>
-          </>
         )}
       </div>
 

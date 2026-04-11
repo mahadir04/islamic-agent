@@ -8,7 +8,7 @@ export default function Login({ isDarkMode }) {
     // Check if user is already logged in
     const token = localStorage.getItem('token');
     if (token) {
-      window.location.href = '/';
+      window.location.href = '/chat';
     }
   }, []);
 
@@ -41,22 +41,24 @@ export default function Login({ isDarkMode }) {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${
-      isDarkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-green-50 via-blue-50 to-purple-50'
+    <div className={`min-h-screen flex items-center justify-center font-sans transition-colors duration-500 ${
+      isDarkMode ? 'bg-[#0f0f11]' : 'bg-[#fafafa]'
     }`}>
-      <div className={`max-w-md w-full mx-4 p-8 rounded-2xl shadow-2xl ${
-        isDarkMode ? 'bg-gray-800' : 'bg-white'
+      <div className={`max-w-md w-full mx-4 p-10 rounded-3xl backdrop-blur-xl border transition-all duration-300 ${
+        isDarkMode ? 'bg-[#1a1a1a]/80 border-white/5 shadow-2xl shadow-black/50' : 'bg-white/80 border-gray-200/50 shadow-xl shadow-gray-200/50'
       }`}>
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white text-3xl">🕌</span>
+        <div className="text-center mb-10">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border ${
+            isDarkMode ? 'bg-gray-800 border-gray-700 text-green-400' : 'bg-white border-gray-100 text-green-600'
+          }`}>
+            <span className="text-2xl">🕌</span>
           </div>
-          <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-            Islamic AI Assistant
+          <h1 className={`text-2xl font-semibold tracking-tight mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+            Welcome back
           </h1>
-          <p className={`mt-2 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-            Sign in with your Google account to access your conversations
+          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            Sign in to access your Islamic AI Assistant
           </p>
         </div>
 
@@ -71,16 +73,18 @@ export default function Login({ isDarkMode }) {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-3 ${
+          className={`w-full py-3.5 px-4 rounded-xl font-medium text-sm transition-all duration-300 flex items-center justify-center space-x-3 ${
             isDarkMode
-              ? 'bg-gray-700 text-white hover:bg-gray-600'
-              : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
-          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              ? 'bg-white text-black hover:scale-105 shadow-sm hover:shadow-white/10'
+              : 'bg-[#101010] text-white hover:scale-[1.02] shadow-sm hover:shadow-black/10'
+          } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
         >
           {loading ? (
             <>
-              <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-              <span>Redirecting to Google...</span>
+              <div className={`w-5 h-5 border-2 border-t-transparent rounded-full animate-spin ${
+                isDarkMode ? 'border-black/30 text-black' : 'border-white/30 text-white'
+              }`}></div>
+              <span>Redirecting...</span>
             </>
           ) : (
             <>

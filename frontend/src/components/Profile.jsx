@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getUserProfile, getUserStats, updateProfile, uploadProfilePicture } from '../api';
 
 export default function Profile({ isDarkMode, onClose, onUpdate }) {
@@ -80,7 +81,7 @@ export default function Profile({ isDarkMode, onClose, onUpdate }) {
     );
   }
 
-  return (
+  return createPortal(
     <div className={`fixed inset-0 z-50 overflow-y-auto ${isDarkMode ? 'bg-gray-900/95' : 'bg-white/95'}`}>
       <div className="min-h-screen px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -313,6 +314,7 @@ export default function Profile({ isDarkMode, onClose, onUpdate }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -19,7 +19,7 @@ export default function AuthCallback() {
         
         // Small delay to ensure token is stored
         setTimeout(() => {
-          navigate('/');
+          navigate('/chat');
         }, 100);
       } else if (error) {
         console.error('Auth error:', error);

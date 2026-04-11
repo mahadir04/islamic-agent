@@ -47,21 +47,21 @@ export default function Sidebar({
   if (!isOpen) return null;
 
   return (
-    <div className={`w-80 border-r flex flex-col transition-all duration-300 ${
-      isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+    <div className={`w-80 flex flex-col transition-all duration-300 ${
+      isDarkMode ? 'bg-[#111113] border-r border-white/5' : 'bg-[#fafafa] border-r border-gray-200/50'
     } ${isMobile && !isOpen ? 'sidebar-hidden' : ''}`}>
       
       {/* Sidebar Header */}
-      <div className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+      <div className={`p-5 pb-4 border-b ${isDarkMode ? 'border-white/5' : 'border-gray-200/50'}`}>
         <button
           onClick={onNewChat}
-          className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+          className={`w-full py-2.5 px-4 rounded-full font-medium text-sm transition-all duration-300 flex items-center justify-center space-x-2 ${
             isDarkMode
-              ? 'bg-gradient-to-r from-green-600 to-emerald-700 text-white hover:from-green-700 hover:to-emerald-800'
-              : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700'
-          } shadow-lg hover:shadow-xl transform hover:-translate-y-0.5`}
+              ? 'bg-white text-black hover:scale-105 shadow-sm hover:shadow-white/10'
+              : 'bg-[#101010] text-white hover:scale-105 shadow-sm hover:shadow-black/10'
+          }`}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span>New Chat</span>
@@ -74,11 +74,11 @@ export default function Sidebar({
             placeholder="Search chats..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full py-2 px-3 pl-9 rounded-lg text-sm transition-colors duration-200 ${
+            className={`w-full py-2 px-3 pl-9 rounded-xl text-sm transition-colors duration-200 bg-transparent ${
               isDarkMode
-                ? 'bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:border-green-500'
-                : 'bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-green-500'
-            } focus:outline-none focus:ring-1 focus:ring-green-500`}
+                ? 'border border-gray-700 text-white placeholder-gray-500 focus:border-white/20 hover:border-white/10'
+                : 'border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-gray-300 hover:border-gray-300'
+            } focus:outline-none`}
           />
           <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -115,25 +115,25 @@ export default function Sidebar({
               <div
                 key={session.id}
                 onClick={() => onSelectSession(session.id)}
-                className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`group relative p-3 rounded-2xl cursor-pointer transition-all duration-300 mx-1 ${
                   currentSessionId === session.id
                     ? isDarkMode
-                      ? 'bg-gray-800 border-2 border-green-600'
-                      : 'bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-500'
+                      ? 'bg-white/5 border border-white/5'
+                      : 'bg-black/5 border border-black/5'
                     : isDarkMode
-                      ? 'bg-gray-800 border border-gray-700 hover:bg-gray-750 hover:border-gray-600'
-                      : 'bg-gray-50 border border-gray-200 hover:bg-gray-100 hover:border-gray-300'
+                      ? 'border border-transparent hover:bg-white/5'
+                      : 'border border-transparent hover:bg-black/5'
                 }`}
               >
                 {/* Chat Icon and Name */}
                 <div className="flex items-start space-x-3">
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    isDarkMode ? 'bg-gray-700' : 'bg-green-100'
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center opacity-70 ${
+                    isDarkMode ? 'bg-[#1a1a1a] text-gray-300' : 'bg-gray-200/50 text-gray-600'
                   }`}>
-                    <span className="text-sm">💬</span>
+                    <span className="text-sm tracking-tighter">💬</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`font-medium text-sm mb-1 truncate ${
+                    <div className={`font-semibold tracking-tight text-sm mb-0.5 truncate ${
                       isDarkMode ? 'text-gray-200' : 'text-gray-800'
                     }`}>
                       {session.name || 'New Chat'}
@@ -183,8 +183,8 @@ export default function Sidebar({
       </div>
 
       {/* Sidebar Footer */}
-      <div className={`p-4 border-t text-xs text-center ${
-        isDarkMode ? 'border-gray-700 text-gray-500' : 'border-gray-200 text-gray-500'
+      <div className={`p-5 text-[11px] text-center tracking-wide ${
+        isDarkMode ? 'text-gray-600' : 'text-gray-400'
       }`}>
         <p>Islamic AI Assistant</p>
         <p className="mt-1">Based on authentic sources</p>

@@ -43,8 +43,8 @@
     "id": "6639a63e-1669-4f9a-9c13-b376f5648594",
     "name": "Chat 2026-02-21 05:00",
     "created_at": "2026-02-21T05:00:02.244942",
-    "updated_at": "2026-02-21T05:00:24.747033",
-    "message_count": 4,
+    "updated_at": "2026-04-12T01:57:52.867008",
+    "message_count": 6,
     "preview": "What are the five pillars of Islam?",
     "messages": [
       {
@@ -66,6 +66,45 @@
         "role": "bot",
         "content": "An error occurred. Please try again.",
         "timestamp": "2026-02-21T05:00:24.747033"
+      },
+      {
+        "role": "user",
+        "content": "who is ali",
+        "timestamp": "2026-04-12T01:57:52.864586"
+      },
+      {
+        "role": "bot",
+        "content": "As-salamu alaykum. Ali ibn Abi Talib (may Allah be pleased with him) is one of the most significant figures in Islamic history. He was the cousin and son-in-law of the Prophet Muhammad (peace be upon him), the fourth of the Rightly Guided Caliphs (*Khulafa-ur-Rashidun*), and a central figure in both Sunni and Shia traditions.\n\nHere are the key aspects of his life and legacy based on Islamic teachings:\n\n### 1. Early Life and Conversion\nAli was the son of Abu Talib, the Prophet's uncle. He was raised in the Prophet\u2019s household, which gave him a unique closeness to the Messenger of Allah. At the age of approximately ten, he became the first child (and one of the very first people) to embrace Islam. He remained a steadfast supporter of the Prophet throughout the difficult early years in Makkah.\n\n### 2. Relationship with the Prophet (PBUH)\nAli was exceptionally close to the Prophet Muhammad (PBUH). Their bond was both familial and spiritual.\n*   **Son-in-law:** He married the Prophet\u2019s youngest daughter, Fatima al-Zahra (may Allah be pleased with her). From this union came the Prophet\u2019s grandsons, Al-Hasan and Al-Husayn, whom the Prophet called the \"leaders of the youth of Paradise.\"\n*   **The \"Brotherhood\":** When the Prophet established bonds of brotherhood between the Migrants (*Muhajirun*) and the Helpers (*Ansar*) in Madinah, he chose Ali as his own brother.\n\n### 3. Bravery and Military Role\nAli was famous for his unmatched courage on the battlefield. He was known as ***Asadullah*** (The Lion of Allah). \n*   He played a pivotal role in the battles of Badr, Uhud, Khandaq, and Khaybar. \n*   At the Battle of Khaybar, the Prophet (PBUH) said: *\"Tomorrow I will give the banner to a man who loves Allah and His Messenger, and whom Allah and His Messenger love.\"* That man was Ali.\n\n### 4. Knowledge and Wisdom\nAli was renowned for his deep understanding of the Quran and Islamic jurisprudence. The Prophet (PBUH) is reported to have said: *\"I am the city of knowledge and Ali is its gate\"* (Tirmidhi). He was a master of eloquence, and his sermons and letters are still studied today for their spiritual and ethical depth.\n\n### 5. The Fourth Caliph\nAfter the martyrdom of Uthman ibn Affan (RA), Ali was chosen as the fourth Caliph of Islam (656\u2013661 CE). His caliphate was a period of great internal trial (*Fitna*), but he remained committed to social justice, the equal distribution of the treasury (*Bayt al-Mal*), and the principles of the Quran.\n\n### 6. His Virtues in Hadith\nMany Sahih (authentic) Hadiths highlight his status:\n*   **The Position of Aaron:** The Prophet (PBUH) said to Ali: *\"Are you not satisfied that you should be to me like Aaron was to Moses, except that there will be no Prophet after me?\"* (Bukhari and Muslim).\n*   **Mawla:** At Ghadir Khumm, the Prophet stated: *\"Whomever I am his mawla (leader/friend/protector), Ali is his mawla.\"*\n\n### 7. Martyrdom\nAli (RA) was martyred in the year 661 CE (40 AH) while praying Fajr in the Great Mosque of Kufa. He was struck by a poisoned sword by a member of the Kharijite sect. His death marked the end of the era of the *Khulafa-ur-Rashidun*.\n\n**Summary:**\nTo Muslims, Ali ibn Abi Talib is a symbol of **justice, bravery, and spiritual devotion.** He is a role model for how to live a life of complete submission to Allah while serving the community with wisdom and compassion. Regardless of different schools of thought, all Muslims hold him in the highest esteem as a member of the *Ahl al-Bayt* (the Prophet's family) and a hero of the faith.\n\nAnd Allah knows best.",
+        "timestamp": "2026-04-12T01:57:52.866271"
+      }
+    ]
+  },
+  "d15234f7-8d5c-499c-920b-1dbd41f059ac": {
+    "id": "d15234f7-8d5c-499c-920b-1dbd41f059ac",
+    "name": "Chat 2026-04-12 02:03",
+    "created_at": "2026-04-12T02:03:51.052818",
+    "updated_at": "2026-04-12T02:03:51.052818",
+    "message_count": 0,
+    "preview": "New conversation",
+    "messages": []
+  },
+  "8bcd3154-207e-4ae7-8aee-ae794e595396": {
+    "id": "8bcd3154-207e-4ae7-8aee-ae794e595396",
+    "name": "Chat 2026-04-12 02:06",
+    "created_at": "2026-04-12T02:06:16.746575",
+    "updated_at": "2026-04-12T02:24:00.467060",
+    "message_count": 2,
+    "preview": "Hanafi ruling on music",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hanafi ruling on music",
+        "timestamp": "2026-04-12T02:24:00.464189"
+      },
+      {
+        "role": "bot",
+        "content": "As-salamu alaykum. In the Hanafi school of jurisprudence (*Madhhab*), the ruling on music is based on the interpretations of the Quran, the Sunnah, and the views of the early scholars of the school.\n\nHere is a detailed breakdown of the Hanafi position:\n\n### 1. General Prohibition of Musical Instruments\nThe classical and mainstream Hanafi position is that the use of musical instruments (wind, string, and most percussion) is **impermissible (Haram)**. This applies to both playing the instruments and listening to them for entertainment.\n\nHanafi jurists base this on several primary sources:\n*   **The Quran:** In Surah Luqman (31:6), Allah mentions: *\"And of the people is he who buys the amusement of speech to mislead [others] from the way of Allah...\"* Several companions of the Prophet \ufdfa, including Abdullah ibn Mas\u2019ud (a primary authority for the Hanafi school), interpreted \"amusement of speech\" (*lahw al-hadith*) as referring to music.\n*   **The Hadith:** A frequently cited narration in Sahih Bukhari states: *\"There will be from my Ummah people who will seek to make lawful: plain silk, wine, and musical instruments.\"* The context of this Hadith suggests that these items are inherently prohibited.\n\n### 2. The Exception: The Duff (Tambourine)\nThe Hanafi school makes a specific exception for the **Duff** (a simple frame drum without bells or snares).\n*   It is permitted to use the Duff during specific joyous occasions, such as **weddings (Nikah)** and **Eid**, to announce the celebration.\n*   The Prophet \ufdfa permitted the Duff in these contexts, as recorded in various Sahih narrations. However, even this permission is generally restricted to these specific occasions rather than for general, daily entertainment.\n\n### 3. Vocal Music (Singing)\nThe ruling on singing without instruments (*Ghina*) depends on the content and the context:\n*   **Permissible:** If the lyrics contain praise of Allah (Hamd), praise of the Prophet \ufdfa (Naat), or encourage wisdom, morality, and courage, it is generally considered permissible, provided it does not lead to neglecting religious duties.\n*   **Impermissible:** If the singing involves vulgarity, encourages sin, describes physical attraction in a way that incites lust, or is performed in a manner resembling the gatherings of the sinful, it is strictly forbidden.\n\n### 4. The Reason Behind the Ruling\nHanafi scholars often explain that the prohibition is intended to protect the heart from \"spiritual hypocrisy\" and distraction. They argue that music can create a state of emotional intoxication that distracts a believer from the remembrance of Allah (*Dhikr*) and the contemplation of the Quran.\n\n### 5. Contemporary Considerations\nWhile the classical Hanafi position remains the standard for the school, some contemporary scholars distinguish between:\n1.  **Music that incites sin or immorality:** Unanimously prohibited.\n2.  **Background sounds or \"natural\" melodies:** Many scholars distinguish between purposeful musical entertainment and accidental or background sounds (like ringtones or nature documentaries), advising caution but not necessarily labeling every sound as sinful.\n\n### Summary\nAccording to the Hanafi school:\n*   **Musical instruments** (strings, flutes, etc.) are generally **Haram**.\n*   The **Duff** is allowed for weddings and Eid.\n*   **Vocal-only singing** is allowed if the content is pure and it does not lead to a neglect of religious obligations.\n\n**Compassionate Note:**\nThe path of faith is a journey. If you find this ruling difficult, scholars encourage focusing on the beauty of the Quranic recitation and Islamic poetry (*Nasheeds* or *Hamds*) as a spiritual alternative that brings peace to the heart without the legal complications associated with traditional music. \n\n*Disclaimer: For specific personal situations, it is always recommended to consult with a qualified local Mufti or scholar who can provide guidance tailored to your circumstances.*\n\nAnd Allah knows best.",
+        "timestamp": "2026-04-12T02:24:00.467060"
       }
     ]
   }
