@@ -277,6 +277,4 @@ async def update_profile(
     user_db.update_user(email, user)
     return user
 
-@router.get("/")
-def health_check():
-    return {"status": "running", "message": "Islamic AI Agent API"}
+# End of router routes

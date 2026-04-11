@@ -37,7 +37,7 @@ export default function Login({ isDarkMode }) {
     setLoading(true);
     setError(null);
     const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
-    window.location.href = `${backendUrl}/auth/google`;
+    window.location.href = `${backendUrl}/api/auth/google`;
   };
 
   return (

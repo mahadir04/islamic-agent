@@ -33,8 +33,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include router
-app.include_router(router)
+# Include router with /api prefix
+app.include_router(router, prefix="/api")
 
 @app.get("/")
 def root():
