@@ -40,6 +40,18 @@ app.include_router(router, prefix="/api")
 def root():
     return {"status": "running", "message": "Islamic AI Agent is ready"}
 
+@app.get("/health")
+def health():
+    """Diagnostic endpoint to verify environment variables are loaded."""
+    return {
+        "status": "running",
+        "google_client_id_set": bool(os.getenv("GOOGLE_CLIENT_ID")),
+        "google_client_secret_set": bool(os.getenv("GOOGLE_CLIENT_SECRET")),
+        "gemini_api_key_set": bool(os.getenv("GEMINI_API_KEY")),
+        "backend_url": os.getenv("BACKEND_URL", "NOT SET"),
+        "frontend_url": os.getenv("FRONTEND_URL", "NOT SET"),
+    }
+
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting Islamic AI Backend Server...")

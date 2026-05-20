@@ -26,7 +26,8 @@ class QuestionRequest(BaseModel):
 async def google_login():
     """Redirect to Google OAuth"""
     client_id = os.getenv("GOOGLE_CLIENT_ID")
-    redirect_uri = f"{os.getenv('BACKEND_URL', 'http://localhost:8000')}/auth/google/callback"
+    backend_url = os.getenv('BACKEND_URL', 'http://localhost:8000').rstrip('/')
+    redirect_uri = f"{backend_url}/api/auth/google/callback"
     
     if not client_id:
         logger.error("GOOGLE_CLIENT_ID not found in environment variables")
@@ -63,7 +64,7 @@ async def google_callback(request: Request, code: str = None, error: str = None)
             "code": code,
             "client_id": os.getenv("GOOGLE_CLIENT_ID"),
             "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
-            "redirect_uri": f"{os.getenv('BACKEND_URL', 'http://localhost:8000')}/auth/google/callback",
+            "redirect_uri": f"{os.getenv('BACKEND_URL', 'http://localhost:8000').rstrip('/')}/api/auth/google/callback",
             "grant_type": "authorization_code",
         }
         
