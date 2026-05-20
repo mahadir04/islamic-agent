@@ -3,9 +3,9 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables early
+# Load environment variables early (force override so cached terminal variables don't conflict)
 env_path = Path(__file__).resolve().parent.parent / '.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=env_path, override=True)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
