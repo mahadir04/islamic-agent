@@ -17,9 +17,9 @@ export default function AuthCallback() {
         localStorage.setItem('token', token);
         console.log('Token stored successfully');
         
-        // Small delay to ensure token is stored
+        // Force a full page reload to the dashboard so App.jsx detects the new token
         setTimeout(() => {
-          navigate('/chat');
+          window.location.href = '/dashboard';
         }, 100);
       } else if (error) {
         console.error('Auth error:', error);

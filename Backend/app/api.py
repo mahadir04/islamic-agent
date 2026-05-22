@@ -156,7 +156,8 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 async def get_sessions(current_user: dict = Depends(get_current_user)):
     """Get all sessions for current user"""
     try:
-        sessions = session_manager.get_all_sessions()
+        user_id = current_user["email"]
+        sessions = session_manager.get_all_sessions(user_id=user_id)
         return {"sessions": sessions}
     except Exception as e:
         logger.error(f"Error getting sessions: {e}")
@@ -166,7 +167,8 @@ async def get_sessions(current_user: dict = Depends(get_current_user)):
 async def create_session(current_user: dict = Depends(get_current_user)):
     """Create a new session"""
     try:
-        session_id = session_manager.create_session()
+        user_id = current_user["email"]
+        session_id = session_manager.create_session(user_id=user_id)
         return {"session_id": session_id}
     except Exception as e:
         logger.error(f"Error creating session: {e}")
@@ -176,7 +178,8 @@ async def create_session(current_user: dict = Depends(get_current_user)):
 async def get_session(session_id: str, current_user: dict = Depends(get_current_user)):
     """Get specific session with full message history"""
     try:
-        session = session_manager.get_session(session_id)
+        user_id = current_user["email"]
+        session = session_manager.get_session(session_id, user_id=user_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         return session.to_full_dict()
@@ -190,7 +193,8 @@ async def get_session(session_id: str, current_user: dict = Depends(get_current_
 async def delete_session(session_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a session"""
     try:
-        success = session_manager.delete_session(session_id)
+        user_id = current_user["email"]
+        success = session_manager.delete_session(session_id, user_id=user_id)
         if not success:
             raise HTTPException(status_code=404, detail="Session not found")
         return {"message": "Session deleted successfully"}
@@ -208,25 +212,26 @@ async def ask_question(
 ):
     """Ask a question"""
     try:
-        logger.info(f"Question from {current_user['email']}: {req.question[:50]}...")
+        user_id = current_user["email"]
+        logger.info(f"Question from {user_id}: {req.question[:50]}...")
         
         # Create new session if none provided
         if not req.session_id:
-            session_id = session_manager.create_session()
+            session_id = session_manager.create_session(user_id=user_id)
         else:
             session_id = req.session_id
-            if not session_manager.get_session(session_id):
-                session_id = session_manager.create_session()
+            if not session_manager.get_session(session_id, user_id=user_id):
+                session_id = session_manager.create_session(user_id=user_id)
         
         # Get conversation history
-        conversation_history = session_manager.get_messages(session_id, limit=10)
+        conversation_history = session_manager.get_messages(session_id, user_id=user_id, limit=10)
         
         # Get answer from agent with context
         answer = await agent.answer_question(req.question, conversation_history)
         
         # Save to session history
-        session_manager.add_message(session_id, "user", req.question)
-        session_manager.add_message(session_id, "bot", answer)
+        session_manager.add_message(session_id, "user", req.question, user_id=user_id)
+        session_manager.add_message(session_id, "bot", answer, user_id=user_id)
         
         return {
             "answer": answer,
@@ -246,7 +251,8 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
 @router.get("/profile/stats")
 async def get_stats(current_user: dict = Depends(get_current_user)):
     """Get user stats"""
-    sessions = session_manager.get_all_sessions()
+    user_id = current_user["email"]
+    sessions = session_manager.get_all_sessions(user_id=user_id)
     total_chats = len(sessions)
     total_messages = sum(s.get("message_count", 0) for s in sessions)
     

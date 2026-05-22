@@ -1,141 +1,43 @@
 {
-  "7c6dfb0c-4b73-423c-9beb-e1281746d6b7": {
-    "id": "7c6dfb0c-4b73-423c-9beb-e1281746d6b7",
-    "name": "Chat 2026-02-20 17:13",
-    "created_at": "2026-02-20T17:13:37.861302",
-    "updated_at": "2026-02-20T17:26:23.140849",
-    "message_count": 6,
-    "preview": "who is ali",
-    "messages": [
-      {
-        "role": "user",
-        "content": "who is ali",
-        "timestamp": "2026-02-20T17:16:56.192307"
-      },
-      {
-        "role": "bot",
-        "content": "I'm having trouble connecting to the AI service. Please try again later.",
-        "timestamp": "2026-02-20T17:16:56.199264"
-      },
-      {
-        "role": "user",
-        "content": "who is alie",
-        "timestamp": "2026-02-20T17:19:51.258642"
-      },
-      {
-        "role": "bot",
-        "content": "I'm having trouble connecting to the AI service. Please try again later.",
-        "timestamp": "2026-02-20T17:19:51.258642"
-      },
-      {
-        "role": "user",
-        "content": "who is ali",
-        "timestamp": "2026-02-20T17:26:23.136088"
-      },
-      {
-        "role": "bot",
-        "content": "As-salamu alaykum. **Ali ibn Abi Talib (may Allah be pleased with him)** is one of the most significant figures in Islamic history. He was the cousin and son-in-law of the Prophet Muhammad (peace be upon him) and is revered by all Muslims for his piety, courage, knowledge, and deep devotion to Islam.\n\nHere are the key aspects of his life and legacy based on Islamic teachings:\n\n### 1. Relation to the Prophet (PBUH)\nAli was the son of Abu Talib, the Prophet's uncle who protected him during the early years of Islam. Ali was raised in the household of the Prophet (PBUH) and later married the Prophet\u2019s beloved daughter, **Fatima al-Zahra**. From this marriage, they had two sons, **Hasan and Husayn**, whom the Prophet (PBUH) called the \"leaders of the youth of Paradise.\"\n\n### 2. Early Acceptance of Islam\nAli was the first male to accept Islam, doing so when he was only about 10 years old. He remained a steadfast supporter of the Prophet (PBUH) throughout his life. On the night of the *Hijrah* (migration to Medina), Ali famously risked his life by sleeping in the Prophet's bed to deceive those who intended to assassinate him, allowing the Prophet to escape safely.\n\n### 3. The Fourth Rightly Guided Caliph\nIn the Sunni tradition, Ali is the fourth of the **Khulafa-ur-Rashidun** (Rightly Guided Caliphs), ruling from 656 to 661 CE. His caliphate was a period marked by his pursuit of justice and adherence to the principles of the Quran and Sunnah, even amidst internal challenges.\n\n### 4. Knowledge and Wisdom\nAli was renowned for his profound understanding of the Quran and Islamic jurisprudence. The Prophet (PBUH) is reported to have said in a famous Hadith:\n> *\"I am the city of knowledge and Ali is its gate.\"* (Tirmidhi)\n\nHe was an eloquent orator and a deep thinker. Many of his sermons, letters, and sayings were later compiled in the famous book *Nahj al-Balagha* (The Peak of Eloquence).\n\n### 5. Bravery and Military Leadership\nAli was known as **Asadullah** (the Lion of Allah) for his extraordinary bravery on the battlefield. He participated in almost all the major battles of early Islam, including Badr, Uhud, and Khandaq. At the Battle of Khaybar, he famously breached the gates of the fortress when others could not.\n\n### 6. Spiritual Status\nIn both Sunni and Shia traditions, Ali holds a high spiritual rank. In the event of **Ghadir Khumm**, the Prophet (PBUH) took Ali\u2019s hand and declared:\n> *\"Whomever's Mawla (master/friend) I am, Ali is his Mawla.\"* (Ahmad, Tirmidhi)\n\nWhile Muslims interpret the implications of this event in different ways regarding leadership (Imamate vs. Wilayah), all agree that it signifies Ali's exceptional status and the requirement for Muslims to love and respect him.\n\n### 7. Martyrdom\nAli (may Allah be pleased with him) was martyred in the year 661 CE (40 AH) while he was praying Fajr in the Great Mosque of Kufa. He was struck with a poisoned sword by a member of the Kharijite sect. He met his death with the words, *\"By the Lord of the Kaaba, I have succeeded.\"*\n\n**Summary:**\nAli ibn Abi Talib is a symbol of the perfect fusion of **bravery and humility**, **knowledge and action**, and **power and justice**. To Muslims, he remains a timeless role model of how to live a life completely dedicated to Allah and His Messenger.\n\nAnd Allah knows best.",
-        "timestamp": "2026-02-20T17:26:23.140849"
-      }
-    ]
-  },
-  "6639a63e-1669-4f9a-9c13-b376f5648594": {
-    "id": "6639a63e-1669-4f9a-9c13-b376f5648594",
-    "name": "Chat 2026-02-21 05:00",
-    "created_at": "2026-02-21T05:00:02.244942",
-    "updated_at": "2026-04-12T01:57:52.867008",
-    "message_count": 6,
-    "preview": "What are the five pillars of Islam?",
-    "messages": [
-      {
-        "role": "user",
-        "content": "What are the five pillars of Islam?",
-        "timestamp": "2026-02-21T05:00:10.644009"
-      },
-      {
-        "role": "bot",
-        "content": "An error occurred. Please try again.",
-        "timestamp": "2026-02-21T05:00:10.646421"
-      },
-      {
-        "role": "user",
-        "content": "who is ali",
-        "timestamp": "2026-02-21T05:00:24.744593"
-      },
-      {
-        "role": "bot",
-        "content": "An error occurred. Please try again.",
-        "timestamp": "2026-02-21T05:00:24.747033"
-      },
-      {
-        "role": "user",
-        "content": "who is ali",
-        "timestamp": "2026-04-12T01:57:52.864586"
-      },
-      {
-        "role": "bot",
-        "content": "As-salamu alaykum. Ali ibn Abi Talib (may Allah be pleased with him) is one of the most significant figures in Islamic history. He was the cousin and son-in-law of the Prophet Muhammad (peace be upon him), the fourth of the Rightly Guided Caliphs (*Khulafa-ur-Rashidun*), and a central figure in both Sunni and Shia traditions.\n\nHere are the key aspects of his life and legacy based on Islamic teachings:\n\n### 1. Early Life and Conversion\nAli was the son of Abu Talib, the Prophet's uncle. He was raised in the Prophet\u2019s household, which gave him a unique closeness to the Messenger of Allah. At the age of approximately ten, he became the first child (and one of the very first people) to embrace Islam. He remained a steadfast supporter of the Prophet throughout the difficult early years in Makkah.\n\n### 2. Relationship with the Prophet (PBUH)\nAli was exceptionally close to the Prophet Muhammad (PBUH). Their bond was both familial and spiritual.\n*   **Son-in-law:** He married the Prophet\u2019s youngest daughter, Fatima al-Zahra (may Allah be pleased with her). From this union came the Prophet\u2019s grandsons, Al-Hasan and Al-Husayn, whom the Prophet called the \"leaders of the youth of Paradise.\"\n*   **The \"Brotherhood\":** When the Prophet established bonds of brotherhood between the Migrants (*Muhajirun*) and the Helpers (*Ansar*) in Madinah, he chose Ali as his own brother.\n\n### 3. Bravery and Military Role\nAli was famous for his unmatched courage on the battlefield. He was known as ***Asadullah*** (The Lion of Allah). \n*   He played a pivotal role in the battles of Badr, Uhud, Khandaq, and Khaybar. \n*   At the Battle of Khaybar, the Prophet (PBUH) said: *\"Tomorrow I will give the banner to a man who loves Allah and His Messenger, and whom Allah and His Messenger love.\"* That man was Ali.\n\n### 4. Knowledge and Wisdom\nAli was renowned for his deep understanding of the Quran and Islamic jurisprudence. The Prophet (PBUH) is reported to have said: *\"I am the city of knowledge and Ali is its gate\"* (Tirmidhi). He was a master of eloquence, and his sermons and letters are still studied today for their spiritual and ethical depth.\n\n### 5. The Fourth Caliph\nAfter the martyrdom of Uthman ibn Affan (RA), Ali was chosen as the fourth Caliph of Islam (656\u2013661 CE). His caliphate was a period of great internal trial (*Fitna*), but he remained committed to social justice, the equal distribution of the treasury (*Bayt al-Mal*), and the principles of the Quran.\n\n### 6. His Virtues in Hadith\nMany Sahih (authentic) Hadiths highlight his status:\n*   **The Position of Aaron:** The Prophet (PBUH) said to Ali: *\"Are you not satisfied that you should be to me like Aaron was to Moses, except that there will be no Prophet after me?\"* (Bukhari and Muslim).\n*   **Mawla:** At Ghadir Khumm, the Prophet stated: *\"Whomever I am his mawla (leader/friend/protector), Ali is his mawla.\"*\n\n### 7. Martyrdom\nAli (RA) was martyred in the year 661 CE (40 AH) while praying Fajr in the Great Mosque of Kufa. He was struck by a poisoned sword by a member of the Kharijite sect. His death marked the end of the era of the *Khulafa-ur-Rashidun*.\n\n**Summary:**\nTo Muslims, Ali ibn Abi Talib is a symbol of **justice, bravery, and spiritual devotion.** He is a role model for how to live a life of complete submission to Allah while serving the community with wisdom and compassion. Regardless of different schools of thought, all Muslims hold him in the highest esteem as a member of the *Ahl al-Bayt* (the Prophet's family) and a hero of the faith.\n\nAnd Allah knows best.",
-        "timestamp": "2026-04-12T01:57:52.866271"
-      }
-    ]
-  },
-  "d15234f7-8d5c-499c-920b-1dbd41f059ac": {
-    "id": "d15234f7-8d5c-499c-920b-1dbd41f059ac",
-    "name": "Chat 2026-04-12 02:03",
-    "created_at": "2026-04-12T02:03:51.052818",
-    "updated_at": "2026-04-12T02:03:51.052818",
-    "message_count": 0,
-    "preview": "New conversation",
-    "messages": []
-  },
-  "8bcd3154-207e-4ae7-8aee-ae794e595396": {
-    "id": "8bcd3154-207e-4ae7-8aee-ae794e595396",
-    "name": "Chat 2026-04-12 02:06",
-    "created_at": "2026-04-12T02:06:16.746575",
-    "updated_at": "2026-05-22T22:11:08.366589",
-    "message_count": 4,
+  "03cde33a-748c-47bc-aedc-41854afe3e8a": {
+    "id": "03cde33a-748c-47bc-aedc-41854afe3e8a",
+    "user_id": "alihok23321@gmail.com",
+    "name": "Hanafi ruling on music",
+    "created_at": "2026-05-22T22:43:00.989691",
+    "updated_at": "2026-05-22T22:43:20.674988",
+    "message_count": 2,
     "preview": "Hanafi ruling on music",
     "messages": [
       {
         "role": "user",
         "content": "Hanafi ruling on music",
-        "timestamp": "2026-04-12T02:24:00.464189"
+        "timestamp": "2026-05-22T22:43:20.674988"
       },
       {
         "role": "bot",
-        "content": "As-salamu alaykum. In the Hanafi school of jurisprudence (*Madhhab*), the ruling on music is based on the interpretations of the Quran, the Sunnah, and the views of the early scholars of the school.\n\nHere is a detailed breakdown of the Hanafi position:\n\n### 1. General Prohibition of Musical Instruments\nThe classical and mainstream Hanafi position is that the use of musical instruments (wind, string, and most percussion) is **impermissible (Haram)**. This applies to both playing the instruments and listening to them for entertainment.\n\nHanafi jurists base this on several primary sources:\n*   **The Quran:** In Surah Luqman (31:6), Allah mentions: *\"And of the people is he who buys the amusement of speech to mislead [others] from the way of Allah...\"* Several companions of the Prophet \ufdfa, including Abdullah ibn Mas\u2019ud (a primary authority for the Hanafi school), interpreted \"amusement of speech\" (*lahw al-hadith*) as referring to music.\n*   **The Hadith:** A frequently cited narration in Sahih Bukhari states: *\"There will be from my Ummah people who will seek to make lawful: plain silk, wine, and musical instruments.\"* The context of this Hadith suggests that these items are inherently prohibited.\n\n### 2. The Exception: The Duff (Tambourine)\nThe Hanafi school makes a specific exception for the **Duff** (a simple frame drum without bells or snares).\n*   It is permitted to use the Duff during specific joyous occasions, such as **weddings (Nikah)** and **Eid**, to announce the celebration.\n*   The Prophet \ufdfa permitted the Duff in these contexts, as recorded in various Sahih narrations. However, even this permission is generally restricted to these specific occasions rather than for general, daily entertainment.\n\n### 3. Vocal Music (Singing)\nThe ruling on singing without instruments (*Ghina*) depends on the content and the context:\n*   **Permissible:** If the lyrics contain praise of Allah (Hamd), praise of the Prophet \ufdfa (Naat), or encourage wisdom, morality, and courage, it is generally considered permissible, provided it does not lead to neglecting religious duties.\n*   **Impermissible:** If the singing involves vulgarity, encourages sin, describes physical attraction in a way that incites lust, or is performed in a manner resembling the gatherings of the sinful, it is strictly forbidden.\n\n### 4. The Reason Behind the Ruling\nHanafi scholars often explain that the prohibition is intended to protect the heart from \"spiritual hypocrisy\" and distraction. They argue that music can create a state of emotional intoxication that distracts a believer from the remembrance of Allah (*Dhikr*) and the contemplation of the Quran.\n\n### 5. Contemporary Considerations\nWhile the classical Hanafi position remains the standard for the school, some contemporary scholars distinguish between:\n1.  **Music that incites sin or immorality:** Unanimously prohibited.\n2.  **Background sounds or \"natural\" melodies:** Many scholars distinguish between purposeful musical entertainment and accidental or background sounds (like ringtones or nature documentaries), advising caution but not necessarily labeling every sound as sinful.\n\n### Summary\nAccording to the Hanafi school:\n*   **Musical instruments** (strings, flutes, etc.) are generally **Haram**.\n*   The **Duff** is allowed for weddings and Eid.\n*   **Vocal-only singing** is allowed if the content is pure and it does not lead to a neglect of religious obligations.\n\n**Compassionate Note:**\nThe path of faith is a journey. If you find this ruling difficult, scholars encourage focusing on the beauty of the Quranic recitation and Islamic poetry (*Nasheeds* or *Hamds*) as a spiritual alternative that brings peace to the heart without the legal complications associated with traditional music. \n\n*Disclaimer: For specific personal situations, it is always recommended to consult with a qualified local Mufti or scholar who can provide guidance tailored to your circumstances.*\n\nAnd Allah knows best.",
-        "timestamp": "2026-04-12T02:24:00.467060"
-      },
-      {
-        "role": "user",
-        "content": "what is the say about qurbani",
-        "timestamp": "2026-05-22T22:11:08.364575"
-      },
-      {
-        "role": "bot",
-        "content": "As-salamu alaykum. **Qurbani** (or *Udhiyah* in Arabic) is the ritual animal sacrifice performed by Muslims during the days of Eid al-Adha. It is a deeply symbolic act of worship that commemorates the devotion of Prophet Ibrahim (Abraham) AS and his son Prophet Ismail AS.\n\nSince your previous question focused on the Hanafi school, I will provide the details according to the **Hanafi Madhhab**, while acknowledging general Islamic principles.\n\n### 1. The Ruling (The \"Say\") on Qurbani\nIn the Hanafi school, Qurbani is **Wajib** (obligatory) upon every Muslim who meets the criteria. This is based on the Hadith of the Prophet \ufdfa: *\"Whoever has the means but does not offer a sacrifice, let him not come near our prayer place.\"* (Ibn Majah).\n\nOther schools of thought (Shafi'i, Maliki, and Hanbali) generally view it as a **Sunnah Mu\u2019akkadah** (a highly emphasized Sunnah), meaning it is strongly encouraged but not strictly mandatory.\n\n### 2. Who Must Perform Qurbani?\nAccording to the Hanafi school, Qurbani is required for an individual who:\n*   Is a **Muslim**.\n*   Is **Sane and Mature** (reached puberty).\n*   Is a **Resident** (not a traveler according to Shariah definitions).\n*   **Possesses the Nisab:** Has wealth equivalent to the value of 52.5 tolas of silver (approx. 612 grams) beyond their basic needs and debts. \n    *   *Note:* Unlike Zakat, you do **not** need to have possessed this wealth for a full year; if you have it during the days of Eid, Qurbani is Wajib.\n\n### 3. The Time for Qurbani\nThe sacrifice must be performed during the designated days of Eid al-Adha:\n*   It begins **after the Eid prayer** on the 10th of Dhul-Hijjah. \n*   It ends at **sunset on the 12th of Dhul-Hijjah**.\n*   Sacrificing before the Eid prayer is not considered Qurbani; it would simply be considered regular meat.\n\n### 4. Eligible Animals and Requirements\nOnly certain animals can be used for Qurbani. They must be healthy and meet a minimum age:\n*   **Sheep and Goats:** Minimum 1 year old. (A 6-month-old sheep can be used if it is so healthy/large that it looks like a 1-year-old). One sheep/goat equals **one share** (for one person).\n*   **Cows, Buffaloes, and Camels:** Minimum 2 years for cows/buffaloes; 5 years for camels. These animals consist of **seven shares** (up to seven people can contribute to one animal).\n\n**Physical Conditions:** The animal must be free from significant defects. It should not be blind, excessively thin, or so lame that it cannot walk to the place of slaughter.\n\n### 5. Distribution of the Meat\nWhile you are permitted to keep all the meat for yourself, the Sunnah and the recommended practice is to divide the meat into **three parts**:\n1.  **One third** for the poor and needy.\n2.  **One third** for friends, relatives, and neighbors.\n3.  **One third** for your own household.\n\nIf you have a large family and are not wealthy, it is perfectly acceptable to keep the majority or all of the meat for your family.\n\n### 6. The Spiritual Essence\nThe Quran clarifies that the physical act of sacrifice is a means to reach God through piety:\n> *\"Their meat will not reach Allah, nor will their blood, but what reaches Him is piety from you...\"* (Surah Al-Hajj, 22:37)\n\nThe \"say\" about Qurbani is that it is an act of **Taqwa** (God-consciousness). It teaches us to give up something we value (wealth/food) for the sake of Allah, just as Prophet Ibrahim (AS) was willing to sacrifice his son.\n\n### Summary of Rules (Hanafi)\n*   **Status:** Wajib for those with means.\n*   **Timing:** 10th, 11th, and 12th of Dhul-Hijjah.\n*   **Intent:** Must be for the sake of Allah alone.\n*   **Etiquette:** It is recommended for the person intending to sacrifice not to cut their hair or nails from the 1st of Dhul-Hijjah until the sacrifice is completed.\n\n**Compassionate Note:**\nIf you find yourself unable to perform Qurbani due to genuine financial hardship, Allah is the Most Merciful and does not burden a soul beyond its capacity. If you are performing it, remember that this is a beautiful way to feed the hungry and strengthen community ties.\n\nAnd Allah knows best.",
-        "timestamp": "2026-05-22T22:11:08.366589"
+        "content": "As-salamu alaykum. In the Hanafi school of jurisprudence (*Madhhab*), the ruling on music is characterized by caution and a general prohibition of musical instruments. This position is based on the interpretations of the Quran and the Sunnah by the early scholars of Kufa and the foundational imams of the school.\n\nHere is a detailed breakdown of the Hanafi ruling:\n\n### 1. The General Prohibition\nThe majority of Hanafi jurists consider the use of musical instruments (*ma'azif*) and listening to them to be **Haram** (prohibited) or **Makruh Tahrimi** (prohibitively disliked, which is close to Haram in practice).\n\nThis includes stringed instruments (like violins or guitars), wind instruments (like flutes), and most types of drums.\n\n### 2. Evidence from the Quran\nHanafi scholars frequently cite Surah Luqman, Verse 6:\n> *\"And of mankind is he who purchases idle talk (Lahw al-Hadith) to mislead (men) from the Path of Allah...\"* (31:6).\n\nThe great Sahabi **Abdullah ibn Mas\u2019ud** (may Allah be pleased with him), whose legal school became the foundation for the Hanafi Madhhab, famously swore by Allah that \"idle talk\" in this verse refers to singing and music.\n\n### 3. Evidence from the Hadith\nThe Hanafi position is strongly supported by several Hadiths, most notably a narration in **Sahih Bukhari**:\n> The Prophet (peace be upon him) said: *\"There will be people from my Ummah who will seek to make lawful: zina (adultery), silk, alcohol, and musical instruments (ma'azif).\"*\n\nHanafi jurists argue that by grouping musical instruments with major sins like adultery and alcohol, the Prophet (peace be upon him) indicated their prohibition.\n\n### 4. Exceptions: The Duff (Tambourine)\nThe Hanafi school allows a limited exception for the **Duff** (a one-sided drum without rattles or bells). \n*   **When:** It is permitted primarily for weddings (*Nikah*) and Eid celebrations to announce the joy.\n*   **Condition:** The lyrics must be wholesome and not contain any impermissible content. Some scholars within the school specify that this is mainly for women and children.\n\n### 5. Singing Without Instruments (Vocal Music)\nRegarding singing with the voice alone (without instruments):\n*   **Permissible:** If the lyrics are \"Hamd\" (praise of Allah), \"Naat\" (praise of the Prophet), or encourage virtue, and it is not done in a way that mimics the style of sinful people (*fasiq*).\n*   **Prohibited:** If the lyrics contain themes of passion, indecency, or anything contrary to Islamic belief. If the singing is accompanied by swaying or encourages base desires, it is considered disliked or prohibited.\n\n### 6. Summary of the Hanafi Position\nThe classical Hanafi texts (such as *Al-Hidayah* and *Fatawa Hindiyya*) emphasize that:\n1.  **Listening to music** for entertainment is considered a sin that diminishes one's spiritual state and legal testimony (*adalah*).\n2.  **The Goal** of this prohibition is to protect the heart from \"Nifaq\" (hypocrisy). Imam Abu Hanifa is reported to have said that music \"grows hypocrisy in the heart just as water grows grass.\"\n\n### Compassionate Advice\nWhile the Hanafi ruling is strict on this matter, the intention behind it is to encourage the believer to find peace and tranquility in the **Dhikr** (remembrance) of Allah and the recitation of the **Quran**. \n\nIf you find it difficult to move away from music, scholars suggest replacing it with beautiful Quranic recitations or Nasheeds (vocals only) that remind you of Allah and His Messenger (peace be upon him). May Allah make your journey toward what pleases Him easy and full of reward.\n\n**Allah knows best.**\n\nAnd Allah knows best.",
+        "timestamp": "2026-05-22T22:43:20.674988"
       }
     ]
   },
-  "3b14a8ae-04fc-4e8f-9de0-18cf772248f3": {
-    "id": "3b14a8ae-04fc-4e8f-9de0-18cf772248f3",
-    "name": "What are the five pillars of Islam?",
-    "created_at": "2026-05-22T22:20:36.853020",
-    "updated_at": "2026-05-22T22:20:44.657570",
-    "message_count": 2,
-    "preview": "What are the five pillars of Islam?",
-    "messages": [
-      {
-        "role": "user",
-        "content": "What are the five pillars of Islam?",
-        "timestamp": "2026-05-22T22:20:44.657570"
-      },
-      {
-        "role": "bot",
-        "content": "As-salamu alaykum (Peace be upon you). In Islamic teaching, the Five Pillars are the core beliefs and practices that shape a Muslim\u2019s life and relationship with Allah (God). They are derived from the famous Hadith of the Prophet Muhammad (peace be upon him), where he said:\n\n> *\"Islam is built upon five [pillars]: testifying that there is no god but Allah and that Muhammad is the Messenger of Allah, establishing prayer, giving zakat, making the pilgrimage to the House, and fasting in Ramadan.\"* (Sahih al-Bukhari and Sahih Muslim)\n\nHere is a breakdown of these five pillars:\n\n### 1. Shahada (Profession of Faith)\nThe Shahada is the declaration: *\"Ashhadu alla ilaha illallah, wa ashhadu anna Muhammadan abduhu wa rasuluh\"* (I bear witness that there is no god but Allah, and I bear witness that Muhammad is His servant and messenger). \n*   **Significance:** This is the foundation of Islam. To become a Muslim, one must recite this with sincere belief in the heart. It affirms the absolute oneness of God (Tawhid) and the prophethood of Muhammad (peace be upon him).\n\n### 2. Salah (Prayer)\nMuslims are required to perform five formal prayers throughout the day: Fajr (dawn), Dhuhr (midday), Asr (afternoon), Maghrib (sunset), and Isha (night).\n*   **Significance:** Prayer serves as a direct link between the believer and Allah. It provides spiritual focus, humbles the heart, and reminds the believer of God\u2019s presence throughout the day.\n\n### 3. Zakat (Almsgiving)\nZakat is the requirement that Muslims who possess a certain amount of wealth (above a threshold called *Nisab*) give a portion of it\u2014typically 2.5% of their savings\u2014to those in need.\n*   **Significance:** The word \"Zakat\" means both \"purification\" and \"growth.\" By giving, a Muslim purifies their wealth from greed and helps ensure that the needs of the poor and vulnerable in the community are met.\n\n### 4. Sawm (Fasting during Ramadan)\nDuring the holy month of Ramadan, Muslims abstain from food, drink, and other physical needs from dawn (Fajr) until sunset (Maghrib).\n*   **Significance:** Fasting is an act of deep personal worship. It teaches self-discipline, patience, and God-consciousness (Taqwa). It also serves as a reminder of the plight of those who suffer from hunger, encouraging empathy and charity.\n\n### 5. Hajj (Pilgrimage to Makkah)\nThe Hajj is the pilgrimage to the Kaaba in Makkah, Saudi Arabia. It is mandatory once in a lifetime for every adult Muslim who is physically and financially able to make the journey.\n*   **Significance:** Hajj is a profound spiritual experience where millions of Muslims from every corner of the earth gather in equality before Allah. It commemorates the trials of Prophet Ibrahim (Abraham) and his family and represents a spiritual rebirth for the pilgrim.\n\nTogether, these pillars provide the framework for a life of devotion, social responsibility, and spiritual growth. If you have more questions about any of these specifically, I would be happy to help!\n\nAnd Allah knows best.",
-        "timestamp": "2026-05-22T22:20:44.657570"
-      }
-    ]
+  "91e8352d-a6ce-498b-853a-6371267a0ae3": {
+    "id": "91e8352d-a6ce-498b-853a-6371267a0ae3",
+    "user_id": "hadimrahaman@gmail.com",
+    "name": "New Conversation",
+    "created_at": "2026-05-22T22:51:32.684736",
+    "updated_at": "2026-05-22T22:51:32.684736",
+    "message_count": 0,
+    "preview": "No messages yet",
+    "messages": []
+  },
+  "beffebd5-125d-4fa5-a78c-7027120e478b": {
+    "id": "beffebd5-125d-4fa5-a78c-7027120e478b",
+    "user_id": "hadimrahaman@gmail.com",
+    "name": "New Conversation",
+    "created_at": "2026-05-22T22:51:32.708218",
+    "updated_at": "2026-05-22T22:51:32.708218",
+    "message_count": 0,
+    "preview": "No messages yet",
+    "messages": []
   }
 }
