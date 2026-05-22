@@ -22,9 +22,14 @@ class Session:
         })
         self.message_count = len(self.messages)
         self.updated_at = datetime.now().isoformat()
-        
-        # Update preview with first user message
-        if role == "user" and len(self.messages) <= 2:
+
+        # On the very first user message, rename the session to the question
+        if role == "user":
+            user_messages = [m for m in self.messages if m["role"] == "user"]
+            if len(user_messages) == 1:
+                # Rename session to first question (max 40 chars)
+                self.name = content[:40] + "..." if len(content) > 40 else content
+            # Always update preview with latest user message
             self.preview = content[:50] + "..." if len(content) > 50 else content
     
     def to_dict(self):

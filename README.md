@@ -109,5 +109,37 @@ This application uses zero-knowledge principles where possible. Your conversatio
 
 ---
 
+## 📉 Problem — What a Network Outage Costs Per Minute
+*(Note: Placeholder for network analysis. Network outages can severely impact user accessibility and result in significant downtime costs.)*
+
+---
+
+## 🏗️ System Architecture
+*(Placeholder for Docker Compose Diagram showing Nginx, FastAPI, React, and any integrated monitoring tools like Prometheus/Grafana).*
+
+---
+
+## 📡 KPI Definitions
+* **RSSI**: Received Signal Strength Indicator (measures connection quality).
+* **Packet Loss**: The percentage of data packets that fail to reach their destination.
+* **Jitter**: The variation in the time delay between when a signal is transmitted and when it is received.
+
+---
+
+## ⚙️ Alert Rule Engine
+Alerts are managed via a configurable rule engine. Thresholds can be defined in YAML formats to trigger notifications based on the KPIs defined above.
+
+---
+
+## 🖼️ Dashboard Screenshots
+*(Placeholder: Insert your Grafana panels and dashboard screenshots here)*
+
+---
+
+## 🚀 Load Test Results
+*(Placeholder: Insert throughput metrics, events/sec, and load testing analysis here)*
+
+---
+
 ## 📜 License
 Privately owned and maintained for educational and community support purposes.
