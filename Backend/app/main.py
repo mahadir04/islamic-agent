@@ -27,7 +27,12 @@ from fastapi.middleware.cors import CORSMiddleware
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, "http://localhost:3000", "http://localhost:5173"],
+    allow_origins=[
+        frontend_url, 
+        "http://localhost:3000", 
+        "http://localhost:5173",
+        "https://islamic-agent-pn2n.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
