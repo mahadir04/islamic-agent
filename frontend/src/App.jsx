@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import Chat from "./Chat";
 import Sidebar from "./Sidebar";
@@ -92,7 +92,7 @@ function MainLayout({
             </button>
 
             {/* Title / Badges */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
               <span className="font-bold text-base bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
                 NOOR AI
               </span>
@@ -107,6 +107,16 @@ function MainLayout({
           {/* Navigation Pill tabs */}
           <div className="hidden sm:flex items-center p-1 rounded-xl border border-white/10 bg-black/20">
             <button
+              onClick={() => navigate('/dashboard')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                isDash
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                  : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
               onClick={() => navigate('/chat')}
               className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                 isChat
@@ -115,16 +125,6 @@ function MainLayout({
               }`}
             >
               Ask Assistant
-            </button>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                isDash
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
-                  : isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Analytics
             </button>
           </div>
 
@@ -145,11 +145,7 @@ function MainLayout({
             {user && (
               <UserMenu
                 user={user}
-                onLogout={() => {
-                  localStorage.removeItem('token');
-                  setUser(null);
-                  window.location.href = '/';
-                }}
+                setUser={setUser}
                 isDarkMode={isDarkMode}
               />
             )}
@@ -165,6 +161,15 @@ function MainLayout({
   );
 }
 
+// Protected Route Component
+function ProtectedRoute({ children, user }) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [user, setUser] = useState(null);
@@ -172,17 +177,7 @@ export default function App() {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      getCurrentUser()
-        .then(u => setUser(u))
-        .catch(() => localStorage.removeItem('token'));
-      fetchSessions();
-    }
-  }, []);
-
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     setIsLoadingSessions(true);
     try {
       const data = await getSessions();
@@ -195,7 +190,17 @@ export default function App() {
     } finally {
       setIsLoadingSessions(false);
     }
-  };
+  }, [currentSessionId]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      getCurrentUser()
+        .then(u => setUser(u))
+        .catch(() => localStorage.removeItem('token'));
+      fetchSessions();
+    }
+  }, [fetchSessions]);
 
   const handleNewChat = async () => {
     try {
@@ -230,51 +235,69 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage isDarkMode={isDarkMode} />} />
-        <Route path="/login" element={<Login isDarkMode={isDarkMode} onLoginSuccess={(u) => { setUser(u); fetchSessions(); }} />} />
+        <Route
+          path="/login"
+          element={
+            <Login
+              isDarkMode={isDarkMode}
+              onLoginSuccess={(u) => {
+                setUser(u);
+                fetchSessions();
+              }}
+            />
+          }
+        />
+        
+        {/* Support both /auth/callback and /auth-callback */}
+        <Route path="/auth/callback" element={<AuthCallback isDarkMode={isDarkMode} />} />
         <Route path="/auth-callback" element={<AuthCallback isDarkMode={isDarkMode} />} />
 
         {/* Authenticated routes */}
         <Route
-          path="/chat"
+          path="/dashboard"
           element={
-            <MainLayout
-              isDarkMode={isDarkMode}
-              setIsDarkMode={setIsDarkMode}
-              user={user}
-              setUser={setUser}
-              sessions={sessions}
-              currentSessionId={currentSessionId}
-              isLoadingSessions={isLoadingSessions}
-              handleNewChat={handleNewChat}
-              handleSelectSession={handleSelectSession}
-              handleDeleteSession={handleDeleteSession}
-            >
-              <Chat
+            <ProtectedRoute user={user}>
+              <MainLayout
                 isDarkMode={isDarkMode}
-                sessionId={currentSessionId}
-                onSessionUpdate={fetchSessions}
-              />
-            </MainLayout>
+                setIsDarkMode={setIsDarkMode}
+                user={user}
+                setUser={setUser}
+                sessions={sessions}
+                currentSessionId={currentSessionId}
+                isLoadingSessions={isLoadingSessions}
+                handleNewChat={handleNewChat}
+                handleSelectSession={handleSelectSession}
+                handleDeleteSession={handleDeleteSession}
+              >
+                <Dashboard isDarkMode={isDarkMode} user={user} />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
         <Route
-          path="/dashboard"
+          path="/chat"
           element={
-            <MainLayout
-              isDarkMode={isDarkMode}
-              setIsDarkMode={setIsDarkMode}
-              user={user}
-              setUser={setUser}
-              sessions={sessions}
-              currentSessionId={currentSessionId}
-              isLoadingSessions={isLoadingSessions}
-              handleNewChat={handleNewChat}
-              handleSelectSession={handleSelectSession}
-              handleDeleteSession={handleDeleteSession}
-            >
-              <Dashboard isDarkMode={isDarkMode} />
-            </MainLayout>
+            <ProtectedRoute user={user}>
+              <MainLayout
+                isDarkMode={isDarkMode}
+                setIsDarkMode={setIsDarkMode}
+                user={user}
+                setUser={setUser}
+                sessions={sessions}
+                currentSessionId={currentSessionId}
+                isLoadingSessions={isLoadingSessions}
+                handleNewChat={handleNewChat}
+                handleSelectSession={handleSelectSession}
+                handleDeleteSession={handleDeleteSession}
+              >
+                <Chat
+                  isDarkMode={isDarkMode}
+                  sessionId={currentSessionId}
+                  onSessionUpdate={fetchSessions}
+                />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 

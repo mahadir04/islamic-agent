@@ -28,11 +28,24 @@ const FEATURES = [
 export default function LandingPage({ isDarkMode }) {
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
     return () => clearTimeout(t);
   }, []);
+
+  const handleAction = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className={`min-h-screen transition-all duration-700 ${
@@ -59,7 +72,7 @@ export default function LandingPage({ isDarkMode }) {
         </div>
 
         <button
-          onClick={() => navigate('/login')}
+          onClick={handleAction}
           className={`
             px-5 py-2 rounded-xl text-sm font-semibold
             transition-all duration-200 hover:scale-105 active:scale-95
@@ -69,7 +82,7 @@ export default function LandingPage({ isDarkMode }) {
             }
           `}
         >
-          Sign in →
+          {isAuthenticated ? 'Open Dashboard →' : 'Sign in →'}
         </button>
       </nav>
 
@@ -111,7 +124,7 @@ export default function LandingPage({ isDarkMode }) {
         {/* CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 animate-fade-in delay-225">
           <button
-            onClick={() => navigate('/login')}
+            onClick={handleAction}
             className="
               px-8 py-3.5 rounded-xl text-base font-semibold
               bg-gradient-to-r from-emerald-500 to-green-600
@@ -120,7 +133,7 @@ export default function LandingPage({ isDarkMode }) {
               shadow-xl shadow-emerald-900/30 btn-glow
             "
           >
-            Get Started — It's Free
+            {isAuthenticated ? 'Continue to Dashboard' : "Get Started — It's Free"}
           </button>
           <button
             onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
@@ -178,14 +191,30 @@ export default function LandingPage({ isDarkMode }) {
                 }
               `}>
                 <span dangerouslySetInnerHTML={{
-                  __html: m.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  __html: m.text
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                 }} />
               </div>
-              {m.role === 'user' && (
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                  isDarkMode ? 'bg-slate-700 text-gray-200' : 'bg-slate-600 text-white'
-                }`}>You</div>
-              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Live stats counter */}
+        <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+          {[
+            { val: '100%', label: 'Sahih Citations' },
+            { val: '4', label: 'Madhhab Respect' },
+            { val: '24/7', label: 'Spiritual Companion' },
+            { val: '0', label: 'Data Tracking' },
+          ].map((s, i) => (
+            <div
+              key={i}
+              className={`p-4 rounded-xl border ${
+                isDarkMode ? 'bg-white/2 border-white/5' : 'bg-white border-gray-100 shadow-sm'
+              }`}
+            >
+              <p className="text-xl font-bold text-emerald-400 mb-0.5">{s.val}</p>
+              <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>{s.label}</p>
             </div>
           ))}
         </div>

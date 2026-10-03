@@ -11,7 +11,8 @@ export default function AuthCallback() {
 
     if (token) {
       localStorage.setItem('token', token);
-      setTimeout(() => { window.location.href = '/dashboard'; }, 100);
+      // Directly navigate to dashboard after successful login
+      window.location.href = '/dashboard';
     } else if (error) {
       navigate(`/login?error=${error}`);
     } else {
@@ -20,7 +21,7 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0c0c10]">
+    <div className="min-h-screen flex items-center justify-center bg-[#06090e]">
       <div className="text-center animate-fade-in">
         <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center animate-float">
           <span className="text-3xl">🕌</span>
@@ -30,7 +31,7 @@ export default function AuthCallback() {
           <div className="typing-dot" />
           <div className="typing-dot" />
         </div>
-        <p className="text-gray-500 text-sm">Completing authentication…</p>
+        <p className="text-emerald-400 font-medium text-sm">Completing authentication & loading Dashboard…</p>
       </div>
     </div>
   );

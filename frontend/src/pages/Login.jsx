@@ -5,7 +5,10 @@ export default function Login({ isDarkMode }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (localStorage.getItem('token')) window.location.href = '/chat';
+    // If already logged in, go straight to dashboard
+    if (localStorage.getItem('token')) {
+      window.location.href = '/dashboard';
+    }
   }, []);
 
   useEffect(() => {
