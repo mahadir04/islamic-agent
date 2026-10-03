@@ -31,7 +31,10 @@ app.add_middleware(
         frontend_url, 
         "http://localhost:3000", 
         "http://localhost:5173",
-        "https://islamic-agent-pn2n.vercel.app"
+        "https://islamic-agent-pn2n.vercel.app",
+        "https://localhost",
+        "http://localhost",
+        "capacitor://localhost"
     ],
     allow_credentials=True,
     allow_methods=["*"],

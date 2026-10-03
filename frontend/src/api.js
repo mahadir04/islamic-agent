@@ -1,6 +1,17 @@
 import axios from "axios";
 
-const API_URL = (process.env.REACT_APP_API_URL || "http://localhost:8000") + "/api";
+const getBaseUrl = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // If running inside Capacitor Android app
+  if (typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() || window.location.protocol === 'capacitor:')) {
+    return "http://10.0.2.2:8000";
+  }
+  return "http://localhost:8000";
+};
+
+const API_URL = getBaseUrl().replace(/\/$/, "") + "/api";
 
 // Create axios instance
 const api = axios.create({
