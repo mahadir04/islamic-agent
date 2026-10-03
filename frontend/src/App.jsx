@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Chat from "./Chat";
 import Sidebar from "./Sidebar";
 import Login from "./pages/Login";
@@ -8,321 +8,304 @@ import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import UserMenu from "./components/UserMenu";
 import { getSessions, createNewSession, deleteSession, getCurrentUser } from "./api";
-import './App.css';
 
-function MainLayout({ 
-  isDarkMode, 
-  setIsDarkMode, 
-  user, 
-  setUser, 
-  sessions,
-  currentSessionId,
-  isLoadingSessions,
-  handleNewChat,
-  handleSelectSession,
-  handleDeleteSession,
-  children 
+// ── Animated page wrapper ──────────────────────────────────
+function PageWrapper({ children }) {
+  return <div className="page-enter flex-1 flex flex-col overflow-hidden">{children}</div>;
+}
+
+// ── Main Layout (authenticated pages) ─────────────────────
+function MainLayout({
+  isDarkMode, setIsDarkMode,
+  user, setUser,
+  sessions, currentSessionId, isLoadingSessions,
+  handleNewChat, handleSelectSession, handleDeleteSession,
+  children
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const location = useLocation();
 
-  // Handle window resize
   useEffect(() => {
     let timeout;
-
     const handleResize = () => {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         const mobile = window.innerWidth < 768;
         setIsMobile(mobile);
-        setIsSidebarOpen(!mobile);
+        if (mobile) setIsSidebarOpen(false);
+        else setIsSidebarOpen(true);
       }, 100);
     };
-
     window.addEventListener("resize", handleResize);
     handleResize();
-
-    return () => {
-      clearTimeout(timeout);
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => { clearTimeout(timeout); window.removeEventListener("resize", handleResize); };
   }, []);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const handleOverlayClick = () => setIsSidebarOpen(false);
+  const toggleSidebar = () => setIsSidebarOpen(v => !v);
+
+  const isChat = location.pathname === '/chat';
+  const isDash = location.pathname === '/dashboard';
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 font-sans ${
-      isDarkMode ? 'bg-[#0f0f11] text-gray-100' : 'bg-[#fafafa] text-gray-800'
+    <div className={`h-screen flex overflow-hidden transition-colors duration-300 ${
+      isDarkMode ? 'bg-[#0c0c10] text-gray-100' : 'bg-[#f5f5f7] text-gray-900'
     }`}>
-      <div className="flex h-screen">
-        {/* Sidebar */}
-        <Sidebar
-          isOpen={isSidebarOpen}
-          isDarkMode={isDarkMode}
-          sessions={sessions}
-          currentSessionId={currentSessionId}
-          onSelectSession={handleSelectSession}
-          onNewChat={handleNewChat}
-          onDeleteSession={handleDeleteSession}
-          isLoading={isLoadingSessions}
-          isMobile={isMobile}
+
+      {/* ── Sidebar ── */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        isDarkMode={isDarkMode}
+        sessions={sessions}
+        currentSessionId={currentSessionId}
+        onSelectSession={handleSelectSession}
+        onNewChat={handleNewChat}
+        onDeleteSession={handleDeleteSession}
+        isLoading={isLoadingSessions}
+        isMobile={isMobile}
+        onClose={() => setIsSidebarOpen(false)}
+      />
+
+      {/* ── Mobile overlay ── */}
+      {isMobile && isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={() => setIsSidebarOpen(false)}
         />
+      )}
 
-        {/* Mobile overlay */}
-        {isMobile && isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/50 z-40"
-            onClick={handleOverlayClick}
-          />
-        )}
+      {/* ── Main content ── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-        {/* Main content */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${
-          isMobile && isSidebarOpen ? 'opacity-30 pointer-events-none' : ''
-        }`}>
-          {/* Header */}
-          <div className={`border-b transition-all duration-300 backdrop-blur-xl z-20 sticky top-0 ${
-            isDarkMode ? 'bg-[#0f0f11]/70 border-white/5' : 'bg-white/70 border-gray-200/50'
-          }`}>
-            <div className="px-4 md:px-6 py-3 md:py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-2 md:space-x-4">
-                <button
-                  onClick={toggleSidebar}
-                  className={`p-2 rounded-lg transition-colors duration-200 ${
-                    isDarkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {isSidebarOpen ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    )}
-                  </svg>
-                </button>
+        {/* ── Header ── */}
+        <header className={`
+          h-16 flex items-center px-4 md:px-6
+          border-b z-20 flex-shrink-0
+          transition-all duration-300
+          ${isDarkMode
+            ? 'bg-[#0c0c10]/80 border-white/[0.06] backdrop-blur-xl'
+            : 'bg-white/80 border-gray-200/60 backdrop-blur-xl shadow-sm'
+          }
+        `}>
+          <div className="flex items-center space-x-3 flex-1">
+            {/* Hamburger */}
+            <button
+              onClick={toggleSidebar}
+              className={`
+                p-2 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95
+                ${isDarkMode
+                  ? 'hover:bg-white/8 text-gray-400 hover:text-white'
+                  : 'hover:bg-black/5 text-gray-500 hover:text-gray-900'
+                }
+              `}
+              aria-label="Toggle sidebar"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isSidebarOpen && !isMobile ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7M18 19l-7-7 7-7" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
 
-                <div className="flex items-center space-x-2 md:space-x-3">
-                  <div className={`w-8 h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center shadow-sm transition-all duration-300 ${
-                    isDarkMode ? 'bg-gray-800 border border-gray-700 text-green-400' : 'bg-white border border-gray-200 text-green-600'
-                  }`}>
-                    <span className="text-sm md:text-base">🕌</span>
-                  </div>
-                  <h1 className={`text-lg font-semibold tracking-tight ${
-                    isDarkMode ? 'text-gray-100' : 'text-gray-800'
-                  }`}>
-                    <span className="hidden xs:inline">Islamic AI Assistant</span>
-                    <span className="xs:hidden">Islamic AI</span>
-                  </h1>
-                </div>
-
-                <div className="hidden md:flex items-center space-x-1 ml-4 overflow-hidden">
-                  <a href="/dashboard" className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    window.location.pathname === '/dashboard' 
-                      ? isDarkMode ? 'bg-white/10 text-white' : 'bg-black/5 text-black' 
-                      : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-black hover:bg-black/5'
-                  }`}>Dashboard</a>
-                  <a href="/chat" className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                    window.location.pathname === '/chat' 
-                      ? isDarkMode ? 'bg-white/10 text-white' : 'bg-black/5 text-black' 
-                      : isDarkMode ? 'text-gray-400 hover:text-white hover:bg-white/5' : 'text-gray-500 hover:text-black hover:bg-black/5'
-                  }`}>Assistant</a>
-                </div>
+            {/* Logo */}
+            <div className="flex items-center space-x-2.5">
+              <div className={`
+                w-8 h-8 rounded-xl flex items-center justify-center
+                shadow-inner flex-shrink-0
+                ${isDarkMode
+                  ? 'bg-gradient-to-br from-emerald-500/20 to-green-600/20 border border-emerald-500/20'
+                  : 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200/60'
+                }
+              `}>
+                <span className="text-base leading-none">🕌</span>
               </div>
-
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${
-                    isDarkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
-                  }`}
-                >
-                  {isDarkMode ? '☀️' : '🌙'}
-                </button>
-
-                {user && <UserMenu isDarkMode={isDarkMode} user={user} setUser={setUser} />}
-              </div>
+              <h1 className={`text-base font-semibold tracking-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                Islamic AI
+              </h1>
             </div>
+
+            {/* Nav tabs (desktop) */}
+            <nav className="hidden md:flex items-center space-x-1 ml-3">
+              {[
+                { href: '/dashboard', label: 'Dashboard', active: isDash },
+                { href: '/chat', label: 'Assistant', active: isChat },
+              ].map(({ href, label, active }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className={`
+                    px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200
+                    ${active
+                      ? isDarkMode
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                      : isDarkMode
+                        ? 'text-gray-400 hover:text-gray-200 hover:bg-white/6'
+                        : 'text-gray-500 hover:text-gray-800 hover:bg-black/4'
+                    }
+                  `}
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
           </div>
 
-          {/* Main area */}
-          <div className="flex-1 overflow-hidden flex flex-col">
-            {children}
+          <div className="flex items-center space-x-2.5">
+            {/* Theme toggle */}
+            <button
+              onClick={() => setIsDarkMode(v => !v)}
+              className={`
+                w-9 h-9 rounded-xl flex items-center justify-center text-base
+                transition-all duration-300 hover:scale-110 active:scale-95
+                ${isDarkMode
+                  ? 'bg-white/8 hover:bg-white/12 border border-white/8 text-yellow-300'
+                  : 'bg-gray-100 hover:bg-gray-200 border border-gray-200/60 text-gray-600'
+                }
+              `}
+              title={isDarkMode ? 'Light mode' : 'Dark mode'}
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+
+            {/* User menu */}
+            {user && <UserMenu isDarkMode={isDarkMode} user={user} setUser={setUser} />}
           </div>
-        </div>
+        </header>
+
+        {/* ── Page content ── */}
+        <main className="flex-1 overflow-hidden flex flex-col">
+          <PageWrapper>{children}</PageWrapper>
+        </main>
       </div>
     </div>
   );
 }
 
+// ── Loading screen ─────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0c0c10]">
+      <div className="text-center animate-fade-in">
+        <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-600/10 border border-emerald-500/20 flex items-center justify-center animate-float">
+          <span className="text-3xl">🕌</span>
+        </div>
+        <div className="flex justify-center space-x-1.5 mb-3">
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+        </div>
+        <p className="text-gray-500 text-sm">Loading Islamic AI…</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Root App ───────────────────────────────────────────────
 export default function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true); // default dark
+  const [user, setUser]         = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Session State
-  const [sessions, setSessions] = useState([]);
+  const [sessions, setSessions]                = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
 
-  // Memoized loadSessions function
   const loadSessions = useCallback(async () => {
     setIsLoadingSessions(true);
     try {
-      const loadedSessions = await getSessions();
-      setSessions(loadedSessions);
-
-      if (loadedSessions.length > 0 && !currentSessionId) {
-        setCurrentSessionId(loadedSessions[0].id);
-      } else if (loadedSessions.length === 0) {
+      const loaded = await getSessions();
+      setSessions(loaded);
+      if (loaded.length > 0 && !currentSessionId) {
+        setCurrentSessionId(loaded[0].id);
+      } else if (loaded.length === 0) {
         const newId = await createNewSession();
         setCurrentSessionId(newId);
       }
-    } catch (error) {
-      console.error("Error loading sessions:", error);
+    } catch (e) {
+      console.error("loadSessions:", e);
     } finally {
       setIsLoadingSessions(false);
     }
   }, [currentSessionId]);
 
-  // Load sessions when user is available
   useEffect(() => {
-    if (user) {
-      loadSessions();
-    }
-  }, [user, loadSessions]);
+    if (user) loadSessions();
+  }, [user]); // eslint-disable-line
 
   const handleNewChat = async () => {
     try {
-      const newSessionId = await createNewSession();
-      if (newSessionId) {
-        setCurrentSessionId(newSessionId);
-        await loadSessions();
-      }
-    } catch (error) {
-      console.error("Error creating new chat:", error);
-    }
+      const newId = await createNewSession();
+      if (newId) { setCurrentSessionId(newId); await loadSessions(); }
+    } catch (e) { console.error(e); }
   };
 
-  const handleSelectSession = (sessionId) => {
-    setCurrentSessionId(sessionId);
-  };
+  const handleSelectSession = (id) => setCurrentSessionId(id);
 
-  const handleDeleteSession = async (sessionId) => {
+  const handleDeleteSession = async (id) => {
     try {
-      await deleteSession(sessionId);
-
-      if (sessionId === currentSessionId) {
-        const remaining = sessions.filter(s => s.id !== sessionId);
-        if (remaining.length > 0) {
-          setCurrentSessionId(remaining[0].id);
-        } else {
-          const newId = await createNewSession();
-          setCurrentSessionId(newId);
-        }
+      await deleteSession(id);
+      if (id === currentSessionId) {
+        const rest = sessions.filter(s => s.id !== id);
+        if (rest.length > 0) setCurrentSessionId(rest[0].id);
+        else { const newId = await createNewSession(); setCurrentSessionId(newId); }
       }
-
       await loadSessions();
-    } catch (error) {
-      console.error("Error deleting session:", error);
-    }
+    } catch (e) { console.error(e); }
   };
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    (async () => {
       const token = localStorage.getItem('token');
-      console.log('App initialized, token:', token ? 'Present' : 'Not present');
-      
       if (token) {
         try {
           const userData = await getCurrentUser();
-          console.log('User data loaded:', userData);
-          
-          if (userData) {
-            setUser(userData);
-            localStorage.setItem('user', JSON.stringify(userData));
-          } else {
-            localStorage.removeItem('token');
-          }
-        } catch (error) {
-          console.error('Error loading user:', error);
-          localStorage.removeItem('token');
-        }
+          if (userData) { setUser(userData); localStorage.setItem('user', JSON.stringify(userData)); }
+          else localStorage.removeItem('token');
+        } catch { localStorage.removeItem('token'); }
       }
       setIsLoading(false);
-    };
-
-    initializeAuth();
+    })();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingScreen />;
 
   const token = localStorage.getItem('token');
+
+  const layoutProps = {
+    isDarkMode, setIsDarkMode,
+    user, setUser,
+    sessions, currentSessionId, isLoadingSessions,
+    handleNewChat, handleSelectSession, handleDeleteSession,
+  };
 
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<LandingPage isDarkMode={isDarkMode} />} />
         <Route path="/login" element={<Login isDarkMode={isDarkMode} />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        <Route path="/" element={<LandingPage isDarkMode={isDarkMode} />} />
-        <Route 
-          path="/chat" 
+        <Route
+          path="/chat"
           element={
             token ? (
-              <MainLayout 
-                isDarkMode={isDarkMode}
-                setIsDarkMode={setIsDarkMode}
-                user={user}
-                setUser={setUser}
-                sessions={sessions}
-                currentSessionId={currentSessionId}
-                isLoadingSessions={isLoadingSessions}
-                handleNewChat={handleNewChat}
-                handleSelectSession={handleSelectSession}
-                handleDeleteSession={handleDeleteSession}
-              >
-                <Chat 
-                  isDarkMode={isDarkMode} 
-                  sessionId={currentSessionId}
-                  onSessionUpdate={loadSessions}
-                />
+              <MainLayout {...layoutProps}>
+                <Chat isDarkMode={isDarkMode} sessionId={currentSessionId} onSessionUpdate={loadSessions} />
               </MainLayout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          } 
+            ) : <Navigate to="/login" replace />
+          }
         />
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             token ? (
-              <MainLayout 
-                isDarkMode={isDarkMode}
-                setIsDarkMode={setIsDarkMode}
-                user={user}
-                setUser={setUser}
-                sessions={sessions}
-                currentSessionId={currentSessionId}
-                isLoadingSessions={isLoadingSessions}
-                handleNewChat={handleNewChat}
-                handleSelectSession={handleSelectSession}
-                handleDeleteSession={handleDeleteSession}
-              >
+              <MainLayout {...layoutProps}>
                 <Dashboard isDarkMode={isDarkMode} user={user} />
               </MainLayout>
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          } 
+            ) : <Navigate to="/login" replace />
+          }
         />
       </Routes>
     </Router>

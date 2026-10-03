@@ -1,249 +1,382 @@
 import { useState, useRef, useEffect } from "react";
 import { askQuestion, getSession } from "./api";
 
-export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingSession, setLoadingSession] = useState(false);
-  const messagesEndRef = useRef(null);
+// ── Markdown-like renderer for bot messages ────────────────
+function BotContent({ content }) {
+  // Very lightweight inline rendering (bold, blockquotes, lists)
+  const lines = content.split('\n');
+  const elements = [];
+  let listBuffer = [];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const flushList = (key) => {
+    if (listBuffer.length > 0) {
+      elements.push(
+        <ul key={`ul-${key}`} className="my-1.5 space-y-0.5 pl-4">
+          {listBuffer.map((item, i) => (
+            <li key={i} className="flex items-start gap-1.5">
+              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
+              <span dangerouslySetInnerHTML={{ __html: renderInline(item) }} />
+            </li>
+          ))}
+        </ul>
+      );
+      listBuffer = [];
+    }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const renderInline = (text) =>
+    text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code>$1</code>');
 
-  // Load session messages when sessionId changes
-  useEffect(() => {
-    if (sessionId) {
-      loadSessionMessages(sessionId);
+  lines.forEach((line, i) => {
+    const trimmed = line.trim();
+    if (!trimmed) { flushList(i); elements.push(<div key={i} className="h-1" />); return; }
+
+    if (trimmed.startsWith('### ')) {
+      flushList(i);
+      elements.push(<h3 key={i} className="font-semibold text-emerald-400 mt-3 mb-1 text-sm">{trimmed.slice(4)}</h3>);
+    } else if (trimmed.startsWith('## ')) {
+      flushList(i);
+      elements.push(<h2 key={i} className="font-bold text-emerald-300 mt-4 mb-1 text-base">{trimmed.slice(3)}</h2>);
+    } else if (trimmed.startsWith('> ')) {
+      flushList(i);
+      elements.push(
+        <blockquote key={i} className="border-l-2 border-emerald-500 pl-3 my-2 italic opacity-80 text-sm">
+          <span dangerouslySetInnerHTML={{ __html: renderInline(trimmed.slice(2)) }} />
+        </blockquote>
+      );
+    } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+      listBuffer.push(trimmed.slice(2));
+    } else if (/^\d+\.\s/.test(trimmed)) {
+      listBuffer.push(trimmed.replace(/^\d+\.\s/, ''));
+    } else {
+      flushList(i);
+      elements.push(
+        <p key={i} className="leading-relaxed my-0.5"
+          dangerouslySetInnerHTML={{ __html: renderInline(trimmed) }} />
+      );
     }
+  });
+  flushList('end');
+
+  return <div className="chat-content text-[14.5px]">{elements}</div>;
+}
+
+// ── Chat component ─────────────────────────────────────────
+export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
+  const [messages, setMessages]           = useState([]);
+  const [input, setInput]                 = useState("");
+  const [loading, setLoading]             = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
+  const messagesEndRef = useRef(null);
+  const textareaRef    = useRef(null);
+
+  const scrollToBottom = () =>
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+
+  useEffect(() => { scrollToBottom(); }, [messages]);
+
+  useEffect(() => {
+    if (sessionId) loadSessionMessages(sessionId);
   }, [sessionId]);
 
   const loadSessionMessages = async (sid) => {
     setLoadingSession(true);
     try {
       const session = await getSession(sid);
-      if (session && session.messages && session.messages.length > 0) {
+      if (session?.messages?.length > 0) {
         setMessages(session.messages);
       } else {
-        setMessages([
-          { 
-            role: "bot", 
-            content: "As-salamu alaykum! I'm your Islamic AI assistant. I can answer questions based on Quran, Hadith, and authentic Islamic sources. How can I help you today?" 
-          }
-        ]);
+        setMessages([{
+          role: "bot",
+          content: "As-salamu alaykum wa rahmatullahi wa barakatuh! 🌙\n\nI'm your Islamic AI assistant — here to help with questions about the Quran, Hadith, Fiqh, Seerah, and more.\n\nHow can I serve you today?",
+        }]);
       }
-    } catch (error) {
-      console.error("Error loading session:", error);
-      setMessages([
-        { 
-          role: "bot", 
-          content: "As-salamu alaykum! I'm your Islamic AI assistant. How can I help you today?" 
-        }
-      ]);
+    } catch {
+      setMessages([{
+        role: "bot",
+        content: "As-salamu alaykum! I'm your Islamic AI assistant. How can I help you today?",
+      }]);
     } finally {
       setLoadingSession(false);
     }
   };
 
   const sendMessage = async (messageText = input) => {
-    if (!messageText.trim() || loading) return;
-    
-    const userMessage = messageText.trim();
+    const text = messageText.trim();
+    if (!text || loading) return;
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: userMessage, timestamp: new Date().toISOString() }]);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    setMessages(prev => [...prev, { role: "user", content: text, timestamp: new Date().toISOString() }]);
     setLoading(true);
-
     try {
-      const response = await askQuestion(userMessage, sessionId);
-      setMessages(prev => [...prev, { 
-        role: "bot", 
+      const response = await askQuestion(text, sessionId);
+      setMessages(prev => [...prev, {
+        role: "bot",
         content: response.answer,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }]);
-      
-      if (onSessionUpdate) {
-        onSessionUpdate();
-      }
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        role: "bot", 
-        content: "I apologize, but I'm having trouble connecting. Please try again later.",
-        timestamp: new Date().toISOString()
+      if (onSessionUpdate) onSessionUpdate();
+    } catch {
+      setMessages(prev => [...prev, {
+        role: "bot",
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date().toISOString(),
       }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
 
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+    const ta = e.target;
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+  };
+
   const quickQuestions = [
-    "What are the five pillars of Islam?",
-    "How to perform wudu?",
-    "Zakat calculation rules",
-    "Hanafi ruling on music"
+    { icon: "📖", text: "What are the five pillars of Islam?" },
+    { icon: "🤲", text: "How to perform wudu correctly?" },
+    { icon: "💰", text: "How is Zakat calculated?" },
+    { icon: "🌙", text: "Virtues of fasting in Ramadan" },
   ];
 
+  // Loading skeleton
   if (loadingSession) {
     return (
-      <div className={`flex-1 flex items-center justify-center ${
-        isDarkMode ? 'bg-gray-900' : 'bg-white'
+      <div className={`flex-1 flex flex-col items-center justify-center gap-4 ${
+        isDarkMode ? 'bg-[#0c0c10]' : 'bg-[#f5f5f7]'
       }`}>
-        <div className="text-center">
-          <div className={`inline-block animate-spin rounded-full h-12 w-12 border-b-2 ${
-            isDarkMode ? 'border-green-400' : 'border-green-600'
-          }`}></div>
-          <p className={`mt-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            Loading conversation...
-          </p>
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-600/10 border border-emerald-500/20 flex items-center justify-center animate-float">
+          <span className="text-2xl">🕌</span>
         </div>
+        <div className="flex space-x-1.5">
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+          <div className="typing-dot"></div>
+        </div>
+        <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          Loading conversation…
+        </p>
       </div>
     );
   }
 
+  const isFirstMessage = messages.length <= 1;
+
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages Area */}
-      <div className={`flex-1 overflow-y-auto p-4 md:p-8 space-y-8 custom-scrollbar relative mx-auto w-full max-w-5xl ${
-        isDarkMode ? 'bg-[#0f0f11]' : 'bg-transparent'
-      }`}>
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            <div className={`flex max-w-[85%] ${message.role === "user" ? "flex-row-reverse" : "flex-row"} items-start space-x-3`}>
-              {/* Avatar */}
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
-                message.role === "user" 
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
-                  : 'bg-gradient-to-r from-green-500 to-emerald-600'
-              }`}>
-                {message.role === "user" ? "You" : "AI"}
-              </div>
-              
-              {/* Message Bubble */}
-              <div className={`rounded-3xl px-5 py-3.5 max-w-full animate-fade-in ${
-                message.role === "user"
-                  ? isDarkMode
-                    ? 'bg-[#1a1a1a] text-gray-200 border border-white/10 rounded-br-sm'
-                    : 'bg-[#101010] text-gray-100 shadow-sm rounded-br-sm'
-                  : isDarkMode
-                    ? 'bg-[#0f0f11] text-gray-300 border border-white/5 rounded-bl-sm'
-                    : 'bg-white text-gray-700 border border-gray-100 shadow-sm rounded-bl-sm'
-              }`}>
-                <div className="whitespace-pre-wrap leading-relaxed text-[15px]">
-                  {message.content}
+    <div className={`flex flex-col h-full ${isDarkMode ? 'bg-[#0c0c10]' : 'bg-[#f5f5f7]'}`}>
+
+      {/* ── Messages Area ── */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 py-6 space-y-6">
+
+          {messages.map((message, index) => {
+            const isUser = message.role === "user";
+            return (
+              <div
+                key={index}
+                className={`flex items-end gap-3 msg-bubble ${isUser ? 'justify-end' : 'justify-start'}`}
+                style={{ animationDelay: `${index * 40}ms` }}
+              >
+                {/* Bot avatar */}
+                {!isUser && (
+                  <div className={`
+                    flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm
+                    ${isDarkMode
+                      ? 'bg-gradient-to-br from-emerald-600/30 to-green-700/20 border border-emerald-500/20 text-emerald-300'
+                      : 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200/60 text-emerald-700'
+                    }
+                  `}>
+                    🕌
+                  </div>
+                )}
+
+                {/* Bubble */}
+                <div className={`
+                  max-w-[82%] rounded-2xl px-4 py-3
+                  ${isUser
+                    ? isDarkMode
+                      ? 'bg-gradient-to-br from-emerald-600 to-green-700 text-white rounded-br-sm shadow-lg shadow-emerald-900/30'
+                      : 'bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-br-sm shadow-md shadow-emerald-300/30'
+                    : isDarkMode
+                      ? 'bg-[#15151c] border border-white/[0.07] text-gray-200 rounded-bl-sm'
+                      : 'bg-white border border-gray-100/80 text-gray-800 rounded-bl-sm shadow-sm'
+                  }
+                `}>
+                  {isUser
+                    ? <p className="text-[14.5px] leading-relaxed">{message.content}</p>
+                    : <BotContent content={message.content} />
+                  }
+
+                  {message.timestamp && (
+                    <p className={`text-[11px] mt-1.5 ${
+                      isUser
+                        ? 'text-white/60'
+                        : isDarkMode ? 'text-gray-600' : 'text-gray-400'
+                    }`}>
+                      {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
                 </div>
-                {message.timestamp && (
-                  <div className={`text-xs mt-2 ${
-                    message.role === "user" 
-                      ? 'text-blue-100' 
-                      : isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                  }`}>
-                    {new Date(message.timestamp).toLocaleTimeString()}
+
+                {/* User avatar */}
+                {isUser && (
+                  <div className={`
+                    flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold
+                    ${isDarkMode
+                      ? 'bg-gradient-to-br from-slate-600 to-slate-700 border border-white/10 text-gray-200'
+                      : 'bg-gradient-to-br from-slate-600 to-slate-800 text-white'
+                    }
+                  `}>
+                    You
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-        ))}
-        
-        {/* Loading Indicator */}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="flex items-start space-x-3 max-w-[85%]">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white text-sm font-bold">
-                AI
+            );
+          })}
+
+          {/* Typing indicator */}
+          {loading && (
+            <div className="flex items-end gap-3 justify-start msg-bubble">
+              <div className={`
+                flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center text-sm
+                ${isDarkMode
+                  ? 'bg-gradient-to-br from-emerald-600/30 to-green-700/20 border border-emerald-500/20 text-emerald-300'
+                  : 'bg-gradient-to-br from-emerald-50 to-green-100 border border-emerald-200/60 text-emerald-700'
+                }
+              `}>
+                🕌
               </div>
-              <div className={`rounded-3xl px-5 py-4 animate-fade-in ${
-                isDarkMode
-                  ? 'bg-transparent text-gray-400 border border-white/5 rounded-bl-sm'
-                  : 'bg-white text-gray-500 border border-gray-100 shadow-sm rounded-bl-sm'
-              }`}>
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-                  </div>
-                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-green-600'} font-medium`}>
-                    Searching Islamic sources...
-                  </span>
+              <div className={`
+                rounded-2xl rounded-bl-sm px-5 py-3.5 flex items-center gap-3
+                ${isDarkMode
+                  ? 'bg-[#15151c] border border-white/[0.07]'
+                  : 'bg-white border border-gray-100/80 shadow-sm'
+                }
+              `}>
+                <div className="flex space-x-1.5">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
                 </div>
+                <span className={`text-xs font-medium ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                  Searching Islamic sources…
+                </span>
               </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Quick Questions */}
-      {messages.length <= 1 && (
-        <div className={`px-6 py-4 flex flex-col items-center justify-center`}>
+      {/* ── Quick questions (shown only on first message) ── */}
+      {isFirstMessage && !loading && (
+        <div className="px-4 pb-3 flex flex-col items-center animate-slide-up">
+          <p className={`text-xs mb-3 font-medium tracking-wide uppercase ${
+            isDarkMode ? 'text-gray-600' : 'text-gray-400'
+          }`}>Suggested questions</p>
           <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
             {quickQuestions.map((q, i) => (
               <button
                 key={i}
-                onClick={() => sendMessage(q)}
-                className={`px-4 py-2 text-sm rounded-full transition-all duration-300 transform hover:scale-105 ${
-                  isDarkMode
-                    ? 'bg-[#1a1a1a] text-gray-400 hover:text-gray-200 border border-white/5 hover:border-white/20'
-                    : 'bg-white text-gray-600 shadow-sm hover:shadow border border-gray-100 hover:border-gray-200'
-                }`}
+                onClick={() => sendMessage(q.text)}
+                className={`
+                  quick-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium
+                  border transition-all duration-200
+                  ${isDarkMode
+                    ? 'bg-[#15151c] border-white/[0.07] text-gray-300 hover:border-emerald-500/30 hover:text-emerald-300'
+                    : 'bg-white border-gray-100 text-gray-600 hover:border-emerald-200 hover:text-emerald-700 shadow-sm'
+                  }
+                `}
+                style={{ animationDelay: `${i * 60}ms` }}
               >
-                {q}
+                <span>{q.icon}</span>
+                <span>{q.text}</span>
               </button>
             ))}
           </div>
         </div>
       )}
-      
-      {/* Input Area */}
-      <div className="p-4 md:p-6 w-full max-w-4xl mx-auto backdrop-blur-md sticky bottom-0 z-10">
-        <div className={`flex items-end space-x-2 rounded-[2rem] p-2 shadow-sm transition-all duration-300 ${
-          isDarkMode ? 'bg-[#1a1a1a]/80 border border-white/10 focus-within:border-white/20' : 'bg-white border border-gray-200 focus-within:border-gray-300'
-        }`}>
-          <div className="flex-1 relative flex items-center">
+
+      {/* ── Input Area ── */}
+      <div className={`
+        px-4 pb-4 pt-2 flex-shrink-0
+        ${isDarkMode ? 'bg-[#0c0c10]' : 'bg-[#f5f5f7]'}
+      `}>
+        <div className="max-w-3xl mx-auto">
+          <div className={`
+            input-area flex items-end gap-2 rounded-2xl p-2
+            border transition-all duration-200
+            ${isDarkMode
+              ? 'bg-[#15151c] border-white/[0.07] focus-within:border-emerald-500/30'
+              : 'bg-white border-gray-200/80 focus-within:border-emerald-300 shadow-sm'
+            }
+          `}>
             <textarea
+              ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask anything..."
-              className={`w-full bg-transparent border-none py-3 pl-4 pr-10 resize-none focus:outline-none max-h-32 text-[15px] custom-scrollbar ${
-                isDarkMode ? 'text-gray-200 placeholder-gray-500' : 'text-gray-800 placeholder-gray-400'
-              }`}
-              rows="1"
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask anything about Islam…"
               disabled={loading}
-              style={{ minHeight: '48px' }}
+              rows={1}
+              className={`
+                flex-1 bg-transparent resize-none border-none outline-none
+                text-[14.5px] leading-relaxed px-3 py-2.5
+                ${isDarkMode
+                  ? 'text-gray-100 placeholder-gray-600'
+                  : 'text-gray-900 placeholder-gray-400'
+                }
+              `}
+              style={{ minHeight: '44px', maxHeight: '160px' }}
             />
-            <div className={`absolute right-3 text-xs opacity-0 md:opacity-100 transition-opacity ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>
-              ↵
-            </div>
+
+            {/* Character hint */}
+            {input.length > 0 && (
+              <span className={`self-end pb-3 text-[11px] ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>
+                ↵
+              </span>
+            )}
+
+            {/* Send button */}
+            <button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              className={`
+                flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center
+                transition-all duration-200
+                ${loading || !input.trim()
+                  ? isDarkMode
+                    ? 'bg-white/4 text-gray-600 cursor-not-allowed'
+                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                  : 'bg-gradient-to-br from-emerald-500 to-green-600 text-white hover:from-emerald-400 hover:to-green-500 hover:scale-105 active:scale-95 shadow-md shadow-emerald-900/30 btn-glow'
+                }
+              `}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={() => sendMessage()}
-            disabled={loading || !input.trim()}
-            className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full transition-all duration-300 ${
-              loading || !input.trim()
-                ? isDarkMode ? 'bg-[#2a2a2a] text-gray-600 cursor-not-allowed' : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                : isDarkMode ? 'bg-white text-black hover:scale-105' : 'bg-[#101010] text-white shadow-xl shadow-black/10 hover:scale-105'
-            }`}
-          >
-            <svg className="w-4 h-4 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
+
+          <p className={`text-[11px] text-center mt-2 ${isDarkMode ? 'text-gray-700' : 'text-gray-400'}`}>
+            Answers are AI-generated — always verify with a qualified scholar.
+          </p>
         </div>
       </div>
     </div>
