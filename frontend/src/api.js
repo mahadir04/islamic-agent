@@ -14,7 +14,8 @@ export const getBaseUrl = () => {
   return "http://localhost:8000";
 };
 
-const API_URL = getBaseUrl().replace(/\/$/, "") + "/api";
+const rawBase = getBaseUrl().replace(/\/$/, "");
+const API_URL = rawBase.endsWith("/api") ? rawBase : `${rawBase}/api`;
 
 // Create axios instance
 const api = axios.create({

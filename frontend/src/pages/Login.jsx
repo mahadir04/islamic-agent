@@ -62,9 +62,12 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
   const handleGoogleLogin = () => {
     setLoading(true);
     setError(null);
-    const backendUrl = getBaseUrl().replace(/\/$/, "");
+    let backendUrl = getBaseUrl().replace(/\/$/, "");
+    if (backendUrl.endsWith("/api")) {
+      backendUrl = backendUrl.slice(0, -4);
+    }
     if (backendUrl.includes("localhost") && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      setError("Backend URL is not configured for production. Please set REACT_APP_BACKEND_URL in your Vercel Project Settings.");
+      setError("Backend URL is not configured for production. Please verify REACT_APP_API_URL in your Vercel Project Settings.");
       setLoading(false);
       return;
     }
