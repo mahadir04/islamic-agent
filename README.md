@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/mahadir04/islamic-agent/main/frontend/public/logo192.png" alt="Noor AI Logo" width="90" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);" />
 </p>
 
-<h1 align="center">🕌 Noor AI — Enterprise Islamic Intelligence & Spiritual Companion</h1>
+<h1 align="center"> Noor AI 🕌 — Enterprise Islamic Intelligence & Spiritual Companion</h1>
 
 <p align="center">
   <b>The Modern Digital Gateway to Authentic Islamic Knowledge, Powered by Advanced AI & Comprehensive RAG</b>
