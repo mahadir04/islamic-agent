@@ -1,0 +1,875 @@
+[
+  {
+    "number": 1,
+    "name": "Revelation",
+    "name_ar": "كتاب بدء الوحي",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 7,
+    "start_hadith": 1,
+    "end_hadith": 7
+  },
+  {
+    "number": 2,
+    "name": "Belief",
+    "name_ar": "كتاب الإيمان",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 51,
+    "start_hadith": 8,
+    "end_hadith": 58
+  },
+  {
+    "number": 3,
+    "name": "Knowledge",
+    "name_ar": "كتاب العلم",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 76,
+    "start_hadith": 59,
+    "end_hadith": 134
+  },
+  {
+    "number": 4,
+    "name": "Ablutions (Wudu')",
+    "name_ar": "كتاب الوضوء",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 113,
+    "start_hadith": 135,
+    "end_hadith": 247
+  },
+  {
+    "number": 5,
+    "name": "Bathing (Ghusl)",
+    "name_ar": "كتاب الغسل",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 46,
+    "start_hadith": 248,
+    "end_hadith": 293
+  },
+  {
+    "number": 6,
+    "name": "Menstrual Periods",
+    "name_ar": "كتاب الحيض",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 40,
+    "start_hadith": 294,
+    "end_hadith": 333
+  },
+  {
+    "number": 7,
+    "name": "Rubbing hands and feet with dust (Tayammum)",
+    "name_ar": "كتاب التيمم",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 15,
+    "start_hadith": 334,
+    "end_hadith": 348
+  },
+  {
+    "number": 8,
+    "name": "Prayers (Salat)",
+    "name_ar": "كتاب الصلاة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 173,
+    "start_hadith": 349,
+    "end_hadith": 521
+  },
+  {
+    "number": 9,
+    "name": "Times of the Prayers",
+    "name_ar": "كتاب مواقيت الصلاة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 81,
+    "start_hadith": 522,
+    "end_hadith": 602
+  },
+  {
+    "number": 10,
+    "name": "Call to Prayers (Adhaan)",
+    "name_ar": "كتاب الأذان",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 273,
+    "start_hadith": 603,
+    "end_hadith": 875
+  },
+  {
+    "number": 11,
+    "name": "Friday Prayer",
+    "name_ar": "كتاب الجمعة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 66,
+    "start_hadith": 876,
+    "end_hadith": 941
+  },
+  {
+    "number": 12,
+    "name": "Fear Prayer",
+    "name_ar": "كتاب الخوف",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 6,
+    "start_hadith": 942,
+    "end_hadith": 947
+  },
+  {
+    "number": 13,
+    "name": "The Two Festivals (Eids)",
+    "name_ar": "كتاب العيدين",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 42,
+    "start_hadith": 948,
+    "end_hadith": 989
+  },
+  {
+    "number": 14,
+    "name": "Witr Prayer",
+    "name_ar": "كتاب الوتر",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 15,
+    "start_hadith": 990,
+    "end_hadith": 1004
+  },
+  {
+    "number": 15,
+    "name": "Invoking Allah for Rain (Istisqaa)",
+    "name_ar": "كتاب الاستسقاء",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 35,
+    "start_hadith": 1005,
+    "end_hadith": 1039
+  },
+  {
+    "number": 16,
+    "name": "Eclipses",
+    "name_ar": "كتاب الكسوف",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 27,
+    "start_hadith": 1040,
+    "end_hadith": 1066
+  },
+  {
+    "number": 17,
+    "name": "Prostration During Recital of Qur'an",
+    "name_ar": "كتاب سجود القرآن",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 13,
+    "start_hadith": 1067,
+    "end_hadith": 1079
+  },
+  {
+    "number": 18,
+    "name": "Shortening the Prayers (At-Taqseer)",
+    "name_ar": "كتاب التقصير",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 40,
+    "start_hadith": 1080,
+    "end_hadith": 1119
+  },
+  {
+    "number": 19,
+    "name": "Prayer at Night (Tahajjud)",
+    "name_ar": "كتاب التهجد",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 68,
+    "start_hadith": 1120,
+    "end_hadith": 1187
+  },
+  {
+    "number": 20,
+    "name": "Virtues of Prayer at Masjid Makkah and Madinah",
+    "name_ar": "كتاب فضل الصلاة بمكة والمدينة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 10,
+    "start_hadith": 1188,
+    "end_hadith": 1197
+  },
+  {
+    "number": 21,
+    "name": "Actions while Praying",
+    "name_ar": "كتاب العمل في الصلاة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 26,
+    "start_hadith": 1198,
+    "end_hadith": 1223
+  },
+  {
+    "number": 22,
+    "name": "Forgetfulness in Prayer",
+    "name_ar": "كتاب السهو",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 13,
+    "start_hadith": 1224,
+    "end_hadith": 1236
+  },
+  {
+    "number": 23,
+    "name": "Funerals (Al-Janaa'iz)",
+    "name_ar": "كتاب الجنائز",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 158,
+    "start_hadith": 1237,
+    "end_hadith": 1394
+  },
+  {
+    "number": 24,
+    "name": "Obligatory Charity Tax (Zakat)",
+    "name_ar": "كتاب الزكاة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 118,
+    "start_hadith": 1395,
+    "end_hadith": 1512
+  },
+  {
+    "number": 25,
+    "name": "Hajj (Pilgrimage)",
+    "name_ar": "كتاب الحج",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 260,
+    "start_hadith": 1513,
+    "end_hadith": 1772
+  },
+  {
+    "number": 26,
+    "name": "`Umrah (Minor pilgrimage)",
+    "name_ar": "كتاب العمرة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 33,
+    "start_hadith": 1773,
+    "end_hadith": 1805
+  },
+  {
+    "number": 27,
+    "name": "Pilgrims Prevented from Completing the Pilgrimage",
+    "name_ar": "كتاب المحصر",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 15,
+    "start_hadith": 1806,
+    "end_hadith": 1820
+  },
+  {
+    "number": 28,
+    "name": "Penalty of Hunting while on Pilgrimage",
+    "name_ar": "كتاب جزاء الصيد",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 46,
+    "start_hadith": 1821,
+    "end_hadith": 1866
+  },
+  {
+    "number": 29,
+    "name": "Virtues of Madinah",
+    "name_ar": "كتاب فضائل المدينة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 24,
+    "start_hadith": 1867,
+    "end_hadith": 1890
+  },
+  {
+    "number": 30,
+    "name": "Fasting",
+    "name_ar": "كتاب الصوم",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 117,
+    "start_hadith": 1891,
+    "end_hadith": 2007
+  },
+  {
+    "number": 31,
+    "name": "Praying at Night in Ramadaan (Taraweeh)",
+    "name_ar": "كتاب صلاة التراويح",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 6,
+    "start_hadith": 2008,
+    "end_hadith": 2013
+  },
+  {
+    "number": 32,
+    "name": "Virtues of the Night of Qadr",
+    "name_ar": "كتاب فضل ليلة القدر",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 11,
+    "start_hadith": 2014,
+    "end_hadith": 2024
+  },
+  {
+    "number": 33,
+    "name": "Retiring to a Mosque for Remembrance of Allah (I'tikaf)",
+    "name_ar": "كتاب الاعتكاف",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 22,
+    "start_hadith": 2025,
+    "end_hadith": 2046
+  },
+  {
+    "number": 34,
+    "name": "Sales and Trade",
+    "name_ar": "كتاب البيوع",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 192,
+    "start_hadith": 2047,
+    "end_hadith": 2238
+  },
+  {
+    "number": 35,
+    "name": "Sales in which a Price is paid for Goods to be Delivered Later (As-Salam)",
+    "name_ar": "كتاب السلم",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 18,
+    "start_hadith": 2239,
+    "end_hadith": 2256
+  },
+  {
+    "number": 36,
+    "name": "Shuf'a",
+    "name_ar": "كتاب الشفعة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 3,
+    "start_hadith": 2257,
+    "end_hadith": 2259
+  },
+  {
+    "number": 37,
+    "name": "Hiring",
+    "name_ar": "كتاب الإجارة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 27,
+    "start_hadith": 2260,
+    "end_hadith": 2286
+  },
+  {
+    "number": 38,
+    "name": "Transferance of a Debt from One Person to Another (Al-Hawaala)",
+    "name_ar": "كتاب الحوالات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 3,
+    "start_hadith": 2287,
+    "end_hadith": 2289
+  },
+  {
+    "number": 39,
+    "name": "Kafalah",
+    "name_ar": "كتاب الكفالة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 9,
+    "start_hadith": 2290,
+    "end_hadith": 2298
+  },
+  {
+    "number": 40,
+    "name": "Representation, Authorization, Business by Proxy",
+    "name_ar": "كتاب الوكالة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 21,
+    "start_hadith": 2299,
+    "end_hadith": 2319
+  },
+  {
+    "number": 41,
+    "name": "Agriculture",
+    "name_ar": "كتاب المزارعة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 31,
+    "start_hadith": 2320,
+    "end_hadith": 2350
+  },
+  {
+    "number": 42,
+    "name": "Distribution of Water",
+    "name_ar": "كتاب المساقاة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 34,
+    "start_hadith": 2351,
+    "end_hadith": 2384
+  },
+  {
+    "number": 43,
+    "name": "Loans, Payment of Loans, Freezing of Property, Bankruptcy",
+    "name_ar": "كتاب الاستقراض",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 25,
+    "start_hadith": 2385,
+    "end_hadith": 2409
+  },
+  {
+    "number": 44,
+    "name": "Khusoomaat",
+    "name_ar": "كتاب الخصومات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 16,
+    "start_hadith": 2410,
+    "end_hadith": 2425
+  },
+  {
+    "number": 45,
+    "name": "Lost Things Picked up by Someone (Luqatah)",
+    "name_ar": "كتاب اللقطة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 14,
+    "start_hadith": 2426,
+    "end_hadith": 2439
+  },
+  {
+    "number": 46,
+    "name": "Oppressions",
+    "name_ar": "كتاب المظالم",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 43,
+    "start_hadith": 2440,
+    "end_hadith": 2482
+  },
+  {
+    "number": 47,
+    "name": "Partnership",
+    "name_ar": "كتاب الشركة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 25,
+    "start_hadith": 2483,
+    "end_hadith": 2507
+  },
+  {
+    "number": 48,
+    "name": "Mortgaging",
+    "name_ar": "كتاب الرهن",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 9,
+    "start_hadith": 2508,
+    "end_hadith": 2516
+  },
+  {
+    "number": 49,
+    "name": "Manumission of Slaves",
+    "name_ar": "كتاب العتق",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 43,
+    "start_hadith": 2517,
+    "end_hadith": 2559
+  },
+  {
+    "number": 50,
+    "name": "Makaatib",
+    "name_ar": "كتاب المكاتب",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 6,
+    "start_hadith": 2560,
+    "end_hadith": 2565
+  },
+  {
+    "number": 51,
+    "name": "Gifts",
+    "name_ar": "كتاب الهبة وفضلها",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 71,
+    "start_hadith": 2566,
+    "end_hadith": 2636
+  },
+  {
+    "number": 52,
+    "name": "Witnesses",
+    "name_ar": "كتاب الشهادات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 53,
+    "start_hadith": 2637,
+    "end_hadith": 2689
+  },
+  {
+    "number": 53,
+    "name": "Peacemaking",
+    "name_ar": "كتاب الصلح",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 22,
+    "start_hadith": 2690,
+    "end_hadith": 2711
+  },
+  {
+    "number": 54,
+    "name": "Conditions",
+    "name_ar": "كتاب الشروط",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 26,
+    "start_hadith": 2712,
+    "end_hadith": 2737
+  },
+  {
+    "number": 55,
+    "name": "Wills and Testaments (Wasaayaa)",
+    "name_ar": "كتاب الوصايا",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 44,
+    "start_hadith": 2738,
+    "end_hadith": 2781
+  },
+  {
+    "number": 56,
+    "name": "Fighting for the Cause of Allah (Jihaad)",
+    "name_ar": "كتاب الجهاد والسير",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 309,
+    "start_hadith": 2782,
+    "end_hadith": 3090
+  },
+  {
+    "number": 57,
+    "name": "One-fifth of Booty to the Cause of Allah (Khumus)",
+    "name_ar": "كتاب فرض الخمس",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 66,
+    "start_hadith": 3091,
+    "end_hadith": 3156
+  },
+  {
+    "number": 58,
+    "name": "Jizyah and Mawaada'ah",
+    "name_ar": "كتاب الجزية والموادعة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 33,
+    "start_hadith": 3157,
+    "end_hadith": 3189
+  },
+  {
+    "number": 59,
+    "name": "Beginning of Creation",
+    "name_ar": "كتاب بدء الخلق",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 136,
+    "start_hadith": 3190,
+    "end_hadith": 3325
+  },
+  {
+    "number": 60,
+    "name": "Prophets",
+    "name_ar": "كتاب أحاديث الأنبياء",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 163,
+    "start_hadith": 3326,
+    "end_hadith": 3488
+  },
+  {
+    "number": 61,
+    "name": "Virtues and Merits of the Prophet (pbuh) and his Companions",
+    "name_ar": "كتاب المناقب",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 160,
+    "start_hadith": 3489,
+    "end_hadith": 3648
+  },
+  {
+    "number": 62,
+    "name": "Companions of the Prophet",
+    "name_ar": "كتاب فضائل أصحاب النبي",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 127,
+    "start_hadith": 3649,
+    "end_hadith": 3775
+  },
+  {
+    "number": 63,
+    "name": "Merits of the Helpers in Madinah (Ansaar)",
+    "name_ar": "كتاب مناقب الأنصار",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 173,
+    "start_hadith": 3776,
+    "end_hadith": 3948
+  },
+  {
+    "number": 64,
+    "name": "Military Expeditions led by the Prophet (pbuh) (Al-Maghaazi)",
+    "name_ar": "كتاب المغازي",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 525,
+    "start_hadith": 3949,
+    "end_hadith": 4473
+  },
+  {
+    "number": 65,
+    "name": "Prophetic Commentary on the Qur'an (Tafseer of the Prophet (pbuh))",
+    "name_ar": "كتاب تفسير القرآن",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 505,
+    "start_hadith": 4474,
+    "end_hadith": 4978
+  },
+  {
+    "number": 66,
+    "name": "Virtues of the Qur'an",
+    "name_ar": "كتاب فضائل القرآن",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 84,
+    "start_hadith": 4979,
+    "end_hadith": 5062
+  },
+  {
+    "number": 67,
+    "name": "Wedlock, Marriage (Nikaah)",
+    "name_ar": "كتاب النكاح",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 188,
+    "start_hadith": 5063,
+    "end_hadith": 5250
+  },
+  {
+    "number": 68,
+    "name": "Divorce",
+    "name_ar": "كتاب الطلاق",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 100,
+    "start_hadith": 5251,
+    "end_hadith": 5350
+  },
+  {
+    "number": 69,
+    "name": "Supporting the Family",
+    "name_ar": "كتاب النفقات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 22,
+    "start_hadith": 5351,
+    "end_hadith": 5372
+  },
+  {
+    "number": 70,
+    "name": "Food, Meals",
+    "name_ar": "كتاب الأطعمة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 94,
+    "start_hadith": 5373,
+    "end_hadith": 5466
+  },
+  {
+    "number": 71,
+    "name": "Sacrifice on Occasion of Birth (`Aqiqa)",
+    "name_ar": "كتاب العقيقة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 8,
+    "start_hadith": 5467,
+    "end_hadith": 5474
+  },
+  {
+    "number": 72,
+    "name": "Hunting, Slaughtering",
+    "name_ar": "كتاب الذبائح والصيد",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 70,
+    "start_hadith": 5475,
+    "end_hadith": 5544
+  },
+  {
+    "number": 73,
+    "name": "Al-Adha Festival Sacrifice (Adaahi)",
+    "name_ar": "كتاب الأضاحي",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 30,
+    "start_hadith": 5545,
+    "end_hadith": 5574
+  },
+  {
+    "number": 74,
+    "name": "Drinks",
+    "name_ar": "كتاب الأشربة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 65,
+    "start_hadith": 5575,
+    "end_hadith": 5639
+  },
+  {
+    "number": 75,
+    "name": "Patients",
+    "name_ar": "كتاب المرضى",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 38,
+    "start_hadith": 5640,
+    "end_hadith": 5677
+  },
+  {
+    "number": 76,
+    "name": "Medicine",
+    "name_ar": "كتاب الطب",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 100,
+    "start_hadith": 5678,
+    "end_hadith": 5782
+  },
+  {
+    "number": 77,
+    "name": "Dress",
+    "name_ar": "كتاب اللباس",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 187,
+    "start_hadith": 5783,
+    "end_hadith": 5969
+  },
+  {
+    "number": 78,
+    "name": "Good Manners and Form (Al-Adab)",
+    "name_ar": "كتاب الأدب",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 253,
+    "start_hadith": 5970,
+    "end_hadith": 6226
+  },
+  {
+    "number": 79,
+    "name": "Asking Permission",
+    "name_ar": "كتاب الاستئذان",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 77,
+    "start_hadith": 6227,
+    "end_hadith": 6303
+  },
+  {
+    "number": 80,
+    "name": "Invocations",
+    "name_ar": "كتاب الدعوات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 108,
+    "start_hadith": 6304,
+    "end_hadith": 6411
+  },
+  {
+    "number": 81,
+    "name": "To make the Heart Tender (Ar-Riqaq)",
+    "name_ar": "كتاب الرقاق",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 182,
+    "start_hadith": 6412,
+    "end_hadith": 6593
+  },
+  {
+    "number": 82,
+    "name": "Divine Will (Al-Qadar)",
+    "name_ar": "كتاب القدر",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 27,
+    "start_hadith": 6594,
+    "end_hadith": 6620
+  },
+  {
+    "number": 83,
+    "name": "Oaths and Vows",
+    "name_ar": "كتاب الأيمان والنذور",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 87,
+    "start_hadith": 6621,
+    "end_hadith": 6707
+  },
+  {
+    "number": 84,
+    "name": "Expiation for Unfulfilled Oaths",
+    "name_ar": "كتاب كفارات الأيمان",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 15,
+    "start_hadith": 6708,
+    "end_hadith": 6722
+  },
+  {
+    "number": 85,
+    "name": "Laws of Inheritance (Al-Faraa'id)",
+    "name_ar": "كتاب الفرائض",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 49,
+    "start_hadith": 6723,
+    "end_hadith": 6771
+  },
+  {
+    "number": 86,
+    "name": "Limits and Punishments set by Allah (Hudood)",
+    "name_ar": "كتاب الحدود",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 89,
+    "start_hadith": 6772,
+    "end_hadith": 6860
+  },
+  {
+    "number": 87,
+    "name": "Blood Money (Ad-Diyat)",
+    "name_ar": "كتاب الديات",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 57,
+    "start_hadith": 6861,
+    "end_hadith": 6917
+  },
+  {
+    "number": 88,
+    "name": "Apostates",
+    "name_ar": "كتاب استتابة المرتدين",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 22,
+    "start_hadith": 6918,
+    "end_hadith": 6939
+  },
+  {
+    "number": 89,
+    "name": "(Statements made under) Coercion",
+    "name_ar": "كتاب الإكراه",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 13,
+    "start_hadith": 6940,
+    "end_hadith": 6952
+  },
+  {
+    "number": 90,
+    "name": "Tricks",
+    "name_ar": "كتاب الحيل",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 29,
+    "start_hadith": 6953,
+    "end_hadith": 6981
+  },
+  {
+    "number": 91,
+    "name": "Interpretation of Dreams",
+    "name_ar": "كتاب التعبير",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 66,
+    "start_hadith": 6982,
+    "end_hadith": 7047
+  },
+  {
+    "number": 92,
+    "name": "Afflictions and the End of the World",
+    "name_ar": "كتاب الفتن",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 89,
+    "start_hadith": 7048,
+    "end_hadith": 7136
+  },
+  {
+    "number": 93,
+    "name": "Judgments (Ahkaam)",
+    "name_ar": "كتاب الأحكام",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 89,
+    "start_hadith": 7137,
+    "end_hadith": 7225
+  },
+  {
+    "number": 94,
+    "name": "Wishes",
+    "name_ar": "كتاب التمني",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 20,
+    "start_hadith": 7226,
+    "end_hadith": 7245
+  },
+  {
+    "number": 95,
+    "name": "Accepting Information Given by a Truthful Person",
+    "name_ar": "كتاب أخبار الآحاد",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 22,
+    "start_hadith": 7246,
+    "end_hadith": 7267
+  },
+  {
+    "number": 96,
+    "name": "Holding Fast to the Qur'an and Sunnah",
+    "name_ar": "كتاب الاعتصام بالكتاب والسنة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 103,
+    "start_hadith": 7268,
+    "end_hadith": 7370
+  },
+  {
+    "number": 97,
+    "name": "Oneness, Uniqueness of Allah (Tawheed)",
+    "name_ar": "كتاب التوحيد",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 193,
+    "start_hadith": 7371,
+    "end_hadith": 7563
+  }
+]

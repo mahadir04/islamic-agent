@@ -26,10 +26,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/login') && !error.config.url.includes('/auth/register') && !error.config.url.includes('/daily-guidance')) {
+      if (window.location.pathname !== '/login') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -94,6 +96,24 @@ export const deleteSession = async (sessionId) => {
 };
 
 // Auth APIs
+export const loginWithEmail = async (email, password) => {
+  const response = await api.post('/auth/login', { email, password });
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response.data;
+};
+
+export const registerWithEmail = async (email, password, name) => {
+  const response = await api.post('/auth/register', { email, password, name });
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response.data;
+};
+
 export const getCurrentUser = async () => {
   try {
     const token = localStorage.getItem('token');
@@ -106,6 +126,129 @@ export const getCurrentUser = async () => {
     return null;
   }
 };
+
+// Daily Guidance & Prayers
+export const getDailyGuidance = async (city, country, lat, lon) => {
+  try {
+    const params = {};
+    if (city) params.city = city;
+    if (country) params.country = country;
+    if (lat !== undefined && lat !== null) params.lat = lat;
+    if (lon !== undefined && lon !== null) params.lon = lon;
+    const response = await api.get('/daily-guidance', { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching daily guidance:", error);
+    return null;
+  }
+};
+
+export const getUserSunnah = async () => {
+  try {
+    const response = await api.get('/user/sunnah');
+    return response.data.sunnah || [];
+  } catch (error) {
+    console.error("Error fetching user sunnah:", error);
+    return [];
+  }
+};
+
+export const toggleUserSunnah = async (itemId, done) => {
+  try {
+    const response = await api.post('/user/sunnah', { item_id: itemId, done });
+    return response.data;
+  } catch (error) {
+    console.error("Error toggling user sunnah:", error);
+    return null;
+  }
+};
+
+// Duas & Adhkar APIs
+export const getDuas = async (category = null, search = null) => {
+  try {
+    const params = {};
+    if (category && category !== 'all') params.category = category;
+    if (search) params.search = search;
+    const response = await api.get('/duas', { params });
+    return response.data?.duas || [];
+  } catch (error) {
+    console.error("Error fetching duas:", error);
+    return [];
+  }
+};
+
+// Quran APIs
+export const getSurahs = async () => {
+  try {
+    const response = await api.get('/quran/surahs');
+    return response.data.surahs || [];
+  } catch (error) {
+    console.error("Error fetching surahs:", error);
+    return [];
+  }
+};
+
+export const getSurah = async (surahId) => {
+  try {
+    const response = await api.get(`/quran/surah/${surahId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching surah ${surahId}:`, error);
+    return null;
+  }
+};
+
+export const getAyahTafsir = async (surahId, ayahNum) => {
+  try {
+    const response = await api.get(`/quran/tafsir/${surahId}/${ayahNum}`);
+    return response.data?.tafsir;
+  } catch (error) {
+    console.error(`Error fetching tafsir for ${surahId}:${ayahNum}:`, error);
+    return null;
+  }
+};
+
+// Hadith APIs (Sahih al-Bukhari & Canonical Collections)
+export const getHadithBooks = async () => {
+  try {
+    const response = await api.get('/hadith/books');
+    return response.data?.books || [];
+  } catch (error) {
+    console.error("Error fetching hadith books:", error);
+    return [];
+  }
+};
+
+export const getHadithBook = async (bookNum, page = 1, limit = 25) => {
+  try {
+    const response = await api.get(`/hadith/book/${bookNum}?page=${page}&limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching hadith book ${bookNum}:`, error);
+    return null;
+  }
+};
+
+export const searchHadiths = async (query, limit = 30) => {
+  try {
+    const response = await api.get(`/hadith/search?q=${encodeURIComponent(query)}&limit=${limit}`);
+    return response.data?.results || [];
+  } catch (error) {
+    console.error("Error searching hadiths:", error);
+    return [];
+  }
+};
+
+export const getHadithSingle = async (hadithNum) => {
+  try {
+    const response = await api.get(`/hadith/${hadithNum}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching hadith ${hadithNum}:`, error);
+    return null;
+  }
+};
+
 
 // Profile APIs
 export const getUserProfile = async () => {

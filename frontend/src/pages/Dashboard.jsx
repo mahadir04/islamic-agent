@@ -1,279 +1,609 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserStats, getSessions } from '../api';
-
-// ── Animated stat counter ──────────────────────────────────
-function StatCard({ icon, label, value, isDarkMode, delay = 0, accent }) {
-  return (
-    <div
-      className={`
-        stat-card p-6 rounded-2xl border animate-fade-in
-        ${isDarkMode
-          ? 'bg-[#13131a] border-white/[0.06]'
-          : 'bg-white border-gray-100/80 shadow-sm'
-        }
-      `}
-      style={{ animationDelay: `${delay}ms` }}
-    >
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl mb-4 ${
-        isDarkMode ? `bg-${accent}-500/10 border border-${accent}-500/20` : `bg-${accent}-50 border border-${accent}-200/60`
-      }`}>
-        {icon}
-      </div>
-      <p className={`text-xs font-medium uppercase tracking-wide mb-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-        {label}
-      </p>
-      <p className={`text-3xl font-bold tracking-tight animate-counter ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
+import { getDailyGuidance, toggleUserSunnah, getSessions } from '../api';
 
 export default function Dashboard({ isDarkMode, user }) {
   const navigate = useNavigate();
-  const [stats, setStats]                 = useState(null);
-  const [recentSessions, setRecentSessions] = useState([]);
-  const [loading, setLoading]             = useState(true);
+  const [guidance, setGuidance] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [detectingLocation, setDetectingLocation] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      setLoading(true);
+    let isMounted = true;
+    async function loadData() {
       try {
-        const [statsData, sessionsData] = await Promise.all([getUserStats(), getSessions()]);
-        setStats(statsData);
-        setRecentSessions(sessionsData.slice(0, 4));
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
+        const userLoc = user?.settings?.location;
+        const [guideData, sessData] = await Promise.all([
+          getDailyGuidance(userLoc),
+          getSessions()
+        ]);
+        if (isMounted) {
+          if (guideData) setGuidance(guideData);
+          if (sessData) setSessions(sessData.slice(0, 3));
+        }
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
       }
-    })();
-  }, []);
+    }
+    loadData();
+    return () => { isMounted = false; };
+  }, [user]);
 
-  const getGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
+  const handleDetectLocation = async () => {
+    setDetectingLocation(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const data = await getDailyGuidance(null, null, pos.coords.latitude, pos.coords.longitude);
+            if (data) setGuidance(data);
+          } catch (e) {
+            console.error("Geolocation error:", e);
+          } finally {
+            setDetectingLocation(false);
+          }
+        },
+        async () => {
+          try {
+            const data = await getDailyGuidance("current");
+            if (data) setGuidance(data);
+          } catch (e) {
+            console.error("IP fallback error:", e);
+          } finally {
+            setDetectingLocation(false);
+          }
+        },
+        { timeout: 5000 }
+      );
+    } else {
+      try {
+        const data = await getDailyGuidance("current");
+        if (data) setGuidance(data);
+      } catch (e) {
+        console.error("Location error:", e);
+      } finally {
+        setDetectingLocation(false);
+      }
+    }
   };
 
-  const getIslamicGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "May your morning be blessed 🌅";
-    if (h < 17) return "May your afternoon be productive 🌤️";
-    return "May your evening be peaceful 🌙";
+  const handleToggleSunnah = async (itemId, currentDone) => {
+    if (!guidance) return;
+    const newDone = !currentDone;
+    // Optimistic UI update
+    setGuidance(prev => {
+      if (!prev?.daily_sunnah) return prev;
+      const updatedItems = prev.daily_sunnah.items.map(it =>
+        it.id === itemId ? { ...it, done: newDone } : it
+      );
+      const total = updatedItems.length;
+      const done = updatedItems.filter(it => it.done).length;
+      const percentage = total > 0 ? Math.round((done / total) * 100) : 0;
+      return {
+        ...prev,
+        daily_sunnah: {
+          ...prev.daily_sunnah,
+          items: updatedItems,
+          done,
+          total,
+          percentage
+        }
+      };
+    });
+
+    try {
+      await toggleUserSunnah(itemId, newDone);
+    } catch (e) {
+      console.error("Failed to toggle sunnah:", e);
+    }
   };
 
-  if (loading) {
-    return (
-      <div className={`flex-1 flex flex-col items-center justify-center gap-4 ${
-        isDarkMode ? 'bg-[#0c0c10]' : 'bg-[#f5f5f7]'
-      }`}>
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-600/10 border border-emerald-500/20 flex items-center justify-center animate-float">
-          <span className="text-2xl">📊</span>
-        </div>
-        <div className="flex space-x-1.5">
-          <div className="typing-dot" />
-          <div className="typing-dot" />
-          <div className="typing-dot" />
-        </div>
-      </div>
-    );
-  }
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    navigate(`/chat?q=${encodeURIComponent(searchQuery.trim())}`);
+  };
+
+  const prayerIcons = {
+    Fajr: (
+      <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 2v4M4.93 4.93l2.83 2.83M2 12h4M4.93 19.07l2.83-2.83M12 18v4M19.07 19.07l-2.83-2.83M22 12h-4M19.07 4.93l-2.83 2.83" />
+      </svg>
+    ),
+    Dhuhr: (
+      <svg className="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+    Asr: (
+      <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+      </svg>
+    ),
+    Maghrib: (
+      <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M17 18a5 5 0 0 0-10 0" />
+        <path d="M12 9v4M12 2v2M4.22 10.22l1.42 1.42M1 18h22" />
+      </svg>
+    ),
+    Isha: (
+      <svg className="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+      </svg>
+    )
+  };
+
+  const prayers = guidance?.prayers || {
+    location: user?.settings?.location?.toUpperCase() || "MAKKAH, SA",
+    hijri_date: "AUTHENTIC CALENDAR",
+    next_prayer: "Next Prayer",
+    minutes_remaining: "--",
+    prayers: [
+      { name: "Fajr", time: "--:--" },
+      { name: "Dhuhr", time: "--:--" },
+      { name: "Asr", time: "--:--" },
+      { name: "Maghrib", time: "--:--" },
+      { name: "Isha", time: "--:--" }
+    ]
+  };
+
+  const sunnah = guidance?.daily_sunnah || {
+    total: 0,
+    done: 0,
+    percentage: 0,
+    items: []
+  };
+
+  const verse = guidance?.verse_of_the_day || null;
+  const hadith = guidance?.hadith_of_the_day || null;
+
+  // Progress circle geometry
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (circumference * (sunnah.percentage || 0)) / 100;
+
+  const displayName = user?.name ? user.name.split(' ')[0] : 'Seeker';
 
   return (
-    <div className={`flex-1 overflow-y-auto custom-scrollbar ${isDarkMode ? 'bg-[#0c0c10]' : 'bg-[#f5f5f7]'}`}>
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
+    <div className="flex-1 overflow-y-auto bg-[#070a0e] text-gray-100 min-h-screen selection:bg-emerald-500/30 selection:text-white"
+         style={{
+           backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+           backgroundSize: '24px 24px'
+         }}>
+      
+      {/* ── Top Header Navigation Bar ── */}
+      <header className="sticky top-0 z-30 w-full bg-[#070a0e]/85 backdrop-blur-md border-b border-white/[0.06] px-6 lg:px-12 py-3.5 flex items-center justify-between">
+        {/* Brand */}
+        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+            </svg>
+          </div>
+          <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white">
+            Noor AI
+          </span>
+        </div>
 
-        {/* ── Welcome header ── */}
-        <div className="mb-10 animate-fade-in">
-          <div className="flex items-center gap-3 mb-3">
-            {user?.picture && (
-              <img
-                src={user.picture}
-                alt={user.name}
-                className="w-10 h-10 rounded-xl object-cover border-2 border-emerald-500/30"
-              />
-            )}
-            <div>
-              <h1 className={`text-2xl md:text-3xl font-bold tracking-tight ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                {getGreeting()},{' '}
-                <span className="gradient-text">{user?.name?.split(' ')[0] || 'Friend'}</span>
-              </h1>
-              <p className={`text-sm mt-0.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                {getIslamicGreeting()}
-              </p>
-            </div>
+        {/* Center Nav Pills */}
+        <div className="hidden lg:flex items-center p-1 rounded-xl border border-white/[0.08] bg-[#0c1219]">
+          <button
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 shadow-sm"
+          >
+            Dashboard
+          </button>
+          <button
+            onClick={() => navigate('/quran')}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+          >
+            Quran
+          </button>
+          <button
+            onClick={() => navigate('/hadith')}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+          >
+            Hadith
+          </button>
+          <button
+            onClick={() => navigate('/duas')}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+          >
+            Daily Duas
+          </button>
+          <button
+            onClick={() => navigate('/chat')}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+          >
+            Ask Noor
+          </button>
+        </div>
+
+        {/* Global Search */}
+        <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center max-w-md w-full mx-8">
+          <div className="relative w-full">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Ask about prayer times, duas, or fiqh..."
+              className="w-full pl-10 pr-4 py-2 bg-[#0d131a] hover:bg-[#101822] focus:bg-[#101822] border border-white/[0.08] focus:border-emerald-500/50 rounded-full text-xs text-gray-200 placeholder-gray-500 focus:outline-none transition-all shadow-inner"
+            />
+          </div>
+        </form>
+
+        {/* Action icons & Profile */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/settings')}
+            className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/[0.04] border border-transparent hover:border-white/[0.08] transition"
+            title="Settings"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+          <div
+            onClick={() => navigate('/settings')}
+            className="w-8 h-8 rounded-full border border-emerald-500/50 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-500/40 transition"
+          >
+            <img
+              src={user?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || 'Seeker'}&backgroundColor=00b875`}
+              alt="Avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
+      </header>
 
-        {/* ── Stats grid ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <StatCard icon="💬" label="Total Conversations" value={stats?.total_chats ?? 0}
-            isDarkMode={isDarkMode} delay={0} accent="emerald" />
-          <StatCard icon="⚡" label="Messages Exchanged" value={stats?.total_messages ?? 0}
-            isDarkMode={isDarkMode} delay={100} accent="blue" />
-          <StatCard
-            icon="🗓️" label="Member Since"
-            value={stats?.joined_date ? new Date(stats.joined_date).toLocaleDateString('en', { month: 'short', year: 'numeric' }) : 'N/A'}
-            isDarkMode={isDarkMode} delay={200} accent="amber"
-          />
-        </div>
+      {/* ── Main Container ── */}
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-8 space-y-8">
+        
+        {/* Hero Section */}
+        <section className="space-y-1.5">
+          <p className="text-emerald-400 font-medium text-sm tracking-wide">
+            Assalamu Alaikum, {displayName}
+          </p>
+          <h1 className="text-3xl md:text-5xl font-serif-luxury font-medium text-white tracking-tight leading-tight">
+            Your daily guidance,<br />curated by Noor.
+          </h1>
+        </section>
 
-        {/* ── Bottom grid ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── 3-Column Top Grid ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          {/* Recent sessions */}
-          <div className="lg:col-span-2 animate-fade-in delay-300">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className={`text-base font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                Recent Sessions
-              </h2>
-              <button
-                onClick={() => navigate('/chat')}
-                className={`text-xs font-medium ${isDarkMode ? 'text-emerald-400 hover:text-emerald-300' : 'text-emerald-600 hover:text-emerald-700'}`}
-              >
-                View all →
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {recentSessions.length > 0 ? recentSessions.map((session, i) => (
-                <div
-                  key={session.id}
-                  onClick={() => navigate('/chat')}
-                  className={`
-                    group flex items-center justify-between p-4 rounded-xl border cursor-pointer
-                    transition-all duration-200 hover:-translate-y-0.5 animate-fade-in
-                    ${isDarkMode
-                      ? 'bg-[#13131a] border-white/[0.06] hover:border-emerald-500/20'
-                      : 'bg-white border-gray-100/80 hover:border-emerald-200/60 shadow-sm hover:shadow-md'
-                    }
-                  `}
-                  style={{ animationDelay: `${350 + i * 60}ms` }}
+          {/* ── Card 1: Next Prayer & Timetable (Left Column) ── */}
+          <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+            <div>
+              {/* Location & Date */}
+              <div className="flex items-center justify-between gap-2 mb-5">
+                <div className="flex items-center gap-1.5 text-gray-400 text-[11px] font-semibold tracking-wider uppercase min-w-0">
+                  <svg className="w-3.5 h-3.5 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span className="truncate">{prayers.location} · {prayers.hijri_date}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDetectLocation}
+                  disabled={detectingLocation}
+                  className="shrink-0 flex items-center gap-1 text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold tracking-wider uppercase px-2 py-1 rounded-lg border border-emerald-500/30 hover:bg-emerald-500/10 transition active:scale-95 disabled:opacity-50"
+                  title="Detect and use current GPS / network location"
                 >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div className={`
-                      w-9 h-9 rounded-xl flex items-center justify-center text-sm flex-shrink-0
-                      ${isDarkMode ? 'bg-white/4' : 'bg-gray-50'}
-                    `}>
-                      💬
-                    </div>
-                    <div className="overflow-hidden">
-                      <p className={`text-sm font-medium truncate ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                        {session.name || 'Conversation'}
-                      </p>
-                      <p className={`text-xs truncate mt-0.5 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-                        {session.preview || 'No preview'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0 text-right ml-4">
-                    <p className={`text-[11px] mb-1 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-                      {new Date(session.updated_at).toLocaleDateString()}
-                    </p>
-                    <p className={`text-xs font-semibold transition-transform group-hover:translate-x-0.5 ${
-                      isDarkMode ? 'text-emerald-400' : 'text-emerald-600'
-                    }`}>Resume →</p>
+                  <svg className={`w-3 h-3 ${detectingLocation ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 2v3m0 14v3M2 12h3m14 0h3" />
+                  </svg>
+                  <span>{detectingLocation ? "Detecting..." : "Use Current Location"}</span>
+                </button>
+              </div>
+
+              {/* Next Prayer Big Countdown */}
+              <div className="mb-6">
+                <span className="text-xs text-gray-400 uppercase font-medium tracking-wider">Next prayer</span>
+                <div className="flex items-baseline gap-3 mt-1">
+                  <span className="text-3xl font-serif-luxury font-medium text-white">
+                    {prayers.next_prayer}
+                  </span>
+                  <div className="flex items-baseline gap-1 text-emerald-400">
+                    <span className="text-3xl font-semibold">{prayers.minutes_remaining}</span>
+                    <span className="text-xs font-medium text-emerald-300">min</span>
                   </div>
                 </div>
-              )) : (
-                <div className={`
-                  text-center py-12 rounded-2xl border border-dashed animate-fade-in delay-300
-                  ${isDarkMode ? 'border-white/[0.06] text-gray-500' : 'border-gray-200 text-gray-400'}
-                `}>
-                  <div className="text-4xl mb-3">💬</div>
-                  <p className="text-sm mb-4">No conversations yet</p>
-                  <button
-                    onClick={() => navigate('/chat')}
-                    className="px-5 py-2 rounded-xl text-xs font-medium bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:scale-105 transition-all shadow-md"
-                  >
-                    Start your first chat
-                  </button>
-                </div>
-              )}
+              </div>
+
+              {/* Prayers Timetable */}
+              <div className="space-y-1.5">
+                {prayers.prayers?.map((p) => {
+                  const isCurrent = p.name === prayers.next_prayer;
+                  return (
+                    <div
+                      key={p.name}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
+                        isCurrent
+                          ? 'bg-emerald-500/15 border border-emerald-500/30 text-white'
+                          : 'text-gray-300 hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {prayerIcons[p.name] || prayerIcons.Fajr}
+                        <span className={`text-xs ${isCurrent ? 'font-semibold text-emerald-300' : 'font-medium'}`}>
+                          {p.name}
+                        </span>
+                      </div>
+                      <span className={`text-xs ${isCurrent ? 'font-bold text-white' : 'text-gray-400'}`}>
+                        {p.time}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Right column */}
-          <div className="space-y-4 animate-fade-in delay-400">
+          {/* ── Column 2: Daily Sunnah & Hadith of the Day ── */}
+          <div className="space-y-6 flex flex-col justify-between">
+            {/* Daily Sunnah Card */}
+            <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-white">Daily Sunnah</h3>
+                <span className="text-xs font-semibold text-emerald-400">
+                  {sunnah.done} / {sunnah.total} done
+                </span>
+              </div>
 
-            {/* Topics */}
-            <div>
-              <h2 className={`text-base font-semibold mb-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
-                Your Topics
-              </h2>
-              <div className={`p-4 rounded-2xl border ${
-                isDarkMode ? 'bg-[#13131a] border-white/[0.06]' : 'bg-white border-gray-100/80 shadow-sm'
-              }`}>
-                <p className={`text-xs mb-3 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>
-                  Topics you've explored with the AI
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(stats?.favorite_topics || ['Prayer', 'Fasting', 'Quran']).map((topic, i) => (
-                    <span
-                      key={i}
-                      className={`
-                        px-2.5 py-1 rounded-lg text-[11px] font-medium border
-                        animate-fade-in
-                        ${isDarkMode
-                          ? 'bg-emerald-500/8 border-emerald-500/15 text-emerald-400'
-                          : 'bg-emerald-50 border-emerald-200/60 text-emerald-700'
-                        }
-                      `}
-                      style={{ animationDelay: `${450 + i * 60}ms` }}
-                    >
-                      {topic}
+              {/* Circular Progress Meter */}
+              <div className="flex items-center justify-center my-4">
+                <div className="relative w-28 h-28 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    {/* Background track */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      stroke="currentColor"
+                      strokeWidth="7"
+                      className="text-white/[0.08]"
+                      fill="transparent"
+                    />
+                    {/* Emerald active arc */}
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      stroke="#00b875"
+                      strokeWidth="7"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-700 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-xl font-bold text-white leading-tight">
+                      {sunnah.percentage}%
                     </span>
-                  ))}
+                    <span className="text-[9px] uppercase tracking-wider text-gray-400 font-medium">
+                      Today
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Sunnah Checklist */}
+              <div className="space-y-2 mt-4">
+                {sunnah.items && sunnah.items.length > 0 ? (
+                  sunnah.items.slice(0, 4).map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleToggleSunnah(item.id, item.done)}
+                      className="flex items-center gap-2.5 cursor-pointer group py-1 text-xs"
+                    >
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center border transition-all ${
+                        item.done
+                          ? 'border-emerald-400 bg-emerald-500/20 text-emerald-400'
+                          : 'border-white/20 group-hover:border-white/40'
+                      }`}>
+                        {item.done && (
+                          <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`transition ${
+                        item.done ? 'text-gray-400 line-through' : 'text-gray-200 group-hover:text-white'
+                      }`}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-2 text-xs text-gray-500 animate-pulse">
+                    Tracking daily prophetic practices...
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* CTA card */}
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-600 to-green-700 text-white shadow-xl shadow-emerald-900/30 relative overflow-hidden">
-              {/* decorative circles */}
-              <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/5" />
-              <div className="absolute -right-6 bottom-2 w-28 h-28 rounded-full bg-white/5" />
-
-              <div className="relative">
-                <div className="text-2xl mb-2">🕌</div>
-                <h3 className="font-semibold text-sm mb-1.5">Need Guidance?</h3>
-                <p className="text-xs opacity-80 mb-4 leading-relaxed">
-                  The Islamic AI is ready to help with prayer, fiqh rulings, and Quranic tafsir.
-                </p>
+            {/* Hadith of the Day Card */}
+            <div className="bg-[#0b1017] border border-white/[0.08] hover:border-emerald-500/30 rounded-2xl p-6 shadow-xl flex-1 flex flex-col justify-between transition group">
+              <div>
+                <div className="flex items-center justify-between text-gray-400 text-[10px] font-semibold tracking-wider uppercase mb-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5zM16 8L2 22M17.5 15H9" />
+                    </svg>
+                    <span>Hadith of the Day</span>
+                  </div>
+                  <span className="text-[10px] font-medium text-emerald-400/80">Sahih</span>
+                </div>
+                {hadith ? (
+                  <p className="text-xs text-gray-200 leading-relaxed italic mb-4">
+                    "{hadith.text}"
+                  </p>
+                ) : (
+                  <div className="py-3 text-xs text-gray-500 animate-pulse">
+                    Retrieving authentic Hadith from Sahih Al-Bukhari...
+                  </div>
+                )}
+              </div>
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-gray-400">
+                <span>{hadith?.source || "Authentic Hadith"}</span>
                 <button
-                  onClick={() => navigate('/chat')}
-                  className="w-full py-2 bg-white/20 hover:bg-white/30 rounded-xl text-xs font-semibold backdrop-blur-md transition-all active:scale-95"
+                  type="button"
+                  onClick={() => navigate('/hadith')}
+                  className="text-emerald-400 hover:text-emerald-300 font-medium flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
                 >
-                  Open Assistant →
+                  <span>Explore 97 Books</span>
+                  <span>→</span>
                 </button>
               </div>
             </div>
+          </div>
 
-            {/* Quick stats info */}
-            <div className={`p-4 rounded-2xl border ${
-              isDarkMode ? 'bg-[#13131a] border-white/[0.06]' : 'bg-white border-gray-100/80 shadow-sm'
-            }`}>
-              <p className={`text-xs font-medium mb-3 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Account Info</p>
-              <div className="space-y-2">
-                {[
-                  { label: 'Email', val: user?.email || '—' },
-                  { label: 'Last active', val: stats?.last_active ? new Date(stats.last_active).toLocaleDateString() : '—' },
-                ].map(({ label, val }) => (
-                  <div key={label} className="flex justify-between">
-                    <span className={`text-xs ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>{label}</span>
-                    <span className={`text-xs font-medium truncate ml-2 max-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      {val}
-                    </span>
+          {/* ── Column 3: Verse of the Day & Recent Sessions ── */}
+          <div className="space-y-6 flex flex-col justify-between">
+            {/* Verse of the Day Card */}
+            <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center gap-2 text-gray-400 text-[10px] font-semibold tracking-wider uppercase mb-4">
+                <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+                <span>Verse of the Day</span>
+              </div>
+
+              {verse ? (
+                <>
+                  {/* Calligraphy Verse */}
+                  <div className="text-right font-arabic text-xl md:text-2xl text-emerald-400 leading-loose py-2 mb-3">
+                    {verse.arabic}
                   </div>
-                ))}
+
+                  <p className="text-xs text-gray-200 leading-relaxed italic mb-4">
+                    "{verse.translation}"
+                  </p>
+
+                  <div className="pt-3 border-t border-white/[0.06] text-[11px] text-gray-400">
+                    {verse.surah} · {verse.ayah}
+                  </div>
+                </>
+              ) : (
+                <div className="py-4 text-xs text-gray-500 animate-pulse">
+                  Loading authentic Quranic verse...
+                </div>
+              )}
+            </div>
+
+            {/* Recent with Noor Card */}
+            <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 shadow-xl flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-semibold text-white">Recent with Noor</h3>
+                  <button
+                    onClick={() => navigate('/chat')}
+                    className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition"
+                  >
+                    View all
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {sessions.length > 0 ? (
+                    sessions.map((sess) => (
+                      <div
+                        key={sess.id}
+                        onClick={() => navigate(`/chat?session=${sess.id}`)}
+                        className="group cursor-pointer py-1"
+                      >
+                        <p className="text-xs text-gray-200 group-hover:text-emerald-300 font-medium truncate transition">
+                          {sess.title || "Spiritual reflection"}
+                        </p>
+                        <span className="text-[10px] text-gray-500">
+                          {sess.updated_at ? new Date(sess.updated_at).toLocaleDateString() : 'Recent'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-2 text-xs text-gray-500">
+                      No recent inquiries yet. Start your first conversation with Noor.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* ── Bottom Row: Quick Action Cards ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          
+          {/* Card A: Ask Noor */}
+          <div
+            onClick={() => navigate('/chat')}
+            className="group cursor-pointer bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.08] hover:border-emerald-500/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center transition-all shadow-xl"
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h4 className="text-sm font-semibold text-white group-hover:text-emerald-300 transition">
+              Ask Noor
+            </h4>
+            <p className="text-xs text-gray-400 mt-1">
+              Start a new conversation
+            </p>
+          </div>
+
+          {/* Card B: Read Quran */}
+          <div
+            onClick={() => navigate('/quran')}
+            className="group cursor-pointer bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.08] hover:border-emerald-500/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center transition-all shadow-xl"
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h4 className="text-sm font-semibold text-white group-hover:text-emerald-300 transition">
+              Read Quran
+            </h4>
+            <p className="text-xs text-gray-400 mt-1">
+              Explore 114 Surahs with Tafsir
+            </p>
+          </div>
+
+          {/* Card C: Daily Duas */}
+          <div
+            onClick={() => navigate('/duas')}
+            className="group cursor-pointer bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.08] hover:border-emerald-500/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center transition-all shadow-xl"
+          >
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 group-hover:bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+              </svg>
+            </div>
+            <h4 className="text-sm font-semibold text-white group-hover:text-emerald-300 transition">
+              Daily Duas
+            </h4>
+            <p className="text-xs text-gray-400 mt-1">
+              Morning & evening set
+            </p>
+          </div>
+
+        </div>
+      </main>
     </div>
   );
 }

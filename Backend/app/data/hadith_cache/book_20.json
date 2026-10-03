@@ -1,0 +1,123 @@
+{
+  "book": {
+    "number": 20,
+    "name": "Virtues of Prayer at Masjid Makkah and Madinah",
+    "name_ar": "كتاب فضل الصلاة بمكة والمدينة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 10,
+    "start_hadith": 1188,
+    "end_hadith": 1197
+  },
+  "hadiths": [
+    {
+      "id": 1188,
+      "hadithNumber": 1188,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Quza'a:",
+      "text_en": "I heard Abu Said saying four words. He said, \"I heard the Prophet (ﷺ) (saying the following narrative).\" He had participated in twelve holy battles with the Prophet",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1188"
+    },
+    {
+      "id": 1189,
+      "hadithNumber": 1189,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Abu Huraira:",
+      "text_en": "The Prophet (ﷺ) said, \"Do not set out on a journey except for three Mosques i.e. Al-Masjid-Al-Haram, the Mosque of Allah's Messenger (ﷺ) , and the Mosque of Al-Aqsa, (Mosque of Jerusalem)",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1189"
+    },
+    {
+      "id": 1190,
+      "hadithNumber": 1190,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Abu Huraira:",
+      "text_en": "Allah's Messenger (ﷺ) said, \"One prayer in my Mosque is better than one thousand prayers in any other mosque excepting Al-Masjid-Al-Haram",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1190"
+    },
+    {
+      "id": 1191,
+      "hadithNumber": 1191,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Nafi`:",
+      "text_en": "Ibn `Umar never offered the Duha prayer except on two occasions: (1) Whenever he reached Mecca; and he always used to reach Mecca in the forenoon. He would perform Tawaf round the Ka`ba and then offer two rak`at at the rear of Maqam Ibrahim. (2) Whenever he visited Quba, for he used to visit it every Saturday. When he entered the Mosque, he disliked to leave it without offering a prayer. Ibn `Umar narrated that Allah's Messenger (ﷺ) used to visit the Mosque of Quba (sometime) walking and (sometime) riding. And he (i.e. Ibn `Umar) used to say, \"I do only what my companions used to do and I don't forbid anybody to pray at any time during the day or night except that one should not intend to pray at sunrise or sunset",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1191"
+    },
+    {
+      "id": 1192,
+      "hadithNumber": 1192,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Nafi`:",
+      "text_en": "Ibn `Umar never offered the Duha prayer except on two occasions: (1) Whenever he reached Mecca; and he always used to reach Mecca in the forenoon. He would perform Tawaf round the Ka`ba and then offer two rak`at at the rear of Maqam Ibrahim. (2) Whenever he visited Quba, for he used to visit it every Saturday. When he entered the Mosque, he disliked to leave it without offering a prayer. Ibn `Umar narrated that Allah's Messenger (ﷺ) used to visit the Mosque of Quba (sometime) walking and (sometime) riding. And he (i.e. Ibn `Umar) used to say, \"I do only what my companions used to do and I don't forbid anybody to pray at any time during the day or night except that one should not intend to pray at sunrise or sunset",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1192"
+    },
+    {
+      "id": 1193,
+      "hadithNumber": 1193,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated `Abdullah bin Dinar:",
+      "text_en": "Ibn `Umar said, \"The Prophet (ﷺ) used to go to the Mosque of Quba every Saturday (sometimes) walking and (sometimes) riding.\" `Abdullah (Ibn `Umar) used to do the same",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1193"
+    },
+    {
+      "id": 1194,
+      "hadithNumber": 1194,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Ibn `Umar:",
+      "text_en": "The Prophet (ﷺ) used to go to the Mosque of Quba (sometimes) walking and sometimes riding. Added Nafi` (in another narration), \"He then would offer two rak`at (in the Mosque of Quba)",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1194"
+    },
+    {
+      "id": 1195,
+      "hadithNumber": 1195,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated `Abdullah bin Zaid Al-Mazini:",
+      "text_en": "Allah's Messenger (ﷺ) said, \"Between my house and the pulpit there is a garden of the gardens of Paradise",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1195"
+    },
+    {
+      "id": 1196,
+      "hadithNumber": 1196,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Abu Huraira:",
+      "text_en": "The Prophet (ﷺ) said, \"Between my house and my pulpit there is a garden of the gardens of Paradise, and my pulpit is on my fountain tank (i.e. Al-Kauthar)",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1196"
+    },
+    {
+      "id": 1197,
+      "hadithNumber": 1197,
+      "bookNumber": 20,
+      "bookName": "Virtues of Prayer at Masjid Makkah and Madinah",
+      "narrator": "Narrated Qaza'a Maula:",
+      "text_en": "(freed slave of) Ziyad: I heard Abu Sa`id Al-khudri narrating four things from the Prophet (ﷺ) and I appreciated them very much. He said, conveying the words of the Prophet. (1) \"A woman should not go on a two day journey except with her husband or a Dhi-Mahram. (2) No fasting is permissible on two days: `Id-ul-Fitr and `Id-ul-Adha. (3) No prayer after two prayers, i.e. after the Fajr prayer till the sunrises and after the `Asr prayer till the sun sets. (4) Do not prepare yourself for a journey except to three Mosques, i.e. Al-Masjid-Al-Haram, the Mosque of Aqsa (Jerusalem) and my Mosque",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 1197"
+    }
+  ]
+}

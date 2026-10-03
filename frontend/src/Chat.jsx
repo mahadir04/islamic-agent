@@ -1,481 +1,927 @@
-import { useState, useRef, useEffect } from "react";
-import { askQuestion, getSession } from "./api";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { askQuestion, getSession, createNewSession, getSessions, deleteSession } from "./api";
 
-// ── Classical Manuscript Quranic Quote & Markdown Parser ──
-function BotContent({ content }) {
-  const lines = content.split('\n');
-  const elements = [];
-  let listBuffer = [];
+export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUpdate, user }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q');
+  const urlSession = searchParams.get('session');
 
-  const flushList = (key) => {
-    if (listBuffer.length > 0) {
-      elements.push(
-        <ul key={`ul-${key}`} className="my-2 space-y-1.5 pl-2">
-          {listBuffer.map((item, i) => (
-            <li key={i} className="flex items-start gap-2.5 text-[14px]">
-              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 shadow-sm shadow-emerald-400/50" />
-              <span dangerouslySetInnerHTML={{ __html: renderInline(item) }} />
-            </li>
-          ))}
-        </ul>
-      );
-      listBuffer = [];
+  const [sessionId, setSessionId] = useState(urlSession || propSessionId || null);
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState(urlQuery || "");
+  const [loading, setLoading] = useState(false);
+  const [recentSessions, setRecentSessions] = useState([]);
+  const [relatedSources, setRelatedSources] = useState([]);
+  const [currentTopic, setCurrentTopic] = useState(null);
+  const [suggestedActions, setSuggestedActions] = useState([]);
+  const [copiedId, setCopiedId] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileContextOpen, setMobileContextOpen] = useState(false);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+
+  const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const scrollToBottom = (smooth = true) => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: smooth ? "smooth" : "auto"
+      });
+    } else if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
     }
   };
 
-  const renderInline = (text) =>
-    text
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-emerald-400 font-semibold">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em class="text-amber-200/90">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/20 text-emerald-300 text-xs font-mono">$1</code>');
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 120;
+    setShowScrollBottom(!isNearBottom);
+  };
 
-  lines.forEach((line, i) => {
-    const trimmed = line.trim();
-    if (!trimmed) {
-      flushList(i);
-      elements.push(<div key={i} className="h-1.5" />);
+  useEffect(() => {
+    scrollToBottom(true);
+  }, [messages, loading]);
+
+  // Load recent sessions
+  const loadRecentSessions = useCallback(async () => {
+    try {
+      const data = await getSessions();
+      setRecentSessions(data || []);
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecentSessions();
+  }, [loadRecentSessions]);
+
+  // Load active session messages
+  useEffect(() => {
+    if (sessionId) {
+      getSession(sessionId).then(sess => {
+        if (sess?.messages) {
+          setMessages(sess.messages);
+        }
+      }).catch(console.error);
+    } else {
+      // Default welcome message from Noor
+      setMessages([
+        {
+          id: 'welcome',
+          role: 'bot',
+          content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today? Whether you have questions about the Quran, need guidance on daily practices, or seek a moment of reflection, I am here to help.`
+        }
+      ]);
+    }
+  }, [sessionId, user]);
+
+  // Handle URL query parameter trigger
+  useEffect(() => {
+    if (urlQuery && messages.length > 0 && !loading) {
+      const timer = setTimeout(() => {
+        handleSendMessage(urlQuery);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQuery]);
+
+  const handleNewConversation = async () => {
+    try {
+      const newId = await createNewSession();
+      if (newId) {
+        setSessionId(newId);
+        setRelatedSources([]);
+        setCurrentTopic(null);
+        setSuggestedActions([]);
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'bot',
+            content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
+          }
+        ]);
+        if (onSessionUpdate) onSessionUpdate();
+        loadRecentSessions();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteSession = async (e, idToDelete) => {
+    e.stopPropagation();
+    if (deleteConfirmId !== idToDelete) {
+      setDeleteConfirmId(idToDelete);
+      setTimeout(() => {
+        setDeleteConfirmId((curr) => (curr === idToDelete ? null : curr));
+      }, 4000);
       return;
     }
 
-    // Arabic scripture detection or headers
-    if (/[\u0600-\u06FF]/.test(trimmed) && trimmed.length < 120 && !trimmed.startsWith('http')) {
-      flushList(i);
-      elements.push(
-        <div key={i} className="my-3 py-2 px-4 rounded-xl bg-emerald-950/20 border border-emerald-500/15 text-right">
-          <p className="font-arabic text-xl text-emerald-300 leading-loose" dir="rtl">
-            {trimmed}
-          </p>
-        </div>
-      );
-    } else if (trimmed.startsWith('### ')) {
-      flushList(i);
-      elements.push(
-        <h3 key={i} className="font-semibold text-emerald-400 mt-3 mb-1 text-sm tracking-wide uppercase flex items-center gap-1.5">
-          <span className="w-1 h-3 rounded-full bg-emerald-500" />
-          {trimmed.slice(4)}
-        </h3>
-      );
-    } else if (trimmed.startsWith('## ')) {
-      flushList(i);
-      elements.push(
-        <h2 key={i} className="font-bold text-emerald-300 mt-4 mb-2 text-base flex items-center gap-2">
-          <span>✨</span>
-          {trimmed.slice(3)}
-        </h2>
-      );
-    } else if (trimmed.startsWith('> ')) {
-      flushList(i);
-      elements.push(
-        <div key={i} className="manuscript-card rounded-xl p-3 my-2.5 bg-gradient-to-r from-emerald-500/10 via-amber-500/5 to-transparent border-l-2 border-emerald-400">
-          <p className="text-[13.5px] italic text-gray-200 leading-relaxed"
-             dangerouslySetInnerHTML={{ __html: renderInline(trimmed.slice(2)) }} />
-        </div>
-      );
-    } else if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
-      listBuffer.push(trimmed.slice(2));
-    } else if (/^\d+\.\s/.test(trimmed)) {
-      listBuffer.push(trimmed.replace(/^\d+\.\s/, ''));
-    } else {
-      flushList(i);
-      elements.push(
-        <p key={i} className="leading-relaxed my-1 text-[14.5px] text-gray-200"
-          dangerouslySetInnerHTML={{ __html: renderInline(trimmed) }} />
-      );
-    }
-  });
-  flushList('end');
-
-  return <div className="space-y-1">{elements}</div>;
-}
-
-// ── Daily Inspiration Ayah Carousel Data ──
-const DAILY_INSPIRATIONS = [
-  {
-    arabic: "وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ",
-    translation: "And when My servants ask you concerning Me, indeed I am near.",
-    surah: "Surah Al-Baqarah 2:186"
-  },
-  {
-    arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا • إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-    translation: "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease.",
-    surah: "Surah Ash-Sharh 94:5-6"
-  },
-  {
-    arabic: "وَتَوَكَّلْ عَلَى الْحَيِّ الَّذِي لَا يَمُوتُ",
-    translation: "And rely upon the Ever-Living who does not die, and exalt [Allah] with His praise.",
-    surah: "Surah Al-Furqan 25:58"
-  }
-];
-
-export default function Chat({ isDarkMode, sessionId, onSessionUpdate }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingSession, setLoadingSession] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState(null);
-  const [dailyIndex, setDailyIndex] = useState(0);
-
-  const messagesEndRef = useRef(null);
-  const textareaRef = useRef(null);
-
-  const scrollToBottom = () =>
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
-
-  useEffect(() => {
-    if (sessionId) loadSessionMessages(sessionId);
-  }, [sessionId]);
-
-  const loadSessionMessages = async (sid) => {
-    setLoadingSession(true);
+    setDeletingId(idToDelete);
+    setDeleteConfirmId(null);
     try {
-      const session = await getSession(sid);
-      if (session?.messages?.length > 0) {
-        setMessages(session.messages);
-      } else {
-        setMessages([{
-          role: "bot",
-          content: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\n\nAs-salamu alaykum wa Rahmatullahi wa Barakatuh. Welcome to your personal Islamic sanctuary and knowledge assistant.\n\nAsk any question regarding the Holy Quran, Sunnah, Hadith commentaries, Fiqh rulings across madhahib, or daily life supplications.",
-          timestamp: new Date().toISOString()
-        }]);
+      const success = await deleteSession(idToDelete);
+      if (success) {
+        setRecentSessions((prev) => prev.filter((s) => s.id !== idToDelete));
+        if (sessionId === idToDelete) {
+          setSessionId(null);
+          setMessages([
+            {
+              id: 'welcome',
+              role: 'bot',
+              content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
+            }
+          ]);
+          setRelatedSources([]);
+          setCurrentTopic(null);
+          setSuggestedActions([]);
+        }
+        if (onSessionUpdate) onSessionUpdate();
       }
-    } catch {
-      setMessages([{
-        role: "bot",
-        content: "As-salamu alaykum. I am ready to assist you with Islamic guidance and references.",
-        timestamp: new Date().toISOString()
-      }]);
+    } catch (err) {
+      console.error("Failed to delete conversation:", err);
     } finally {
-      setLoadingSession(false);
+      setDeletingId(null);
     }
   };
 
-  const copyToClipboard = (text, index) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
-
-  const sendMessage = async (messageText = input) => {
-    const text = messageText.trim();
+  const handleSendMessage = async (textToSend = null) => {
+    const text = (textToSend || inputMessage).trim();
     if (!text || loading) return;
-    setInput("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
-    setMessages(prev => [...prev, { role: "user", content: text, timestamp: new Date().toISOString() }]);
+
+    setInputMessage("");
+    const userMsg = {
+      id: Date.now().toString(),
+      role: "user",
+      content: text,
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMsg]);
     setLoading(true);
+
     try {
       const response = await askQuestion(text, sessionId);
-      setMessages(prev => [...prev, {
+      if (response?.session_id && !sessionId) {
+        setSessionId(response.session_id);
+      }
+
+      const botMsg = {
+        id: (Date.now() + 1).toString(),
         role: "bot",
         content: response.answer,
-        timestamp: new Date().toISOString(),
-      }]);
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, botMsg]);
+
+      // If backend returned RAG sources, update Spiritual Context sidebar
+      if (response.sources && response.sources.length > 0) {
+        const parsed = response.sources.slice(0, 4).map((s, idx) => {
+          const lines = s.split('\n');
+          return {
+            title: lines[0]?.replace('---', '').trim() || `Reference ${idx + 1}`,
+            snippet: lines.slice(1).join(' ').trim().slice(0, 130) + '...'
+          };
+        });
+        setRelatedSources(parsed);
+      }
+
+      if (response.topic) {
+        setCurrentTopic(response.topic);
+      }
+
+      if (response.suggested_actions) {
+        setSuggestedActions(response.suggested_actions);
+      }
+
       if (onSessionUpdate) onSessionUpdate();
-    } catch {
-      setMessages(prev => [...prev, {
-        role: "bot",
-        content: "I apologize, but I encountered an error connecting to the Islamic Knowledge engine. Please check your connection and try again.",
-        timestamp: new Date().toISOString(),
-      }]);
+      loadRecentSessions();
+    } catch (err) {
+      console.error(err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "bot",
+          content: "I apologize, but an error occurred while consulting authentic sources. Please try again."
+        }
+      ]);
     } finally {
       setLoading(false);
+      inputRef.current?.focus();
     }
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSendMessage();
     }
   };
 
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-    const ta = e.target;
-    ta.style.height = 'auto';
-    ta.style.height = Math.min(ta.scrollHeight, 180) + 'px';
+  const handleCopyMessage = (id, text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const quickPrompts = [
-    { title: "Virtues of Tahajjud", desc: "Night prayer blessings & hadith", icon: "✨", prompt: "Explain the importance, method, and virtues of praying Tahajjud according to the Sunnah." },
-    { title: "Zakat Calculation", desc: "Nisab rates & eligible assets", icon: "⚖️", prompt: "How do I calculate Zakat on savings and gold today, and what is the current Nisab standard?" },
-    { title: "Morning & Evening Adhkar", desc: "Prophetic protective duas", icon: "🤲", prompt: "What are the essential authentic Morning and Evening Adhkar with Arabic text and benefits?" },
-    { title: "Tafsir of Ayah al-Kursi", desc: "Deeper spiritual meanings", icon: "📖", prompt: "Provide a detailed tafsir and linguistic breakdown of Ayah al-Kursi (2:255)." }
-  ];
+  const renderLeftSidebarContent = (isDrawer = false) => (
+    <div className="flex flex-col h-full justify-between">
+      <div className="p-4 space-y-5 overflow-y-auto">
+        {/* Brand / Header */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+              </svg>
+            </div>
+            <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white">
+              Noor AI
+            </span>
+          </div>
 
-  const activeDaily = DAILY_INSPIRATIONS[dailyIndex];
-
-  if (loadingSession) {
-    return (
-      <div className={`flex-1 flex flex-col items-center justify-center p-6 ${
-        isDarkMode ? 'bg-[#06090e]' : 'bg-[#f8fafc]'
-      }`}>
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 via-amber-500/10 to-transparent border border-emerald-500/25 flex items-center justify-center animate-pulse">
-          <span className="text-2xl">🕌</span>
+          {isDrawer && (
+            <button
+              onClick={() => setMobileNavOpen(false)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.08] transition"
+              title="Close"
+            >
+              ✕
+            </button>
+          )}
         </div>
-        <p className="text-sm font-medium mt-4 text-emerald-400">Opening sacred sanctuary…</p>
-      </div>
-    );
-  }
 
-  const isFresh = messages.length <= 1;
+        {/* New Conversation Button */}
+        <button
+          onClick={() => {
+            handleNewConversation();
+            if (isDrawer) setMobileNavOpen(false);
+          }}
+          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition transform active:scale-98"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          New Conversation
+        </button>
+
+        {/* Recent Chats Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500">
+              Recent Chats
+            </span>
+            {recentSessions.length > 0 && (
+              <span className="text-[10px] text-gray-500 font-mono">
+                {recentSessions.length}
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-1 max-h-72 overflow-y-auto pr-1">
+            {recentSessions.length > 0 ? (
+              recentSessions.slice(0, 15).map((sess) => {
+                const isActive = sess.id === sessionId;
+                const chatTitle = sess.name || sess.title || sess.preview || "Spiritual discussion";
+                const isConfirming = deleteConfirmId === sess.id;
+                const isDeleting = deletingId === sess.id;
+
+                return (
+                  <div
+                    key={sess.id}
+                    onClick={() => {
+                      setSessionId(sess.id);
+                      if (isDrawer) setMobileNavOpen(false);
+                    }}
+                    className={`group relative flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs cursor-pointer transition-all border ${
+                      isActive
+                        ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 font-medium shadow-sm'
+                        : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/[0.03]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <svg
+                        className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-gray-500 group-hover:text-emerald-400/80'} transition`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      <span className="truncate text-left" title={chatTitle}>
+                        {chatTitle}
+                      </span>
+                    </div>
+
+                    {/* Delete conversation button */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteSession(e, sess.id)}
+                      disabled={isDeleting}
+                      className={`shrink-0 p-1 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-500/15 transition-all active:scale-95 ${
+                        isConfirming ? 'opacity-100 text-red-400 bg-red-500/15' : 'opacity-0 group-hover:opacity-100'
+                      }`}
+                      title={isConfirming ? "Click again to permanently delete" : "Delete chat"}
+                    >
+                      {isDeleting ? (
+                        <div className="w-3.5 h-3.5 border-2 border-red-400/40 border-t-red-400 rounded-full animate-spin" />
+                      ) : isConfirming ? (
+                        <span className="text-[10px] font-bold text-red-400 px-1 uppercase tracking-wider">
+                          Delete?
+                        </span>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="px-3 py-1.5 text-xs text-gray-500 italic">No previous chats</div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Access & Knowledge Links */}
+        <div className="space-y-2 pt-2 border-t border-white/[0.04]">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-gray-500 px-1 block">
+            Sacred Exploration
+          </span>
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                navigate('/quran');
+                if (isDrawer) setMobileNavOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-400 hover:text-gray-200 hover:bg-white/[0.02] transition text-left"
+            >
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              Quran Explorer
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/duas');
+                if (isDrawer) setMobileNavOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-400 hover:text-gray-200 hover:bg-white/[0.02] transition text-left"
+            >
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+              </svg>
+              Daily Duas & Adhkar
+            </button>
+
+            <button
+              onClick={() => {
+                navigate('/dashboard');
+                if (isDrawer) setMobileNavOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-gray-400 hover:text-gray-200 hover:bg-white/[0.02] transition text-left"
+            >
+              <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Dashboard Overview
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom User Pill */}
+      <div className="p-4 border-t border-white/[0.06] flex items-center justify-between">
+        <div
+          className="flex items-center gap-2.5 cursor-pointer min-w-0"
+          onClick={() => {
+            navigate('/settings');
+            if (isDrawer) setMobileNavOpen(false);
+          }}
+        >
+          <div className="w-8 h-8 rounded-full border border-emerald-500/40 overflow-hidden shrink-0">
+            <img
+              src={user?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || user?.email || 'User'}&backgroundColor=00b875`}
+              alt="User"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white truncate">{user?.name || user?.email?.split('@')[0] || 'Seeker'}</p>
+            <span className="text-[10px] text-gray-400 block truncate">{user?.plan || 'Member'}</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            navigate('/settings');
+            if (isDrawer) setMobileNavOpen(false);
+          }}
+          className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.04] transition shrink-0"
+          title="Settings"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderRightSidebarContent = (isDrawer = false) => (
+    <div className="space-y-6">
+      {/* Title */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-serif-luxury font-medium text-white">
+          Spiritual Context
+        </h3>
+        {isDrawer && (
+          <button
+            onClick={() => setMobileContextOpen(false)}
+            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.08]"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Section 1: Related Verses / Retrieved References */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400">
+            Retrieved References
+          </span>
+          <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400">
+            {relatedSources.length} Found
+          </span>
+        </div>
+
+        <div className="space-y-2.5">
+          {relatedSources.length > 0 ? (
+            relatedSources.map((source, i) => (
+              <div
+                key={i}
+                onClick={() => {
+                  if (source.title.toLowerCase().includes("quran")) {
+                    navigate('/quran');
+                  } else {
+                    handleSendMessage(`Explain further from: ${source.title}`);
+                  }
+                  if (isDrawer) setMobileContextOpen(false);
+                }}
+                className="p-3.5 rounded-xl bg-[#0b1017] border border-white/[0.06] hover:border-emerald-500/40 cursor-pointer transition space-y-1 group"
+              >
+                <span className="text-[11px] font-semibold text-emerald-400 group-hover:text-emerald-300 block">
+                  {source.title}
+                </span>
+                <p className="text-xs text-gray-300 italic leading-relaxed">
+                  "{source.snippet}"
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="p-4 rounded-xl bg-[#0b1017]/50 border border-white/[0.04] text-xs text-gray-400 leading-relaxed">
+              Ask any question to retrieve authentic references from the Holy Quran, Sahih Al-Bukhari, classical Fiqh, and Seerah.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Section 2: Suggested Actions */}
+      <div className="space-y-3 pt-4 border-t border-white/[0.04]">
+        <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block">
+          Suggested Actions
+        </span>
+
+        <div className="space-y-2">
+          {suggestedActions.length > 0 ? (
+            suggestedActions.map((act, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  if (act.action === 'quran') {
+                    navigate('/quran');
+                  } else {
+                    alert("Dua saved to your personal collection!");
+                  }
+                  if (isDrawer) setMobileContextOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.06] hover:border-emerald-500/30 transition text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {act.action === 'quran' ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                    )}
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-200">
+                  {act.title}
+                </span>
+              </button>
+            ))
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  navigate('/quran');
+                  if (isDrawer) setMobileContextOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.06] hover:border-emerald-500/30 transition text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-200">
+                  Explore 114 Surahs in Quran Reader
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  handleSendMessage("What are the authentic morning and evening prophetic adhkar?");
+                  if (isDrawer) setMobileContextOpen(false);
+                }}
+                className="w-full flex items-center gap-3 p-3 rounded-xl bg-[#0b1017] hover:bg-[#0e1620] border border-white/[0.06] hover:border-emerald-500/30 transition text-left"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-200">
+                  Daily Morning & Evening Adhkar
+                </span>
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Section 3: Topic Progress */}
+      <div className="p-4 rounded-2xl bg-[#0b1017] border border-white/[0.06] space-y-3 pt-4">
+        <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block">
+          Topic Progress
+        </span>
+        <h4 className="text-xs font-semibold text-white">
+          {currentTopic?.name || "Spiritual Inquiries & Learning"}
+        </h4>
+        <div className="w-full h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+            style={{ width: `${currentTopic?.percentage || 15}%` }}
+          />
+        </div>
+        <p className="text-[11px] text-gray-400 leading-relaxed">
+          {currentTopic
+            ? `You've explored ${currentTopic.explored}/${currentTopic.total} themes in this dialogue.`
+            : "As you ask questions, Noor tracks your exploration of Islamic themes and sciences."}
+        </p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className={`flex flex-col h-full ${isDarkMode ? 'bg-arabesque-dark' : 'bg-arabesque-light'}`}>
-      
-      {/* ── Top Ribbon: Daily Quranic Inspiration (Card carousel) ── */}
-      {isFresh && (
-        <div className="pt-4 px-4 max-w-4xl mx-auto w-full">
-          <div className={`
-            p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden
-            ${isDarkMode
-              ? 'bg-gradient-to-r from-[#0b1219]/90 via-[#0c181f]/80 to-[#0b1219]/90 border-emerald-500/20 text-gray-200 shadow-xl shadow-black/40'
-              : 'bg-gradient-to-r from-emerald-50/80 via-white/90 to-amber-50/60 border-emerald-200 text-gray-800 shadow-md'
-            }
-          `}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                Daily Ayah of Reflection
-              </span>
-              <button
-                onClick={() => setDailyIndex((dailyIndex + 1) % DAILY_INSPIRATIONS.length)}
-                className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                  isDarkMode
-                    ? 'border-white/10 hover:border-emerald-500/40 text-gray-400 hover:text-emerald-300'
-                    : 'border-gray-200 hover:border-emerald-300 text-gray-600 hover:text-emerald-600'
-                }`}
-              >
-                Next Ayah →
-              </button>
-            </div>
-            
-            <p className="font-arabic text-xl text-right text-emerald-300 leading-relaxed my-2" dir="rtl">
-              {activeDaily.arabic}
-            </p>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
-              <p className="italic text-gray-300">{activeDaily.translation}</p>
-              <span className="text-amber-400 font-semibold flex-shrink-0">{activeDaily.surah}</span>
-            </div>
+    <div
+      className="flex-1 flex overflow-hidden bg-[#070a0e] text-gray-100 h-screen h-[100dvh] max-h-[100dvh] w-full selection:bg-emerald-500/30 selection:text-white relative"
+      style={{
+        backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+        backgroundSize: '24px 24px'
+      }}
+    >
+      {/* ── Mobile Drawer: Left Sidebar (Recent Chats & Navigation) ── */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <div className="relative w-80 max-w-[85vw] bg-[#070b10] border-r border-white/[0.08] h-full flex flex-col justify-between z-10 shadow-2xl">
+            {renderLeftSidebarContent(true)}
           </div>
         </div>
       )}
 
-      {/* ── Messages Stream ── */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {messages.map((message, index) => {
-            const isUser = message.role === "user";
-            return (
-              <div
-                key={index}
-                className={`flex gap-3 md:gap-4 items-start ${isUser ? 'justify-end' : 'justify-start'}`}
+      {/* ── Mobile Drawer: Right Sidebar (Spiritual Context) ── */}
+      {mobileContextOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden flex justify-end">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+            onClick={() => setMobileContextOpen(false)}
+          />
+          <div className="relative w-84 max-w-[85vw] bg-[#070b10] border-l border-white/[0.08] h-full flex flex-col p-6 space-y-6 overflow-y-auto z-10 shadow-2xl">
+            {renderRightSidebarContent(true)}
+          </div>
+        </div>
+      )}
+
+      {/* ── Column 1: Desktop Left Navigation Sidebar ── */}
+      <aside className="hidden lg:flex w-72 shrink-0 border-r border-white/[0.06] bg-[#070b10] flex-col justify-between overflow-hidden">
+        {renderLeftSidebarContent(false)}
+      </aside>
+
+      {/* ── Column 2: Center Main Chat Stream ── */}
+      <main className="flex-1 flex flex-col justify-between overflow-hidden min-w-0 h-full relative">
+        
+        {/* Top Chat Bar */}
+        <header className="h-16 px-4 sm:px-6 border-b border-white/[0.06] bg-[#070a0e]/90 backdrop-blur-md flex items-center justify-between shrink-0 z-10 gap-2">
+          
+          {/* Left: Mobile Menu Toggle + Advisor Status */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="lg:hidden p-2 -ml-1 rounded-xl text-gray-400 hover:text-white hover:bg-white/[0.05] transition shrink-0"
+              title="Open chats menu"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
+
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                </svg>
+              </div>
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#070a0e]" />
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-xs font-semibold text-white truncate">Noor</h3>
+              <p className="text-[9px] sm:text-[10px] tracking-wider uppercase font-semibold text-emerald-400 truncate">
+                ONLINE · SPIRITUAL ADVISOR
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Context Trigger + Quick Nav */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* View Context on Mobile / Tablet */}
+            {relatedSources.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMobileContextOpen(true)}
+                className="xl:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium transition"
+                title="View spiritual context"
               >
+                <span>📖</span>
+                <span className="hidden sm:inline">Context ({relatedSources.length})</span>
+                <span className="sm:hidden">{relatedSources.length}</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => navigate('/quran')}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/[0.08] hover:border-white/[0.2] text-xs font-medium text-gray-300 hover:text-white transition flex items-center gap-1.5"
+            >
+              <span>📖</span>
+              <span className="hidden sm:inline">Quran</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/hadith')}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/[0.08] hover:border-white/[0.2] text-xs font-medium text-gray-300 hover:text-white transition flex items-center gap-1.5"
+            >
+              <span>📚</span>
+              <span className="hidden sm:inline">Hadith</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/duas')}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/[0.08] hover:border-white/[0.2] text-xs font-medium text-gray-300 hover:text-white transition flex items-center gap-1.5"
+            >
+              <span>🤲</span>
+              <span className="hidden sm:inline">Duas</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-medium text-emerald-300 transition flex items-center gap-1.5"
+            >
+              <span>📊</span>
+              <span className="hidden md:inline">Dashboard</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Messages Stream (Strictly bounded container with smooth scroll) */}
+        <div
+          ref={chatContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto w-full relative"
+        >
+          {messages.map((msg) => {
+            const isUser = msg.role === 'user';
+            return (
+              <div key={msg.id} className={`flex items-start gap-2.5 sm:gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                
+                {/* Bot Avatar */}
                 {!isUser && (
-                  <div className={`
-                    w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 shadow-md
-                    ${isDarkMode
-                      ? 'bg-gradient-to-br from-emerald-500/20 to-amber-500/10 border border-emerald-500/30 text-emerald-300'
-                      : 'bg-emerald-100 border border-emerald-300 text-emerald-800'
-                    }
-                  `}>
-                    <span className="text-base">🕌</span>
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                    </svg>
                   </div>
                 )}
 
-                <div className={`
-                  group relative max-w-[85%] md:max-w-[78%] rounded-2xl p-4 md:p-5 transition-all
-                  ${isUser
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-tr-sm shadow-lg shadow-emerald-950/40'
-                    : isDarkMode
-                      ? 'bg-[#0e1622]/90 border border-white/10 rounded-tl-sm text-gray-100 shadow-md backdrop-blur-md'
-                      : 'bg-white border border-gray-200/80 rounded-tl-sm text-gray-800 shadow-sm'
-                  }
-                `}>
-                  {/* Action buttons (Copy) */}
-                  {!isUser && (
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => copyToClipboard(message.content, index)}
-                        className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition-all ${
-                          isDarkMode
-                            ? 'bg-black/40 border-white/10 text-gray-300 hover:text-emerald-300 hover:border-emerald-500/30'
-                            : 'bg-gray-100 border-gray-200 text-gray-600 hover:text-emerald-700'
-                        }`}
-                        title="Copy Response"
-                      >
-                        {copiedIndex === index ? (
-                          <span className="text-emerald-400 font-medium">Copied!</span>
-                        ) : (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
+                {/* Bubble Container */}
+                <div className={`max-w-[88%] sm:max-w-xl md:max-w-2xl ${isUser ? 'items-end' : 'items-start'}`}>
+                  
                   {isUser ? (
-                    <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    /* User Bubble */
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs sm:text-sm font-normal shadow-lg leading-relaxed break-words">
+                      {msg.content}
+                    </div>
                   ) : (
-                    <BotContent content={message.content} />
-                  )}
+                    /* Noor AI Response with scripture formatting */
+                    <div className="bg-[#0b1017] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-xl space-y-3 sm:space-y-4 text-xs sm:text-sm text-gray-200 leading-relaxed break-words">
+                      
+                      {/* Formatted body */}
+                      <div className="whitespace-pre-line">
+                        {msg.content}
+                      </div>
 
-                  {message.timestamp && (
-                    <div className={`mt-2 pt-1 border-t text-[11px] flex items-center justify-between ${
-                      isUser
-                        ? 'border-white/15 text-emerald-100/70'
-                        : isDarkMode ? 'border-white/5 text-gray-500' : 'border-gray-100 text-gray-400'
-                    }`}>
-                      <span>{isUser ? 'You' : 'Noor AI Assistant'}</span>
-                      <span>{new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      {/* Action buttons (Helpful, Not quite, Copy) */}
+                      <div className="pt-3 border-t border-white/[0.04] flex items-center gap-3 sm:gap-4 text-xs text-gray-400 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => alert("Thank you for your feedback! Jazaakallahu Khair.")}
+                          className="flex items-center gap-1.5 hover:text-emerald-400 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                          </svg>
+                          Helpful
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => alert("We noted your feedback to improve guidance accuracy.")}
+                          className="flex items-center gap-1.5 hover:text-red-400 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76 1.06m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                          </svg>
+                          Not quite
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleCopyMessage(msg.id, msg.content)}
+                          className="flex items-center gap-1.5 hover:text-white transition ml-auto sm:ml-0"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          {copiedId === msg.id ? 'Copied ✓' : 'Copy'}
+                        </button>
+                      </div>
+
                     </div>
                   )}
+
                 </div>
 
+                {/* User Avatar */}
                 {isUser && (
-                  <div className={`
-                    w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 font-semibold text-xs shadow-md
-                    ${isDarkMode
-                      ? 'bg-gradient-to-br from-emerald-700 to-teal-800 text-white border border-emerald-400/30'
-                      : 'bg-slate-700 text-white'
-                    }
-                  `}>
-                    You
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-emerald-500/40 overflow-hidden shrink-0 mt-0.5">
+                    <img
+                      src={user?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || user?.email || 'User'}&backgroundColor=00b875`}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
+
               </div>
             );
           })}
 
-          {/* Typing state */}
+          {/* Typing Indicator */}
           {loading && (
-            <div className="flex gap-3 md:gap-4 items-start">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-300">
-                <span className="text-base">🕌</span>
+            <div className="flex items-start gap-2.5 sm:gap-3.5">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current animate-pulse" viewBox="0 0 24 24">
+                  <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                </svg>
               </div>
-              <div className={`
-                p-4 rounded-2xl rounded-tl-sm border flex items-center gap-3
-                ${isDarkMode ? 'bg-[#0e1622]/90 border-white/10' : 'bg-white border-gray-200'}
-              `}>
-                <div className="flex gap-1.5">
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                </div>
-                <span className="text-xs font-medium text-emerald-400 tracking-wide">
-                  Consulting authentic hadith & scriptures…
-                </span>
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-[#0b1017] border border-white/[0.06] flex items-center gap-1.5 text-xs text-gray-400">
+                <span>Consulting Quran & Sunnah</span>
+                <span className="animate-bounce">.</span>
+                <span className="animate-bounce delay-100">.</span>
+                <span className="animate-bounce delay-200">.</span>
               </div>
             </div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
-      </div>
 
-      {/* ── Suggested Questions Carousel / Grid ── */}
-      {isFresh && !loading && (
-        <div className="px-4 pb-2 max-w-4xl mx-auto w-full">
-          <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
-            <span>⚡</span> Suggested Explorations
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {quickPrompts.map((item, idx) => (
+        {/* Floating Scroll to Bottom Button */}
+        {showScrollBottom && (
+          <button
+            type="button"
+            onClick={() => scrollToBottom(true)}
+            className="absolute bottom-24 sm:bottom-28 right-4 sm:right-8 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0d141f]/95 border border-emerald-500/40 text-emerald-300 text-xs font-medium shadow-2xl backdrop-blur-md hover:bg-emerald-500/20 transition-all active:scale-95 animate-bounce"
+            title="Scroll to latest messages"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            <span>Scroll to bottom</span>
+          </button>
+        )}
+
+        {/* Bottom Input Area */}
+        <div className="p-3 sm:p-4 md:p-6 bg-[#070a0e]/95 border-t border-white/[0.06] shrink-0">
+          <div className="max-w-4xl mx-auto space-y-2">
+            
+            {/* Input Pill */}
+            <div className="relative flex items-center bg-[#0d131a] border border-white/[0.08] focus-within:border-emerald-500/50 rounded-2xl px-3 sm:px-4 py-1.5 sm:py-2 shadow-inner gap-1">
+              
+              {/* Attachment Icon */}
               <button
-                key={idx}
-                onClick={() => sendMessage(item.prompt)}
-                className={`
-                  p-3 rounded-xl border text-left flex items-start gap-3 transition-all duration-200
-                  ${isDarkMode
-                    ? 'bg-[#0b1219]/80 border-white/10 hover:border-emerald-500/40 hover:bg-[#101923] text-gray-200'
-                    : 'bg-white border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 text-gray-800 shadow-sm'
-                  }
-                `}
+                type="button"
+                onClick={() => alert("Attach document/ayah feature")}
+                className="p-1.5 text-gray-400 hover:text-white transition shrink-0"
+                title="Attach"
               >
-                <span className="text-xl p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex-shrink-0">
-                  {item.icon}
-                </span>
-                <div>
-                  <h4 className="text-sm font-semibold">{item.title}</h4>
-                  <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{item.desc}</p>
-                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
               </button>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* ── Modern Central AI Input Dock (Claude / Perplexity style) ── */}
-      <div className="p-4 md:p-6 max-w-4xl mx-auto w-full flex-shrink-0">
-        <div className={`
-          relative rounded-2xl border transition-all duration-300 shadow-2xl
-          ${isDarkMode
-            ? 'bg-[#0d141f]/95 border-emerald-500/30 focus-within:border-emerald-400 focus-within:shadow-emerald-950/40'
-            : 'bg-white border-gray-300 focus-within:border-emerald-500 focus-within:shadow-emerald-200/50'
-          }
-        `}>
-          <textarea
-            ref={textareaRef}
-            rows={1}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            placeholder="Ask about Quran verses, Hadith rulings, Fiqh, or daily du'a..."
-            className={`
-              w-full bg-transparent resize-none border-none outline-none px-4 pt-3.5 pb-12
-              text-[15px] leading-relaxed
-              ${isDarkMode ? 'text-gray-100 placeholder-gray-500' : 'text-gray-800 placeholder-gray-400'}
-            `}
-            style={{ minHeight: '56px', maxHeight: '180px' }}
-          />
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask Noor about your spiritual journey..."
+                className="flex-1 bg-transparent text-xs sm:text-sm text-gray-100 placeholder-gray-500 focus:outline-none py-1 min-w-0"
+              />
 
-          {/* Bottom Dock Control Badges */}
-          <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 font-medium ${
-                isDarkMode
-                  ? 'bg-white/5 border-white/10 text-emerald-400'
-                  : 'bg-gray-100 border-gray-200 text-emerald-700'
-              }`}>
-                <span>🕌</span> Verified Sources
-              </span>
-              <span className={`hidden sm:inline text-[11px] px-2 py-0.5 rounded text-gray-500`}>
-                Shift+Enter for new line
-              </span>
+              {/* Mic Icon */}
+              <button
+                type="button"
+                onClick={() => alert("Voice input feature activated")}
+                className="p-1.5 text-gray-400 hover:text-emerald-400 transition shrink-0"
+                title="Voice input"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+
+              {/* Send Button */}
+              <button
+                type="button"
+                onClick={() => handleSendMessage()}
+                disabled={!inputMessage.trim() || loading}
+                className="w-8 h-8 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center transition disabled:opacity-30 disabled:hover:bg-emerald-500 shadow-md shadow-emerald-900/30 shrink-0"
+                title="Send"
+              >
+                <svg className="w-4 h-4 transform rotate-45 -mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+
             </div>
 
-            <button
-              onClick={() => sendMessage()}
-              disabled={loading || !input.trim()}
-              className={`
-                px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all duration-200
-                ${loading || !input.trim()
-                  ? isDarkMode
-                    ? 'bg-white/5 text-gray-600 cursor-not-allowed border border-white/5'
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                  : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white shadow-lg shadow-emerald-900/30 hover:scale-105 active:scale-95'
-                }
-              `}
-            >
-              <span>Send</span>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
+            {/* Disclaimer */}
+            <p className="text-[9px] sm:text-[10px] text-center text-gray-500 uppercase tracking-wider font-semibold">
+              Noor AI can provide spiritual guidance but is not a substitute for qualified human scholarship.
+            </p>
+
           </div>
         </div>
 
-        <p className={`text-[11px] text-center mt-2.5 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-          Noor AI is an educational assistant. For binding fatwas, consult your local certified Islamic scholars.
-        </p>
-      </div>
+      </main>
+
+      {/* ── Column 3: Desktop Right Sidebar ("Spiritual Context") ── */}
+      <aside className="hidden xl:flex w-80 shrink-0 border-l border-white/[0.06] bg-[#070b10] flex-col p-6 space-y-6 overflow-y-auto">
+        {renderRightSidebarContent(false)}
+      </aside>
 
     </div>
   );

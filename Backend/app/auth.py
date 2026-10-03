@@ -119,36 +119,112 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     
     return user
 
+async def get_current_user_optional(token: str = Depends(oauth2_scheme)) -> Optional[dict]:
+    """Get current user from token if available, without throwing 401"""
+    if not token:
+        return None
+    try:
+        payload = decode_token(token)
+        if not payload:
+            return None
+        email = payload.get("sub")
+        if not email:
+            return None
+        return user_db.get_user(email)
+    except Exception:
+        return None
+
+def hash_password(password: str) -> str:
+    """Hash password using PBKDF2 with SHA-256 and unique salt"""
+    salt = os.urandom(16).hex()
+    hashed = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        100000
+    ).hex()
+    return f"{salt}:{hashed}"
+
+def verify_password(stored_password: str, provided_password: str) -> bool:
+    """Verify password against stored salt and hash"""
+    try:
+        if not stored_password or ":" not in stored_password:
+            return False
+        salt, hashed = stored_password.split(":", 1)
+        calc = hashlib.pbkdf2_hmac(
+            'sha256',
+            provided_password.encode('utf-8'),
+            salt.encode('utf-8'),
+            100000
+        ).hex()
+        return hmac.compare_digest(hashed, calc)
+    except Exception as e:
+        logger.error(f"Password verification error: {e}")
+        return False
+
 # User database
 class UserDB:
     def __init__(self):
-        self.users_file = "users.json"
+        self.users_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "users.json")
         self.load_users()
     
     def load_users(self):
         try:
-            with open(self.users_file, 'r') as f:
-                self.users = json.load(f)
-        except:
+            if os.path.exists(self.users_file):
+                with open(self.users_file, 'r', encoding='utf-8') as f:
+                    self.users = json.load(f)
+            else:
+                self.users = {}
+        except Exception as e:
+            logger.error(f"Error loading users: {e}")
             self.users = {}
     
     def save_users(self):
-        with open(self.users_file, 'w') as f:
-            json.dump(self.users, f, indent=2)
+        try:
+            with open(self.users_file, 'w', encoding='utf-8') as f:
+                json.dump(self.users, f, indent=2, ensure_ascii=False)
+        except Exception as e:
+            logger.error(f"Error saving users: {e}")
     
     def get_user(self, email: str):
-        return self.users.get(email)
+        return self.users.get(email.lower().strip())
     
     def create_user(self, email: str, user_data: dict):
-        self.users[email] = user_data
+        clean_email = email.lower().strip()
+        # Ensure default preferences and spiritual settings exist
+        if "preferences" not in user_data:
+            user_data["preferences"] = {}
+        if "daily_sunnah" not in user_data["preferences"]:
+            user_data["preferences"]["daily_sunnah"] = [
+                {"id": "morning_adhkar", "label": "Morning Adhkar", "done": True},
+                {"id": "fajr_sunnah", "label": "2 Rakat Fajr Sunnah", "done": True},
+                {"id": "read_quran", "label": "Read 1 Juz", "done": False},
+                {"id": "evening_dhikr", "label": "Evening Dhikr", "done": False},
+                {"id": "duha_prayer", "label": "Duha Prayer", "done": True},
+                {"id": "surah_mulk", "label": "Surah Al-Mulk before sleep", "done": False},
+                {"id": "tahajjud", "label": "Tahajjud Prayer", "done": False},
+                {"id": "salawat", "label": "100 Salawat on Prophet ﷺ", "done": True}
+            ]
+        if "settings" not in user_data:
+            user_data["settings"] = {
+                "theme": "dark",
+                "location": "Islamabad, Pakistan",
+                "calculation_method": "University of Islamic Sciences, Karachi",
+                "asr_school": "Hanafi",
+                "ai_adaptive": True,
+                "transliteration": False
+            }
+        
+        self.users[clean_email] = user_data
         self.save_users()
         return user_data
     
     def update_user(self, email: str, user_data: dict):
-        if email in self.users:
-            self.users[email].update(user_data)
+        clean_email = email.lower().strip()
+        if clean_email in self.users:
+            self.users[clean_email].update(user_data)
             self.save_users()
-            return self.users[email]
+            return self.users[clean_email]
         return None
 
 user_db = UserDB()

@@ -1,0 +1,46 @@
+{
+  "book": {
+    "number": 36,
+    "name": "Shuf'a",
+    "name_ar": "كتاب الشفعة",
+    "collection": "Sahih al-Bukhari",
+    "hadiths_count": 3,
+    "start_hadith": 2257,
+    "end_hadith": 2259
+  },
+  "hadiths": [
+    {
+      "id": 2257,
+      "hadithNumber": 2257,
+      "bookNumber": 36,
+      "bookName": "Shuf'a",
+      "narrator": "Narrated Jabir bin `Abdullah:",
+      "text_en": "Allah's Messenger (ﷺ) gave a verdict regarding Shuf'a in every undivided joint thing (property). But if the limits are defined (or demarcated) or the ways and streets are fixed, then there is no pre-emption",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 2257"
+    },
+    {
+      "id": 2258,
+      "hadithNumber": 2258,
+      "bookNumber": 36,
+      "bookName": "Shuf'a",
+      "narrator": "Narrated `Amr bin Ash-Sharid:",
+      "text_en": "While I was standing with Sa`d bin Abi Waqqas, Al-Miswar bin Makhrama came and put his hand on my shoulder. Meanwhile Abu Rafi`, the freed slave of the Prophet (ﷺ) came and asked Sa`d to buy from him the (two) dwellings which were in his house. Sa`d said, \"By Allah I will not buy them.\" Al- Miswar said, \"By Allah, you shall buy them.\" Sa`d replied, \"By Allah, I will not pay more than four thousand (Dirhams) by installments.\" Abu Rafi` said, \"I have been offered five hundred Dinars (for it) and had I not heard the Prophet (ﷺ) saying, 'The neighbor has more right than anyone else because of his nearness, I would not give them to you for four-thousand (Dirhams) while I am offered five-hundred Dinars (one Dinar equals ten Dirhams) for them.\" So, he sold it to Sa`d",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 2258"
+    },
+    {
+      "id": 2259,
+      "hadithNumber": 2259,
+      "bookNumber": 36,
+      "bookName": "Shuf'a",
+      "narrator": "Narrated Aisha:",
+      "text_en": "I said, \"O Allah's Messenger (ﷺ)! I have two neighbors and would like to know to which of them I should give presents.\" He replied, \"To the one whose door is nearer to you",
+      "collection": "Sahih al-Bukhari",
+      "grade": "Sahih",
+      "reference": "Sahih al-Bukhari 2259"
+    }
+  ]
+}

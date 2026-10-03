@@ -5,8 +5,51 @@
     "picture": "https://lh3.googleusercontent.com/a/ACg8ocIIjg_4lxXqDO5W7Kkfl6t7N3biIjZGt8wDOjKEtCbZkhhwyV14pw=s96-c",
     "google_id": "102300123903173350733",
     "created_at": "2026-02-20T16:06:51.336566",
-    "last_login": "2026-10-03T23:23:06.272684",
-    "preferences": {},
+    "last_login": "2026-10-04T03:18:47.149163",
+    "preferences": {
+      "daily_sunnah": [
+        {
+          "id": "morning_adhkar",
+          "label": "Morning Adhkar",
+          "done": false
+        },
+        {
+          "id": "fajr_sunnah",
+          "label": "2 Rakat Fajr Sunnah",
+          "done": false
+        },
+        {
+          "id": "read_quran",
+          "label": "Read 1 Juz",
+          "done": false
+        },
+        {
+          "id": "evening_dhikr",
+          "label": "Evening Dhikr",
+          "done": false
+        },
+        {
+          "id": "duha_prayer",
+          "label": "Duha Prayer",
+          "done": true
+        },
+        {
+          "id": "surah_mulk",
+          "label": "Surah Al-Mulk before sleep",
+          "done": false
+        },
+        {
+          "id": "tahajjud",
+          "label": "Tahajjud Prayer",
+          "done": false
+        },
+        {
+          "id": "salawat",
+          "label": "100 Salawat on Prophet ﷺ",
+          "done": true
+        }
+      ]
+    },
     "settings": {
       "theme": "light",
       "language": "en",
@@ -20,7 +63,7 @@
     "picture": "https://lh3.googleusercontent.com/a/ACg8ocKmGVbzmv_WpAgikPNW614YEJiXVNuYuL4S8iYmVKlmv8DAPA=s96-c",
     "google_id": "101179619422739880485",
     "created_at": "2026-02-20T16:08:50.513409",
-    "last_login": "2026-10-03T23:27:07.390196",
+    "last_login": "2026-10-04T00:47:55.873914",
     "preferences": {},
     "settings": {
       "theme": "light",
@@ -57,6 +100,66 @@
       "language": "en",
       "notifications": true,
       "font_size": "medium"
+    }
+  },
+  "seeker@noor.ai": {
+    "email": "seeker@noor.ai",
+    "name": "Seeker of Noor",
+    "password_hash": "5428e4785acc04266c329cb2bcc7f53f:a8471a26f4da3590fe8f718d7c8fe1e8fd3f2953965942b1f2eecf71bb86eecd",
+    "picture": "https://api.dicebear.com/7.x/initials/svg?seed=Seeker of Noor&backgroundColor=00b875",
+    "created_at": "2026-10-04T02:12:18.534950",
+    "last_login": "2026-10-04T02:12:18.534950",
+    "preferences": {
+      "daily_sunnah": [
+        {
+          "id": "morning_adhkar",
+          "label": "Morning Adhkar",
+          "done": true
+        },
+        {
+          "id": "fajr_sunnah",
+          "label": "2 Rakat Fajr Sunnah",
+          "done": true
+        },
+        {
+          "id": "read_quran",
+          "label": "Read 1 Juz",
+          "done": false
+        },
+        {
+          "id": "evening_dhikr",
+          "label": "Evening Dhikr",
+          "done": false
+        },
+        {
+          "id": "duha_prayer",
+          "label": "Duha Prayer",
+          "done": true
+        },
+        {
+          "id": "surah_mulk",
+          "label": "Surah Al-Mulk before sleep",
+          "done": false
+        },
+        {
+          "id": "tahajjud",
+          "label": "Tahajjud Prayer",
+          "done": false
+        },
+        {
+          "id": "salawat",
+          "label": "100 Salawat on Prophet ﷺ",
+          "done": true
+        }
+      ]
+    },
+    "settings": {
+      "theme": "dark",
+      "location": "Islamabad, Pakistan",
+      "calculation_method": "University of Islamic Sciences, Karachi",
+      "asr_school": "Hanafi",
+      "ai_adaptive": true,
+      "transliteration": false
     }
   }
 }

@@ -33,11 +33,22 @@ class Session:
             # Always update preview with latest user message
             self.preview = content[:50] + "..." if len(content) > 50 else content
 
+    def get_display_name(self):
+        if self.name and self.name not in ["New Conversation", "Spiritual guidance", "Spiritual Inquiry"]:
+            return self.name
+        for m in self.messages:
+            if m.get("role") == "user" and m.get("content"):
+                cleaned = m["content"].strip().replace("\n", " ")
+                return cleaned[:45] + "..." if len(cleaned) > 45 else cleaned
+        return self.name or "New Conversation"
+
     def to_dict(self):
+        display_title = self.get_display_name()
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "name": self.name,
+            "name": display_title,
+            "title": display_title,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "message_count": self.message_count,
@@ -45,10 +56,12 @@ class Session:
         }
 
     def to_full_dict(self):
+        display_title = self.get_display_name()
         return {
             "id": self.id,
             "user_id": self.user_id,
-            "name": self.name,
+            "name": display_title,
+            "title": display_title,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "messages": self.messages,

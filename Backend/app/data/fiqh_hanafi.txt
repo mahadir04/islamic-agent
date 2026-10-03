@@ -1,30 +1,141 @@
 Five Pillars of Islam
-1. Shahadah (Declaration of Faith): La ilaha illallah, Muhammadur rasulullah
-2. Salah (Prayer): Five daily prayers at prescribed times
-3. Zakat (Charity): 2.5% of wealth above nisab held for one year
-4. Sawm (Fasting): During Ramadan from dawn to sunset
-5. Hajj (Pilgrimage): To Mecca once in lifetime for those able
+1. Shahadah (Declaration of Faith): Ash-hadu an la ilaha illallah, wa ash-hadu anna Muhammadan abduhu wa rasuluh (There is no god but Allah, and Muhammad is His servant and Messenger).
+2. Salah (Prayer): Five mandatory daily prayers established at prescribed times facing the Qiblah in Mecca.
+3. Zakat (Purification Charity): 2.5% of net surplus wealth meeting or exceeding the Nisab threshold held for an entire lunar year (Hawl).
+4. Sawm (Fasting): Complete abstention from food, drink, and intimacy from the break of dawn (Fajr) until sunset (Maghrib) during the holy month of Ramadan.
+5. Hajj (Pilgrimage): The pilgrimage to the Sacred House in Mecca performed once in a lifetime for every Muslim who has financial and physical capability.
 
-Prayer Times
-- Fajr: From true dawn until sunrise
-- Dhuhr: After midday until shadow equals object
-- Asr: Until sunset
-- Maghrib: After sunset until redness disappears
-- Isha: Until midnight
+Prayer Times & Conditions
+- Fajr: Starts from true dawn (al-fajr al-sadiq) until just before the rise of the sun disk.
+- Dhuhr: Begins right after the sun passes the meridian (zawal) until an object's shadow equals its length plus shadow at noon (or twice according to Imam Abu Hanifah's primary view).
+- Asr: Starts when Dhuhr time ends until just before the setting of the sun.
+- Maghrib: Starts immediately following sunset when the disk of the sun completely vanishes until the red twilight (shafaq) disappears.
+- Isha: Begins when twilight completely disappears from the sky until true dawn (Fajr); preferably offered in the first third of the night.
+- Witr: Strongly emphasized (Wajib in the Hanafi school), offered after Isha before dawn, consisting of three rak'ahs with Dua al-Qunoot.
 
-Wudu (Ablution) Steps
-1. Make intention in heart
-2. Say Bismillah
-3. Wash hands 3 times
-4. Rinse mouth 3 times
-5. Clean nose 3 times
-6. Wash face 3 times
-7. Wash arms to elbows 3 times
-8. Wipe entire head once
-9. Wash feet to ankles 3 times
+Purification & Taharah
+Wudu (Ablution) Obligatory Fard Acts (4 according to the Quran 5:6):
+1. Washing the entire face once from hairline to chin and from earlobe to earlobe.
+2. Washing both arms including elbows once.
+3. Wiping at least one-fourth of the head once with wet hands.
+4. Washing both feet including the ankles once.
 
-Zakat Conditions
-- Muslim, free, sane, adult
-- Wealth reaches nisab (85g gold/595g silver)
-- Wealth owned for one lunar year
-- Rate: 2.5% of total savings
+Wudu Sunnah & Recommended Steps:
+1. Make the intention (Niyyah) in the heart.
+2. Say Bismillah before beginning.
+3. Wash both hands up to the wrists three times, cleaning between fingers.
+4. Rinse the mouth thoroughly three times (Madmadah).
+5. Inhale water into the nostrils and blow out three times (Istinshaq).
+6. Wash the face three times.
+7. Wash arms up to and including elbows three times, starting with the right.
+8. Wipe the entire head with wet hands from front to back, including wiping the ears and back of the neck.
+9. Wash both feet up to and including the ankles three times, starting with the right, passing wet fingers between toes.
+
+Nullifiers of Wudu (Nawaqid):
+- Discharge of urine, feces, wind, or any substance from the private paths.
+- Flowing of blood, pus, or serum from any wound past the point of exit.
+- Vomiting a mouthful of bile, food, or water.
+- Sleeping lying down or leaning heavily against support such that one would fall if removed.
+- Loss of consciousness, fainting, intoxication, or severe insanity.
+- Laughing aloud (Qahqahah) during a prayer that includes Ruku and Sujud.
+
+Ghusl (Ritual Bath) Mandatory Requirements:
+1. Thoroughly rinsing the entire mouth with water.
+2. Inhaling water into the nose to clean thoroughly.
+3. Washing the entire body with water such that not a single hair or skin patch remains dry.
+
+Salah (Prayer) Structure & Rak'ahs
+- Fajr: 2 Sunnah Mu'akkadah + 2 Fard.
+- Dhuhr: 4 Sunnah Mu'akkadah + 4 Fard + 2 Sunnah Mu'akkadah (+ 2 Nafl recommended).
+- Asr: 4 Sunnah Ghayr-Mu'akkadah (recommended) + 4 Fard.
+- Maghrib: 3 Fard + 2 Sunnah Mu'akkadah (+ 2 Nafl recommended).
+- Isha: 4 Sunnah Ghayr-Mu'akkadah + 4 Fard + 2 Sunnah Mu'akkadah + 3 Witr Wajib (+ 2 Nafl).
+- Jumu'ah (Friday): Replaces Dhuhr for adult males in congregation, preceded by two Khutbahs followed by 2 Fard rak'ahs.
+
+Essential Pillars (Arkan) of Salah:
+1. Takbirat al-Ihram (Saying Allahu Akbar to start).
+2. Qiyam (Standing posture for those physically able).
+3. Qira'ah (Recitation of Quran, minimally one long ayah or three short ayahs; reciting Surah Al-Fatiha is Wajib).
+4. Ruku (Bowing with hands on knees and back straight, reciting Subhana Rabbiyal Azeem).
+5. Sujud (Two prostrations on seven bones: forehead/nose, both hands, both knees, and toes of both feet, reciting Subhana Rabbiyal A'la).
+6. Qa'dah Akhirah (Final sitting long enough to recite Tashahhud).
+
+Zakat Calculations & Nisab
+Conditions for Zakat Obligation:
+- Must be a Muslim, free, sane, and adult (according to Hanafi, children's wealth is not zakatable until puberty).
+- Full legal ownership and possession of productive or potentially productive wealth.
+- Wealth must exceed basic necessities of life (housing, transportation, work tools, clothing, debts).
+- Wealth must meet or exceed the Nisab benchmark.
+- Wealth must be possessed for one complete lunar year (Hawl).
+
+Nisab Thresholds:
+- Gold Nisab: 20 Mithqals equivalent to 85 grams of pure gold.
+- Silver Nisab: 200 Dirhams equivalent to 595 grams of pure silver.
+- Cash & Trade Assets: Value equivalent to the silver nisab (or gold according to conservative contemporary scholars).
+- Rate of Zakat: 2.5% (one-fortieth) of total qualifying liquid savings and trade inventory.
+- Agricultural Produce (Ushr): 10% on naturally watered crops (rain/rivers); 5% on crops watered through irrigation expenses.
+- Livestock: Specific fixed schedules for sheep, goats, cattle, and camels.
+
+Eligible Recipients of Zakat (Asnaf - Surah At-Tawbah 9:60):
+1. Al-Fuqara (The poor with little to no income).
+2. Al-Masakin (The destitute who do not have enough for daily survival).
+3. Al-Amilina Alayha (Appointed Zakat administrators and collectors).
+4. Al-Mu'allafatu Qulubuhum (Those whose hearts are inclined toward Islam).
+5. Fir-Riqab (Freeing captives and slaves).
+6. Al-Gharimin (Debtors unable to pay legitimate debts).
+7. Fi Sabilillah (In the cause of Allah for education, defense, and righteous causes).
+8. Ibn as-Sabil (The stranded traveler cut off from resources).
+
+Sawm (Fasting) In Ramadan
+Obligatory Conditions:
+- Intention (Niyyah) made before dawn (or before Islamic midday for voluntary fasts).
+- Complete abstinence from eating, drinking, medication, smoking, and sexual intercourse.
+
+Valid Exemptions from Fasting:
+- Traveling a distance of roughly 48 miles (77 km) or more.
+- Acute or chronic illness where fasting would worsen health or delay recovery.
+- Pregnancy or breastfeeding where maternal or infant health would be harmed.
+- Advanced old age with frailty (repayable via Fidyah).
+- Menstruation (Hayd) and post-natal bleeding (Nifas) (fasting is prohibited; days must be made up after Ramadan without penalty).
+
+Expiation for Broken Fasts:
+- Qada: Making up missed or broken fasts day-for-day.
+- Kaffarah: Required when a fast is deliberately broken without valid excuse through food, drink, or intercourse: Freeing a slave, or fasting 60 consecutive days, or feeding 60 poor people.
+- Fidyah: Feeding one poor person two meals (or monetary equivalent of Sadaqat al-Fitr) for each day missed by one who has a permanent inability to fast.
+
+Hajj & Umrah Essential Rites
+Obligatory Fard Acts of Hajj:
+1. Ihram (Entering sacred state with intention and Talbiyah).
+2. Wuquf at Arafat (Standing on the plains of Arafat on the 9th of Dhul-Hijjah between Dhuhr and sunset).
+3. Tawaf al-Ziyarah / Ifadah (Circumambulating the Kaaba 7 times after the 10th of Dhul-Hijjah).
+
+Wajib Acts of Hajj:
+1. Staying at Muzdalifah during the night of 10th Dhul-Hijjah.
+2. Sa'i between Safa and Marwah (7 laps).
+3. Rami al-Jamarat (Stoning the pillars at Mina).
+4. Halq (Shaving the head) or Taqsir (Clipping the hair).
+5. Tawaf al-Wada (Farewell circumambulation for non-residents of Mecca).
+6. Qurbani (Animal sacrifice) for those performing Tamattu or Qiran.
+
+Nikah (Marriage) & Family Law
+Conditions for Valid Islamic Marriage (Nikah):
+1. Mutual consent and acceptance (Ijab and Qabul) expressed in clear wording.
+2. Presence of at least two sane, adult Muslim male witnesses (or one male and two females in Hanafi fiqh).
+3. Consent and representation of the guardian (Wali).
+4. Specified gift from groom to bride (Mahr/Dowry) as her exclusive property.
+5. Freedom from legal impediments (e.g. foster-milk kinship, existing four wives, blood prohibitions).
+
+Halal & Haram Dietary Guidelines
+Permissible (Halal):
+- Herbivorous animals slaughtered according to Islamic rites (Dhabihah): Invoking the name of Allah (Bismillah Allahu Akbar) and cutting the jugular veins, carotid arteries, and windpipe without severing the spinal cord.
+- All seafood and marine life (fish, scales, and clean sea creatures).
+- Fruits, vegetables, grains, legumes, and honey.
+
+Prohibited (Haram):
+- Carrion (dead animals not ritually slaughtered).
+- Flowing blood.
+- Swine (pork and all derivatives, gelatin, enzymes).
+- Animals dedicated to other than Allah.
+- Carnivorous animals with fangs (lions, wolves, dogs, cats) and birds of prey with talons (eagles, hawks).
+- Domesticated donkeys.
+- Intoxicants of all forms (alcohol, narcotics, mind-altering recreational drugs) in small or large quantities.

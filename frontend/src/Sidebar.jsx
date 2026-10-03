@@ -199,17 +199,37 @@ function SidebarContent({
                 : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-700'
             }`}
           >
-            📊 Analytics
+            📊 Dashboard
           </button>
           <button
-            onClick={() => navigate('/chat')}
+            onClick={() => navigate('/quran')}
             className={`p-2 rounded-lg border text-center transition-all ${
               isDarkMode
                 ? 'border-white/10 hover:border-emerald-500/30 hover:bg-white/5 text-gray-300'
                 : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-700'
             }`}
           >
-            💬 Sanctuary
+            📖 Quran
+          </button>
+          <button
+            onClick={() => navigate('/hadith')}
+            className={`p-2 rounded-lg border text-center transition-all ${
+              isDarkMode
+                ? 'border-white/10 hover:border-emerald-500/30 hover:bg-white/5 text-gray-300'
+                : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-700'
+            }`}
+          >
+            📚 Hadith
+          </button>
+          <button
+            onClick={() => navigate('/duas')}
+            className={`p-2 rounded-lg border text-center transition-all ${
+              isDarkMode
+                ? 'border-white/10 hover:border-emerald-500/30 hover:bg-white/5 text-gray-300'
+                : 'border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 text-gray-700'
+            }`}
+          >
+            🤲 Daily Duas
           </button>
         </div>
       </div>
