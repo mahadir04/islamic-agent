@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithEmail, registerWithEmail } from '../api';
+import { loginWithEmail, registerWithEmail, getBaseUrl } from '../api';
 
 export default function Login({ isDarkMode, onLoginSuccess }) {
   const navigate = useNavigate();
@@ -62,7 +62,12 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
   const handleGoogleLogin = () => {
     setLoading(true);
     setError(null);
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = getBaseUrl().replace(/\/$/, "");
+    if (backendUrl.includes("localhost") && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      setError("Backend URL is not configured for production. Please set REACT_APP_BACKEND_URL in your Vercel Project Settings.");
+      setLoading(false);
+      return;
+    }
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
