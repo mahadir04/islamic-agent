@@ -236,16 +236,71 @@ def get_current_ip_location():
         logger.warning(f"IP location detection failed: {e}")
     return None
 
-def get_current_hijri_date():
-    """Calculate current live Hijri date using Gregorian to Hijri astronomical algorithm"""
+def _gregorian_to_hijri(year: int, month: int, day: int):
+    """Pure-Python Gregorian → Hijri conversion (no external dependencies).
+    Uses the standard Julian Day Number method (Fliegel & Van Flandern, 1968).
+    Accurate to within ±1 day of the tabular/arithmetic Islamic calendar.
+    """
+    # Gregorian → Julian Day Number
+    a = (14 - month) // 12
+    y = year + 4800 - a
+    m = month + 12 * a - 3
+    jdn = (day + (153 * m + 2) // 5 + 365 * y + y // 4
+           - y // 100 + y // 400 - 32045)
+
+    # JDN → Hijri (arithmetic/tabular Islamic calendar)
+    # Epoch: 1 Muharram 1 AH = JDN 1948439 (verified against known Hijri dates)
+    N = jdn - 1948439      # days since Hijri epoch (0-based)
+    cycle = N // 10631     # 30-year cycles elapsed
+    N -= cycle * 10631
+
+    # Days in each year of the 30-year cycle (leap years have 355 days)
+    # Leap years in cycle: 2,5,7,10,13,15,18,21,24,26,29  (1-based year in cycle)
+    year_in_cycle = 0
+    for y_idx in range(30):
+        is_leap = (y_idx + 1) in {2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29}
+        days = 355 if is_leap else 354
+        if N < days:
+            year_in_cycle = y_idx
+            break
+        N -= days
+
+    h_year = cycle * 30 + year_in_cycle + 1
+    is_leap_year = (h_year % 30) in {2, 5, 7, 10, 13, 15, 18, 21, 24, 26, 29}
+
+    # Month lengths: odd months 30 days, even months 29 days; last month 30 in leap
+    month_days = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29 + (1 if is_leap_year else 0)]
+
+    h_month = 1
+    for md in month_days:
+        if N < md:
+            break
+        N -= md
+        h_month += 1
+
+    h_day = N + 1
+    return h_year, h_month, h_day
+
+
+HIJRI_MONTH_NAMES = [
+    "MUḤARRAM", "ṢAFAR", "RABĪʿ AL-AWWAL", "RABĪʿ AL-THĀNĪ",
+    "JUMĀDĀ AL-ŪLĀ", "JUMĀDĀ AL-ĀKHIRAH", "RAJAB", "SHAʿBĀN",
+    "RAMAḌĀN", "SHAWWĀL", "DHU AL-QAʿDAH", "DHU AL-ḤIJJAH"
+]
+
+
+def get_current_hijri_date() -> str:
+    """Return the current Hijri date string using a pure-Python algorithm (no external deps)."""
     try:
-        from hijridate import Gregorian
         now = datetime.now()
-        h = Gregorian(now.year, now.month, now.day).to_hijri()
-        return f"{h.day} {h.month_name().upper()} {h.year}"
+        h_year, h_month, h_day = _gregorian_to_hijri(now.year, now.month, now.day)
+        month_name = HIJRI_MONTH_NAMES[h_month - 1] if 1 <= h_month <= 12 else f"MONTH {h_month}"
+        return f"{h_day} {month_name} {h_year}"
     except Exception as e:
         logger.warning(f"Error computing Hijri date: {e}")
+        # Provide a reasonable static fallback
         return "22 RABĪʿ AL-THĀNĪ 1448"
+
 
 def compute_astronomical_prayer_times(lat: float, lon: float, timezone_offset: float = 6.0, calculation_method: str = "Karachi", asr_school: str = "Hanafi"):
     """Accurately calculate solar astronomical prayer times for any coordinate"""
