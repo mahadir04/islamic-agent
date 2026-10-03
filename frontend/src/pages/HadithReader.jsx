@@ -94,7 +94,7 @@ export default function HadithReader({ isDarkMode, user }) {
   const handleAskInChat = (hadith) => {
     const snippet = hadith.text_en.length > 200 ? hadith.text_en.substring(0, 197) + "..." : hadith.text_en;
     const q = `Explain the authentic lessons, context, and spiritual application of ${hadith.reference}: "${snippet}"`;
-    navigate(`/chat?q=${encodeURIComponent(q)}`);
+    navigate(`/chat?q=${encodeURIComponent(q)}&new=1`);
   };
 
   const handleGlobalSearch = async (e) => {

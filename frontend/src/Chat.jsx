@@ -7,8 +7,10 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
   const [searchParams] = useSearchParams();
   const urlQuery = searchParams.get('q');
   const urlSession = searchParams.get('session');
+  const urlNew = searchParams.get('new') === '1';
 
-  const [sessionId, setSessionId] = useState(urlSession || propSessionId || null);
+  // If ?new=1, always start a fresh session (ignore any existing session)
+  const [sessionId, setSessionId] = useState(urlNew ? null : (urlSession || propSessionId || null));
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState(urlQuery || "");
   const [loading, setLoading] = useState(false);
@@ -49,14 +51,19 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
     scrollToBottom(true);
   }, [messages, loading]);
 
-  // Load recent sessions
+  // Load recent sessions — and auto-load the most recent one if no session is active
   const loadRecentSessions = useCallback(async () => {
     try {
       const data = await getSessions();
       setRecentSessions(data || []);
+      // Auto-load the most recent session when opening the chat with no session
+      if (!sessionId && !urlNew && data && data.length > 0) {
+        setSessionId(data[0].id);
+      }
     } catch (e) {
       console.error(e);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -231,9 +238,67 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
   };
 
   const handleCopyMessage = (id, text) => {
-    navigator.clipboard.writeText(text);
+    // Strip citation tags before copying
+    const plain = text.replace(/\[QURAN\]|\[\/QURAN\]|\[HADITH\]|\[\/HADITH\]/g, '');
+    navigator.clipboard.writeText(plain);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  /**
+   * Parse [QURAN]...[/QURAN] and [HADITH]...[/HADITH] tags in AI responses
+   * and render them as highlighted sacred-text blocks.
+   */
+  const renderMessageContent = (text) => {
+    if (!text) return null;
+    // Split on citation tags, keeping the delimiters
+    const parts = text.split(/\[(QURAN|HADITH)\](.*?)\[\/(QURAN|HADITH)\]/gs);
+    if (parts.length === 1) {
+      // No citations — render plain with line breaks
+      return <span className="whitespace-pre-line">{text}</span>;
+    }
+    // Re-split capturing groups correctly
+    const segments = [];
+    const regex = /\[(QURAN|HADITH)\](.*?)\[\/(QURAN|HADITH)\]/gs;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        segments.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+      }
+      segments.push({ type: match[1], content: match[2].trim() });
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      segments.push({ type: 'text', content: text.slice(lastIndex) });
+    }
+    return (
+      <>
+        {segments.map((seg, i) => {
+          if (seg.type === 'QURAN') {
+            return (
+              <div key={i} className="my-3 px-4 py-3 rounded-xl border-l-4 border-emerald-400 bg-emerald-500/10">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">📖 Quranic Verse</span>
+                </div>
+                <p className="text-emerald-200 text-sm leading-relaxed font-medium italic">{seg.content}</p>
+              </div>
+            );
+          }
+          if (seg.type === 'HADITH') {
+            return (
+              <div key={i} className="my-3 px-4 py-3 rounded-xl border-l-4 border-amber-400 bg-amber-500/10">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <span className="text-amber-400 text-[10px] font-bold uppercase tracking-widest">📚 Hadith</span>
+                </div>
+                <p className="text-amber-200 text-sm leading-relaxed italic">{seg.content}</p>
+              </div>
+            );
+          }
+          return <span key={i} className="whitespace-pre-line">{seg.content}</span>;
+        })}
+      </>
+    );
   };
 
   const renderLeftSidebarContent = (isDrawer = false) => (
@@ -756,9 +821,9 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
                     /* Noor AI Response with scripture formatting */
                     <div className="bg-[#0b1017] border border-white/[0.06] rounded-2xl p-4 sm:p-6 shadow-xl space-y-3 sm:space-y-4 text-xs sm:text-sm text-gray-200 leading-relaxed break-words">
                       
-                      {/* Formatted body */}
-                      <div className="whitespace-pre-line">
-                        {msg.content}
+                      {/* Formatted body with citation highlighting */}
+                      <div>
+                        {renderMessageContent(msg.content)}
                       </div>
 
                       {/* Action buttons (Helpful, Not quite, Copy) */}

@@ -60,7 +60,7 @@ export default function Duas({ isDarkMode, user }) {
 
   const handleAskInChat = (dua) => {
     const q = `Explain the deeper spiritual meanings and virtues of the prophetic supplication: "${dua.title}" (${dua.reference})`;
-    navigate(`/chat?q=${encodeURIComponent(q)}`);
+    navigate(`/chat?q=${encodeURIComponent(q)}&new=1`);
   };
 
   return (

@@ -1,0 +1,10 @@
+{
+  "appId": "com.noorai.app",
+  "appName": "Noor AI",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}

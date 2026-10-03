@@ -504,7 +504,7 @@ async def ask_question(
                 session_id = session_manager.create_session(user_id=user_id)
         
         # Get conversation history
-        conversation_history = session_manager.get_messages(session_id, user_id=user_id, limit=10)
+        conversation_history = session_manager.get_messages(session_id, user_id=user_id, limit=20)
         
         # Get answer and retrieved RAG sources from agent
         result = await agent.answer_question_with_sources(req.question, conversation_history)

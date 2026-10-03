@@ -445,7 +445,12 @@ export default function Dashboard({ isDarkMode, user }) {
                     </svg>
                     <span>Hadith of the Day</span>
                   </div>
-                  <span className="text-[10px] font-medium text-emerald-400/80">Sahih</span>
+                  <div className="flex items-center gap-2">
+                    {hadith?.date && (
+                      <span className="text-[10px] text-gray-400 font-normal tracking-normal">{hadith.date}</span>
+                    )}
+                    <span className="text-[10px] font-medium text-emerald-400/80 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Sahih</span>
+                  </div>
                 </div>
                 {hadith ? (
                   <p className="text-xs text-gray-200 leading-relaxed italic mb-4">
@@ -475,12 +480,17 @@ export default function Dashboard({ isDarkMode, user }) {
           <div className="space-y-6 flex flex-col justify-between">
             {/* Verse of the Day Card */}
             <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center gap-2 text-gray-400 text-[10px] font-semibold tracking-wider uppercase mb-4">
-                <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
-                <span>Verse of the Day</span>
+              <div className="flex items-center justify-between text-gray-400 text-[10px] font-semibold tracking-wider uppercase mb-4">
+                <div className="flex items-center gap-2">
+                  <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                  </svg>
+                  <span>Verse of the Day</span>
+                </div>
+                {verse?.date && (
+                  <span className="text-[10px] text-gray-400 font-normal tracking-normal">{verse.date}</span>
+                )}
               </div>
 
               {verse ? (

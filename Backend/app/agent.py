@@ -64,13 +64,14 @@ class IslamicAgent:
                     "sources": []
                 }
             
-            # 2. Build conversation context
+            # 2. Build conversation context (last 20 messages for full memory)
             conversation_context = ""
             if conversation_history and len(conversation_history) > 0:
-                conversation_context = "Previous conversation:\n"
-                for msg in conversation_history[-5:]:  # Last 5 messages
+                conversation_context = "Previous conversation history in this session (in chronological order):\n"
+                for msg in conversation_history[-20:]:
                     role = "User" if msg["role"] == "user" else "Assistant"
                     conversation_context += f"{role}: {msg['content']}\n"
+                conversation_context += "\n"
             
             # 3. Create comprehensive RAG prompt
             prompt = f"""You are Noor AI, a knowledgeable, authentic, and compassionate Islamic assistant.
@@ -83,7 +84,9 @@ Current Question: {question}
 
 Instructions:
 - Provide an accurate, well-structured, and balanced Islamic answer.
-- Where relevant, quote authentic Quranic verses (with chapter & verse numbers) and Hadith citations.
+- You have full memory of the conversation above. If the user refers to something discussed earlier, address it directly.
+- When quoting a Quranic verse (with chapter & verse numbers), wrap ONLY the verse text itself in [QURAN]...[/QURAN] tags.
+- When quoting a Hadith narration, wrap ONLY the hadith text itself in [HADITH]...[/HADITH] tags.
 - When there are differences among established madhahib, present them with respect and clarity.
 - Maintain an inspiring, respectful, and compassionate tone. Be concise yet comprehensive."""
             

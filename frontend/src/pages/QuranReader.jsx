@@ -111,7 +111,7 @@ export default function QuranReader({ isDarkMode, user }) {
 
   const handleAskTafsirInChat = (vNum, textEn) => {
     const q = `Explain the Tafsir and spiritual reflection of Surah ${currentSurah?.englishName} (${selectedSurahId}:${vNum}): "${textEn}"`;
-    navigate(`/chat?q=${encodeURIComponent(q)}`);
+    navigate(`/chat?q=${encodeURIComponent(q)}&new=1`);
   };
 
   const handleSelectSurah = (surahNumber) => {

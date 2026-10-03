@@ -29,66 +29,71 @@ METHOD_MAP = {
 }
 
 FEATURED_VERSES = [
-    {
-        "arabic": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا",
-        "translation": "Indeed, with hardship comes ease.",
-        "surah": "Surah Ash-Sharh",
-        "ayah": "94:6"
-    },
-    {
-        "arabic": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ",
-        "translation": "Those who have believed and whose hearts are assured by the remembrance of Allah. Unquestionably, by the remembrance of Allah hearts are assured.",
-        "surah": "Surah Ar-Ra'd",
-        "ayah": "13:28"
-    },
-    {
-        "arabic": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ ٱلدَّاعِ إِذَا دَعَانِ",
-        "translation": "And when My servants ask you concerning Me, indeed I am near. I respond to the invocation of the supplicant when he calls upon Me.",
-        "surah": "Surah Al-Baqarah",
-        "ayah": "2:186"
-    },
-    {
-        "arabic": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ",
-        "translation": "And whoever fears Allah - He will make for him a way out and will provide for him from where he does not expect.",
-        "surah": "Surah At-Talaq",
-        "ayah": "65:2-3"
-    },
-    {
-        "arabic": "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
-        "translation": "Sufficient for us is Allah, and [He is] the best Disposer of affairs.",
-        "surah": "Surah Ali 'Imran",
-        "ayah": "3:173"
-    },
-    {
-        "arabic": "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
-        "translation": "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
-        "surah": "Surah Al-Baqarah",
-        "ayah": "2:152"
-    }
+    {"arabic": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا", "translation": "Indeed, with hardship comes ease.", "surah": "Surah Ash-Sharh", "ayah": "94:5-6"},
+    {"arabic": "ٱلَّذِينَ ءَامَنُوا۟ وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ ٱللَّهِ ۗ أَلَا بِذِكْرِ ٱللَّهِ تَطْمَئِنُّ ٱلْقُلُوبُ", "translation": "Verily, in the remembrance of Allah do hearts find rest.", "surah": "Surah Ar-Ra'd", "ayah": "13:28"},
+    {"arabic": "وَإِذَا سَأَلَكَ عِبَادِى عَنِّى فَإِنِّى قَرِيبٌ ۖ أُجِيبُ دَعْوَةَ ٱلدَّاعِ إِذَا دَعَانِ", "translation": "And when My servants ask you about Me — indeed I am near. I respond to the supplicant when he calls upon Me.", "surah": "Surah Al-Baqarah", "ayah": "2:186"},
+    {"arabic": "وَمَن يَتَّقِ ٱللَّهَ يَجْعَل لَّهُۥ مَخْرَجًا وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", "translation": "Whoever fears Allah — He will make for him a way out and provide for him from where he does not expect.", "surah": "Surah At-Talaq", "ayah": "65:2-3"},
+    {"arabic": "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", "translation": "Sufficient for us is Allah, and He is the best Disposer of affairs.", "surah": "Surah Ali 'Imran", "ayah": "3:173"},
+    {"arabic": "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ", "translation": "So remember Me; I will remember you. And be grateful to Me and do not deny Me.", "surah": "Surah Al-Baqarah", "ayah": "2:152"},
+    {"arabic": "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", "translation": "Indeed, Allah is with the patient.", "surah": "Surah Al-Baqarah", "ayah": "2:153"},
+    {"arabic": "وَلَنَبْلُوَنَّكُم بِشَيْءٍ مِّنَ الْخَوْفِ وَالْجُوعِ وَنَقْصٍ مِّنَ الْأَمْوَالِ وَالْأَنفُسِ وَالثَّمَرَاتِ ۗ وَبَشِّرِ الصَّابِرِينَ", "translation": "And We will surely test you with something of fear and hunger and a loss of wealth, lives, and fruits — but give good tidings to the patient.", "surah": "Surah Al-Baqarah", "ayah": "2:155"},
+    {"arabic": "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ", "translation": "Our Lord, give us in this world good and in the Hereafter good, and protect us from the punishment of the Fire.", "surah": "Surah Al-Baqarah", "ayah": "2:201"},
+    {"arabic": "وَعَسَىٰ أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ", "translation": "And it may be that you dislike a thing while it is good for you.", "surah": "Surah Al-Baqarah", "ayah": "2:216"},
+    {"arabic": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ", "translation": "Allah — there is no deity except Him, the Ever-Living, the Sustainer of existence.", "surah": "Ayat al-Kursi", "ayah": "2:255"},
+    {"arabic": "لَا يُكَلِّفُ اللَّهُ نَفْسًا إِلَّا وُسْعَهَا", "translation": "Allah does not burden a soul beyond that it can bear.", "surah": "Surah Al-Baqarah", "ayah": "2:286"},
+    {"arabic": "قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ", "translation": "Say: He is Allah, the One. Allah, the Self-Sufficient Master.", "surah": "Surah Al-Ikhlas", "ayah": "112:1-2"},
+    {"arabic": "إِنَّ مَعَ الْعُسْرِ يُسْرًا", "translation": "Surely with hardship comes ease.", "surah": "Surah Al-Inshirah", "ayah": "94:6"},
+    {"arabic": "وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", "translation": "And He is with you wherever you are.", "surah": "Surah Al-Hadid", "ayah": "57:4"},
+    {"arabic": "إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنفُسِهِمْ", "translation": "Indeed, Allah will not change the condition of a people until they change what is in themselves.", "surah": "Surah Ar-Ra'd", "ayah": "13:11"},
+    {"arabic": "وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ ۚ عَلَيْهِ تَوَكَّلْتُ وَإِلَيْهِ أُنِيبُ", "translation": "My success is not but through Allah. Upon Him I have relied, and to Him I return.", "surah": "Surah Hud", "ayah": "11:88"},
+    {"arabic": "وَلِلَّهِ غَيْبُ السَّمَاوَاتِ وَالْأَرْضِ", "translation": "To Allah belongs the unseen of the heavens and the earth.", "surah": "Surah An-Nahl", "ayah": "16:77"},
+    {"arabic": "ادْعُونِي أَسْتَجِبْ لَكُمْ", "translation": "Call upon Me; I will respond to you.", "surah": "Surah Ghafir", "ayah": "40:60"},
+    {"arabic": "وَتَوَكَّلْ عَلَى اللَّهِ ۚ وَكَفَىٰ بِاللَّهِ وَكِيلًا", "translation": "And put your trust in Allah, and sufficient is Allah as a Trustee.", "surah": "Surah Al-Ahzab", "ayah": "33:3"},
+    {"arabic": "يَا أَيُّهَا الَّذِينَ آمَنُوا اسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", "translation": "O you who believe! Seek help through patience and prayer.", "surah": "Surah Al-Baqarah", "ayah": "2:153"},
+    {"arabic": "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا لِيَعْبُدُونِ", "translation": "And I did not create jinn and mankind except to worship Me.", "surah": "Surah Adh-Dhariyat", "ayah": "51:56"},
+    {"arabic": "وَبِالْأَسْحَارِ هُمْ يَسْتَغْفِرُونَ", "translation": "And in the hours before dawn they would ask forgiveness.", "surah": "Surah Adh-Dhariyat", "ayah": "51:18"},
+    {"arabic": "إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ", "translation": "Indeed, prayer prohibits immorality and wrongdoing.", "surah": "Surah Al-'Ankabut", "ayah": "29:45"},
+    {"arabic": "وَإِن تَعُدُّوا نِعْمَتَ اللَّهِ لَا تُحْصُوهَا", "translation": "And if you should count the favors of Allah, you could not enumerate them.", "surah": "Surah Ibrahim", "ayah": "14:34"},
+    {"arabic": "فَبِأَيِّ آلَاءِ رَبِّكُمَا تُكَذِّبَانِ", "translation": "So which of the favors of your Lord would you deny?", "surah": "Surah Ar-Rahman", "ayah": "55:13"},
+    {"arabic": "وَهُوَ الْغَفُورُ الْوَدُودُ", "translation": "And He is the Forgiving, the Affectionate.", "surah": "Surah Al-Buruj", "ayah": "85:14"},
+    {"arabic": "وَقُل رَّبِّ زِدْنِي عِلْمًا", "translation": "And say: My Lord, increase me in knowledge.", "surah": "Surah Ta-Ha", "ayah": "20:114"},
+    {"arabic": "إِنَّ الْحَسَنَاتِ يُذْهِبْنَ السَّيِّئَاتِ", "translation": "Indeed, good deeds do away with misdeeds.", "surah": "Surah Hud", "ayah": "11:114"},
+    {"arabic": "وَلَذِكْرُ اللَّهِ أَكْبَرُ", "translation": "And the remembrance of Allah is greater.", "surah": "Surah Al-'Ankabut", "ayah": "29:45"},
 ]
 
 FEATURED_HADITHS = [
-    {
-        "text": "The best among you are those who have the best manners and character.",
-        "source": "Sahih Al-Bukhari · 6064"
-    },
-    {
-        "text": "None of you will believe until you love for your brother what you love for yourself.",
-        "source": "Sahih Al-Bukhari · 13"
-    },
-    {
-        "text": "The strong is not the one who overcomes the people by his strength, but the one who controls himself while in anger.",
-        "source": "Sahih Al-Bukhari · 6114"
-    },
-    {
-        "text": "He who makes peace between the people by inventing good information or saying good things, is not a liar.",
-        "source": "Sahih Al-Bukhari · 2692"
-    },
-    {
-        "text": "A Muslim is the one who avoids harming Muslims with his tongue or his hands.",
-        "source": "Sahih Al-Bukhari · 10"
-    }
+    {"text": "The best among you are those who have the best manners and character.", "source": "Sahih Al-Bukhari · 6064"},
+    {"text": "None of you will believe until you love for your brother what you love for yourself.", "source": "Sahih Al-Bukhari · 13"},
+    {"text": "The strong is not the one who overcomes the people by his strength, but the one who controls himself while in anger.", "source": "Sahih Al-Bukhari · 6114"},
+    {"text": "Actions are judged by intentions, and every person will be rewarded according to what he intended.", "source": "Sahih Al-Bukhari · 1"},
+    {"text": "A Muslim is the one who avoids harming Muslims with his tongue or his hands.", "source": "Sahih Al-Bukhari · 10"},
+    {"text": "The most beloved of deeds to Allah are those done consistently, even if they are small.", "source": "Sahih Al-Bukhari · 6464"},
+    {"text": "Whoever believes in Allah and the Last Day, let him speak good or remain silent.", "source": "Sahih Al-Bukhari · 6018"},
+    {"text": "Make things easy and do not make them difficult, and give glad tidings and do not make people run away.", "source": "Sahih Al-Bukhari · 69"},
+    {"text": "The best of you are those who are best to their families, and I am the best of you to my family.", "source": "Sunan Ibn Majah · 1977"},
+    {"text": "He who makes peace between the people by inventing good information or saying good things, is not a liar.", "source": "Sahih Al-Bukhari · 2692"},
+    {"text": "Smiling in the face of your brother is charity.", "source": "Jami' at-Tirmidhi · 1956"},
+    {"text": "Whoever removes a worldly hardship from a believer, Allah will remove from him one of the hardships of the Day of Resurrection.", "source": "Sahih Muslim · 2699"},
+    {"text": "The world is a prison for the believer and a paradise for the disbeliever.", "source": "Sahih Muslim · 2956"},
+    {"text": "Take advantage of five before five: your youth before your old age, your health before your illness, your wealth before your poverty, your free time before your busyness, and your life before your death.", "source": "Shu'ab al-Iman · 10248"},
+    {"text": "Feed the hungry, visit the sick, and free the captive.", "source": "Sahih Al-Bukhari · 5373"},
+    {"text": "Cleanliness is half of faith.", "source": "Sahih Muslim · 223"},
+    {"text": "Allah is beautiful and loves beauty.", "source": "Sahih Muslim · 91"},
+    {"text": "Do not be angry, and Paradise is yours.", "source": "Al-Mu'jam al-Awsat · 2837"},
+    {"text": "The upper hand is better than the lower hand — the upper hand is the one that gives, and the lower hand is the one that takes.", "source": "Sahih Al-Bukhari · 1429"},
+    {"text": "Whoever treads a path in search of knowledge, Allah makes easy for him a path to Paradise.", "source": "Sahih Muslim · 2699"},
+    {"text": "Seven people will be shaded by Allah on the day when there will be no shade but His: a just ruler, a youth who grew up worshipping Allah, a person whose heart is attached to the mosque, two people who love each other for Allah's sake, a man who is tempted by a beautiful woman but refuses out of fear of Allah, a person who gives charity so secretly that his left hand does not know what his right hand gave, and a person who remembers Allah in seclusion and his eyes become tearful.", "source": "Sahih Al-Bukhari · 660"},
+    {"text": "Verily, with every hardship comes ease.", "source": "Sunan Ibn Majah · 4031"},
+    {"text": "Whoever conceals the faults of a Muslim in this world, Allah will conceal his faults on the Day of Resurrection.", "source": "Sahih Muslim · 2699"},
+    {"text": "Modesty is part of faith.", "source": "Sahih Al-Bukhari · 9"},
+    {"text": "The most complete of the believers in faith are those with the best character.", "source": "Sunan Abi Dawud · 4682"},
+    {"text": "Pay the worker his wages before his sweat dries.", "source": "Sunan Ibn Majah · 2443"},
+    {"text": "Whoever reads Ayat al-Kursi after every obligatory prayer, nothing will prevent him from entering Paradise except death.", "source": "An-Nasa'i (Sahih) · 9928"},
+    {"text": "The dua of a Muslim for his absent brother is answered.", "source": "Sahih Muslim · 2733"},
+    {"text": "Be in the world as if you were a stranger or a traveler.", "source": "Sahih Al-Bukhari · 6416"},
+    {"text": "Every good deed is charity.", "source": "Sahih Al-Bukhari · 2707"},
 ]
+
 
 def get_surahs_list():
     """Return 114 Surahs list from local metadata"""
@@ -176,14 +181,24 @@ def get_surah_detail(surah_id: int):
     }
 
 def get_verse_of_the_day():
-    """Deterministically pick verse of the day based on current date"""
-    day_idx = datetime.now().timetuple().tm_yday % len(FEATURED_VERSES)
-    return FEATURED_VERSES[day_idx]
+    """Deterministically pick a unique verse per calendar date using a date hash seed."""
+    now = datetime.now()
+    # Combine year and day-of-year for a unique seed per calendar date
+    seed = now.year * 1000 + now.timetuple().tm_yday
+    idx = seed % len(FEATURED_VERSES)
+    verse = dict(FEATURED_VERSES[idx])
+    verse["date"] = now.strftime("%B %d, %Y")
+    return verse
 
 def get_hadith_of_the_day():
-    """Deterministically pick hadith of the day based on current date"""
-    day_idx = datetime.now().timetuple().tm_yday % len(FEATURED_HADITHS)
-    return FEATURED_HADITHS[day_idx]
+    """Deterministically pick a unique hadith per calendar date using a date hash seed."""
+    now = datetime.now()
+    # Offset by half pool size to ensure verse and hadith differ each day
+    seed = now.year * 1000 + now.timetuple().tm_yday + len(FEATURED_HADITHS) // 2
+    idx = seed % len(FEATURED_HADITHS)
+    hadith = dict(FEATURED_HADITHS[idx])
+    hadith["date"] = now.strftime("%B %d, %Y")
+    return hadith
 
 def parse_time_str(time_str: str, now: datetime) -> datetime:
     """Parse 'HH:MM' 24-hr time string to today's datetime"""
