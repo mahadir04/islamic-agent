@@ -32,41 +32,51 @@ export default function Dashboard({ isDarkMode, user }) {
 
   const handleDetectLocation = async () => {
     setDetectingLocation(true);
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          try {
-            const data = await getDailyGuidance(null, null, pos.coords.latitude, pos.coords.longitude);
-            if (data) setGuidance(data);
-          } catch (e) {
-            console.error("Geolocation error:", e);
-          } finally {
-            setDetectingLocation(false);
+    const onSuccess = async (pos) => {
+      try {
+        const data = await getDailyGuidance(null, null, pos.coords.latitude, pos.coords.longitude);
+        if (data) setGuidance(data);
+      } catch (e) {
+        console.error("Geolocation guidance error:", e);
+      } finally {
+        setDetectingLocation(false);
+      }
+    };
+    const onError = async (err) => {
+      console.warn("Browser GPS denied/failed, trying browser IP-geolocation:", err?.message);
+      try {
+        // Use browser-side IP lookup so the user's IP is used (not the server's)
+        const ipRes = await fetch("https://ipapi.co/json/");
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData.latitude && ipData.longitude) {
+            const data = await getDailyGuidance(null, null, ipData.latitude, ipData.longitude);
+            if (data) { setGuidance(data); setDetectingLocation(false); return; }
           }
-        },
-        async () => {
-          try {
-            const data = await getDailyGuidance("current");
-            if (data) setGuidance(data);
-          } catch (e) {
-            console.error("IP fallback error:", e);
-          } finally {
-            setDetectingLocation(false);
-          }
-        },
-        { timeout: 5000 }
-      );
-    } else {
+        }
+      } catch (_) {}
+      // Final fallback: ask server to detect using its own IP (may differ from user)
       try {
         const data = await getDailyGuidance("current");
         if (data) setGuidance(data);
       } catch (e) {
-        console.error("Location error:", e);
+        console.error("All location methods failed:", e);
       } finally {
         setDetectingLocation(false);
       }
+    };
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        onError,
+        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false }
+      );
+    } else {
+      await onError(null);
     }
   };
+
 
   const handleToggleSunnah = async (itemId, currentDone) => {
     if (!guidance) return;

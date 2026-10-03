@@ -335,9 +335,10 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
                 lat = ip_loc["lat"]
                 lon = ip_loc["lon"]
 
-    clean_city = (city or "Dhaka").split(",")[0].strip()
-    clean_country = (country or "Bangladesh").strip()
-    if "," in (city or "") and not country:
+    # Use provided city/country; leave as None if GPS will determine location
+    clean_city = city.split(",")[0].strip() if city else (None if (lat is not None and lon is not None) else "Mecca")
+    clean_country = (country or "").strip()
+    if city and "," in city and not country:
         parts = city.split(",")
         clean_city = parts[0].strip()
         clean_country = parts[1].strip()
@@ -346,28 +347,68 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
     method_id = METHOD_MAP.get(method, 1)
     school_id = 1 if asr_school == "Hanafi" else 0
 
-    # 1. Attempt solar calculation if coordinates are available
+    # 1. Try aladhan.com timings-by-coordinates when lat/lon are available (most accurate)
     if lat is not None and lon is not None:
         try:
-            # Estimate timezone offset from longitude if not provided
-            tz_offset = round(lon / 15.0)
-            if clean_country.lower() in ["bangladesh", "bd"]:
-                tz_offset = 6.0
+            today = datetime.now().strftime("%d-%m-%Y")
+            url = (f"https://api.aladhan.com/v1/timings/{today}"
+                   f"?latitude={lat}&longitude={lon}"
+                   f"&method={method_id}&school={school_id}")
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                if data.get("code") == 200:
+                    timings_raw = data["data"]["timings"]
+                    # Use timezone meta to derive a city/country name for display
+                    meta = data["data"].get("meta", {})
+                    timezone = meta.get("timezone", "")
+                    if timezone:
+                        tz_parts = timezone.split("/")
+                        if not clean_city:
+                            clean_city = tz_parts[-1].replace("_", " ")
+                        if not clean_country and len(tz_parts) >= 2:
+                            clean_country = tz_parts[0]  # e.g. "Asia"
+        except Exception as e:
+            logger.warning(f"Aladhan timings-by-coords failed: {e}")
+
+    # 2. Fallback: astronomical solar calculation (uses timezone lookup table)
+    if not timings_raw and lat is not None and lon is not None:
+        try:
+            # Proper timezone offset lookup (avoids raw longitude estimate errors)
+            COUNTRY_TZ_OFFSETS = {
+                "singapore": 8.0, "sg": 8.0,
+                "malaysia": 8.0, "my": 8.0,
+                "indonesia": 7.0, "id": 7.0,
+                "china": 8.0, "cn": 8.0,
+                "japan": 9.0, "jp": 9.0,
+                "south korea": 9.0, "kr": 9.0,
+                "india": 5.5, "in": 5.5,
+                "pakistan": 5.0, "pk": 5.0,
+                "bangladesh": 6.0, "bd": 6.0,
+                "united arab emirates": 4.0, "ae": 4.0,
+                "saudi arabia": 3.0, "sa": 3.0,
+                "turkey": 3.0, "tr": 3.0,
+                "egypt": 2.0, "eg": 2.0,
+                "united kingdom": 1.0, "gb": 1.0,
+                "united states": -5.0, "us": -5.0,
+            }
+            country_key = clean_country.lower().strip()
+            tz_offset = COUNTRY_TZ_OFFSETS.get(country_key, round(lon / 15.0))
             timings_raw = compute_astronomical_prayer_times(lat, lon, tz_offset, method, asr_school)
         except Exception as e:
             logger.warning(f"Astronomical calculation failed: {e}")
 
-    # 2. Query cloud API if timings_raw is not yet ready
+    # 3. Query cloud API by city name if still no timings
     if not timings_raw:
         try:
             url = f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(clean_city)}&country={urllib.parse.quote(clean_country)}&method={method_id}&school={school_id}"
             req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-            with urllib.request.urlopen(req, timeout=3) as resp:
+            with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 if data.get("code") == 200:
                     timings_raw = data["data"]["timings"]
         except Exception as e:
-            logger.warning(f"Aladhan API request failed: {e}. Using calculated solar timings.")
+            logger.warning(f"Aladhan API request failed: {e}. Using fallback timings.")
 
     if not timings_raw:
         # Default accurate fallback timings for Dhaka / Central Asia
@@ -416,7 +457,9 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
 
     # Real dynamic Hijri date calculation
     hijri_str = get_current_hijri_date()
-    location_str = f"{clean_city.upper()}, {clean_country.upper() if clean_country else 'CURRENT'}"
+    display_city = (clean_city or "Current Location").upper()
+    display_country = clean_country.upper() if clean_country else ""
+    location_str = f"{display_city}, {display_country}" if display_country else display_city
 
     return {
         "location": location_str,
