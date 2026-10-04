@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Profile from './Profile';
 
 export default function UserMenu({ isDarkMode, user, setUser }) {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const menuRef = useRef(null);
@@ -20,7 +22,7 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    window.location.href = '/login';
+    navigate('/login');
   };
 
   const avatarSrc = user?.picture ||
@@ -87,11 +89,11 @@ export default function UserMenu({ isDarkMode, user, setUser }) {
               {[
                 {
                   icon: '📊', label: 'Dashboard',
-                  onClick: () => { window.location.href = '/dashboard'; setIsOpen(false); }
+                  onClick: () => { navigate('/dashboard'); setIsOpen(false); }
                 },
                 {
                   icon: '💬', label: 'Chat',
-                  onClick: () => { window.location.href = '/chat'; setIsOpen(false); }
+                  onClick: () => { navigate('/chat'); setIsOpen(false); }
                 },
                 {
                   icon: '👤', label: 'Profile',

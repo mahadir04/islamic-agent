@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Chat from "./Chat";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
@@ -43,6 +43,35 @@ export default function App() {
       console.error(e);
     }
   }, [currentSessionId]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  useEffect(() => {
+    // Check if token was returned in window.location.search or window.location.hash
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash || '';
+    const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+    const hashParams = new URLSearchParams(hashQuery);
+    const incomingToken = searchParams.get('token') || hashParams.get('token');
+
+    if (incomingToken) {
+      localStorage.setItem('token', incomingToken);
+      getCurrentUser()
+        .then(u => {
+          if (u) {
+            setUser(u);
+            localStorage.setItem('user', JSON.stringify(u));
+          }
+        })
+        .catch(console.error);
+    }
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');

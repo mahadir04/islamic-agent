@@ -1,33 +1,90 @@
 import axios from "axios";
+import { Capacitor } from "@capacitor/core";
+
+export const isNativeApp = () => {
+  try {
+    if (typeof window === 'undefined') return false;
+    if (Capacitor && typeof Capacitor.isNativePlatform === 'function' && Capacitor.isNativePlatform()) {
+      return true;
+    }
+    if (window.location.protocol === 'capacitor:') return true;
+    if (window.location.hostname === 'localhost' && window.location.port === '' && !window.location.origin.includes(':3000')) {
+      return true;
+    }
+  } catch (e) {
+    // fallback
+  }
+  return false;
+};
 
 export const getBaseUrl = () => {
+  // 1. In-app manual configuration (saved in localStorage)
+  const custom = typeof window !== 'undefined' ? localStorage.getItem('custom_backend_url') : null;
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/$/, '');
+  }
+
+  // 2. Build-time environment variables
   if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
+    return process.env.REACT_APP_API_URL.replace(/\/$/, '');
   }
   if (process.env.REACT_APP_BACKEND_URL) {
-    return process.env.REACT_APP_BACKEND_URL;
+    return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
   }
-  // If running inside Capacitor Android app
-  if (typeof window !== 'undefined' && (window.Capacitor?.isNativePlatform?.() || window.location.protocol === 'capacitor:')) {
-    return "http://10.0.2.2:8000";
+
+  // 3. Native mobile app default: use local Wi-Fi IP so phones and emulators can reach the host server
+  if (isNativeApp()) {
+    return "http://192.168.0.191:8000";
   }
+
+  // 4. Default for web development
   return "http://localhost:8000";
 };
 
-const rawBase = getBaseUrl().replace(/\/$/, "");
-const API_URL = rawBase.endsWith("/api") ? rawBase : `${rawBase}/api`;
+export const getApiUrl = () => {
+  const rawBase = getBaseUrl().replace(/\/$/, "");
+  return rawBase.endsWith("/api") ? rawBase : `${rawBase}/api`;
+};
+
+export const getCustomBackendUrl = () => {
+  return typeof window !== 'undefined' ? localStorage.getItem('custom_backend_url') || '' : '';
+};
+
+export const setCustomBackendUrl = (url) => {
+  if (typeof window === 'undefined') return;
+  if (!url || !url.trim()) {
+    localStorage.removeItem('custom_backend_url');
+  } else {
+    let clean = url.trim().replace(/\/$/, "");
+    if (clean.endsWith("/api")) {
+      clean = clean.slice(0, -4);
+    }
+    localStorage.setItem('custom_backend_url', clean);
+  }
+};
+
+export const testBackendConnection = async (testUrl = null) => {
+  const target = (testUrl ? testUrl.trim().replace(/\/$/, '') : getBaseUrl());
+  try {
+    const res = await axios.get(`${target}/health`, { timeout: 4000 });
+    return { ok: true, data: res.data, url: target };
+  } catch (err) {
+    return { ok: false, error: err.message, url: target };
+  }
+};
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add token to requests
+// Dynamic baseURL and token on every request
 api.interceptors.request.use(
   (config) => {
+    config.baseURL = getApiUrl();
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -41,12 +98,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/login') && !error.config.url.includes('/auth/register') && !error.config.url.includes('/daily-guidance')) {
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+    if (error.response?.status === 401 && !error.config.url.includes('/auth/login') && !error.config.url.includes('/auth/register') && !error.config.url.includes('/auth/demo') && !error.config.url.includes('/daily-guidance')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (window.location.hash) {
+        window.location.hash = '#/login';
       }
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
     }
     return Promise.reject(error);
   }
@@ -122,6 +180,15 @@ export const loginWithEmail = async (email, password) => {
 
 export const registerWithEmail = async (email, password, name) => {
   const response = await api.post('/auth/register', { email, password, name });
+  if (response.data?.token) {
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  }
+  return response.data;
+};
+
+export const loginDemo = async () => {
+  const response = await api.post('/auth/demo');
   if (response.data?.token) {
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));

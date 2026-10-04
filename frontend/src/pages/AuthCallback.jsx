@@ -6,9 +6,13 @@ export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const error = urlParams.get('error');
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash || '';
+    const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+    const hashParams = new URLSearchParams(hashQuery);
+    
+    const token = searchParams.get('token') || hashParams.get('token');
+    const error = searchParams.get('error') || hashParams.get('error');
 
     if (token) {
       localStorage.setItem('token', token);
@@ -17,10 +21,10 @@ export default function AuthCallback() {
           if (userData) {
             localStorage.setItem('user', JSON.stringify(userData));
           }
-          window.location.href = '/dashboard';
+          navigate('/dashboard');
         })
         .catch(() => {
-          window.location.href = '/dashboard';
+          navigate('/dashboard');
         });
     } else if (error) {
       navigate(`/login?error=${error}`);

@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginWithEmail, registerWithEmail, getBaseUrl } from '../api';
+import { 
+  loginWithEmail, 
+  registerWithEmail, 
+  loginDemo, 
+  getBaseUrl, 
+  isNativeApp, 
+  testBackendConnection, 
+  setCustomBackendUrl
+} from '../api';
 
 export default function Login({ isDarkMode, onLoginSuccess }) {
   const navigate = useNavigate();
@@ -12,6 +20,13 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Server Connection Configuration State
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [serverUrlInput, setServerUrlInput] = useState(getBaseUrl());
+  const [serverOnline, setServerOnline] = useState(null);
+  const [testResult, setTestResult] = useState(null);
+  const [testingConnection, setTestingConnection] = useState(false);
+
   useEffect(() => {
     // If already logged in, navigate straight to dashboard
     if (localStorage.getItem('token')) {
@@ -20,8 +35,19 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
   }, [navigate]);
 
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search);
-    const err = p.get('error');
+    // Check initial server health
+    testBackendConnection().then(res => {
+      setServerOnline(res.ok);
+    });
+  }, []);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash || '';
+    const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
+    const hashParams = new URLSearchParams(hashQuery);
+    const err = searchParams.get('error') || hashParams.get('error');
+
     if (!err) return;
     const msgs = {
       auth_failed: 'Authentication failed. Please try again.',
@@ -53,7 +79,24 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(detail || (isRegister ? 'Failed to create account.' : 'Invalid email or password.'));
+      setError(detail || (isRegister ? 'Failed to create account.' : 'Invalid email or password. Verify server connection.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await loginDemo();
+      if (data?.token) {
+        if (onLoginSuccess) onLoginSuccess(data.user);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Cannot reach server for demo login. Check server connection below.");
     } finally {
       setLoading(false);
     }
@@ -66,12 +109,31 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
     if (backendUrl.endsWith("/api")) {
       backendUrl = backendUrl.slice(0, -4);
     }
-    if (backendUrl.includes("localhost") && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-      setError("Backend URL is not configured for production. Please verify REACT_APP_API_URL in your Vercel Project Settings.");
+    const isMobile = isNativeApp();
+    const targetUrl = `${backendUrl}/api/auth/google${isMobile ? '?platform=mobile' : ''}`;
+    
+    if (isMobile) {
+      // In native mobile app, open the system browser (Chrome) for Google OAuth to avoid WebView 403 disallowed_useragent
+      window.open(targetUrl, '_system');
       setLoading(false);
       return;
     }
-    window.location.href = `${backendUrl}/api/auth/google`;
+    window.location.href = targetUrl;
+  };
+
+  const handleTestConnection = async (target = serverUrlInput) => {
+    setTestingConnection(true);
+    setTestResult(null);
+    const res = await testBackendConnection(target);
+    setTestingConnection(false);
+    setTestResult(res);
+    setServerOnline(res.ok);
+  };
+
+  const handleSaveServerUrl = () => {
+    setCustomBackendUrl(serverUrlInput);
+    setShowServerModal(false);
+    handleTestConnection(serverUrlInput);
   };
 
   return (
@@ -266,6 +328,17 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
               >
                 {loading ? 'Please wait...' : (isRegister ? 'Start journey for free' : 'Sign In')}
               </button>
+
+              {/* Quick Demo Sign-In Button */}
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={loading}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-medium text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]"
+              >
+                <span>⚡</span>
+                <span>Quick Demo Sign-In (Instant Access)</span>
+              </button>
             </form>
 
             {/* Divider */}
@@ -307,7 +380,7 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
             </div>
 
             {/* Toggle sign up / sign in */}
-            <div className="mt-8 text-center">
+            <div className="mt-6 text-center">
               <span className="text-xs text-gray-500">
                 {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
               </span>
@@ -323,10 +396,148 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
               </button>
             </div>
 
+            {/* Server Connection Pill & Settings Trigger */}
+            <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-gray-400">
+              <div className="flex items-center gap-1.5 truncate mr-2">
+                <span className={`w-2 h-2 rounded-full shrink-0 ${serverOnline ? 'bg-emerald-400' : (serverOnline === false ? 'bg-red-400' : 'bg-amber-400')}`} />
+                <span className="truncate">Server: <span className="text-gray-300 font-mono">{getBaseUrl()}</span></span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setServerUrlInput(getBaseUrl());
+                  setShowServerModal(true);
+                  handleTestConnection(getBaseUrl());
+                }}
+                className="text-emerald-400 hover:text-emerald-300 font-medium shrink-0 underline"
+              >
+                Configure
+              </button>
+            </div>
+
           </div>
         </div>
 
       </div>
+
+      {/* ── Server Configuration Modal ── */}
+      {showServerModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#0a1017] border border-white/[0.12] rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📡</span>
+                <h4 className="text-base font-medium text-white">Backend Server Settings</h4>
+              </div>
+              <button
+                onClick={() => setShowServerModal(false)}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 leading-relaxed">
+              If running on mobile or emulator, configure your server IP address below so the app can reach the backend.
+            </p>
+
+            {/* Quick Presets */}
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-2">
+                Quick Presets
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setServerUrlInput('http://192.168.0.191:8000');
+                    handleTestConnection('http://192.168.0.191:8000');
+                  }}
+                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-left text-xs text-gray-200"
+                >
+                  <div className="font-semibold text-emerald-400 text-[11px]">Wi-Fi Network</div>
+                  <div className="text-[10px] text-gray-400 font-mono">192.168.0.191:8000</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setServerUrlInput('http://10.0.2.2:8000');
+                    handleTestConnection('http://10.0.2.2:8000');
+                  }}
+                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-left text-xs text-gray-200"
+                >
+                  <div className="font-semibold text-blue-400 text-[11px]">Android Emulator</div>
+                  <div className="text-[10px] text-gray-400 font-mono">10.0.2.2:8000</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setServerUrlInput('http://localhost:8000');
+                    handleTestConnection('http://localhost:8000');
+                  }}
+                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-left text-xs text-gray-200 col-span-2"
+                >
+                  <div className="font-semibold text-gray-300 text-[11px]">Localhost (Web Browser)</div>
+                  <div className="text-[10px] text-gray-400 font-mono">http://localhost:8000</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Input */}
+            <div>
+              <label className="block text-[10px] uppercase font-bold tracking-wider text-gray-400 mb-1.5">
+                Backend Server URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={serverUrlInput}
+                  onChange={(e) => setServerUrlInput(e.target.value)}
+                  placeholder="http://192.168.0.191:8000"
+                  className="flex-1 px-3 py-2 bg-[#060a0f] border border-white/[0.1] rounded-xl text-xs font-mono text-white focus:outline-none focus:border-emerald-500/60"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleTestConnection(serverUrlInput)}
+                  disabled={testingConnection}
+                  className="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-medium hover:bg-emerald-500/30 shrink-0"
+                >
+                  {testingConnection ? 'Testing…' : 'Test'}
+                </button>
+              </div>
+            </div>
+
+            {/* Test feedback */}
+            {testResult && (
+              <div className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${testResult.ok ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300' : 'bg-red-500/10 border border-red-500/30 text-red-300'}`}>
+                <span>{testResult.ok ? '✅' : '❌'}</span>
+                <span>{testResult.ok ? 'Connection successful! Server is online.' : `Connection failed: ${testResult.error || 'Server unreachable'}`}</span>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setShowServerModal(false)}
+                className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-xs text-gray-300 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveServerUrl}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs text-white font-medium shadow-md shadow-emerald-900/30"
+              >
+                Save & Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

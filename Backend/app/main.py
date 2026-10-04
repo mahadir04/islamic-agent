@@ -34,8 +34,11 @@ app.add_middleware(
         "https://islamic-agent-pn2n.vercel.app",
         "https://localhost",
         "http://localhost",
-        "capacitor://localhost"
+        "capacitor://localhost",
+        "http://10.0.2.2:8000",
+        "http://192.168.0.191:8000",
     ],
+    allow_origin_regex=r"^(https?://.*|capacitor://.*)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

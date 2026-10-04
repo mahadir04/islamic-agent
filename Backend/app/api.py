@@ -55,7 +55,7 @@ class SunnahToggleRequest(BaseModel):
 
 # Auth routes
 @router.get("/auth/google")
-async def google_login():
+async def google_login(platform: Optional[str] = None):
     """Redirect to Google OAuth"""
     client_id = os.getenv("GOOGLE_CLIENT_ID")
     backend_url = os.getenv('BACKEND_URL', 'http://localhost:8000').rstrip('/')
@@ -65,30 +65,38 @@ async def google_login():
         logger.error("GOOGLE_CLIENT_ID not found in environment variables")
         return {"error": "Google OAuth is not configured"}
     
+    state = "mobile" if platform == "mobile" else "web"
+    
     google_auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth"
         f"?client_id={client_id}"
         f"&redirect_uri={redirect_uri}"
         f"&response_type=code"
         f"&scope=email%20profile"
+        f"&state={state}"
         f"&access_type=offline"
     )
     
-    logger.info(f"Redirecting to Google: {google_auth_url}")
+    logger.info(f"Redirecting to Google ({state}): {google_auth_url}")
     return RedirectResponse(google_auth_url)
 
 @router.get("/auth/google/callback")
-async def google_callback(request: Request, code: str = None, error: str = None):
+async def google_callback(request: Request, code: str = None, error: str = None, state: str = None):
     """Handle Google OAuth callback"""
+    is_mobile = (state == "mobile")
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip('/')
+
     if error:
         logger.error(f"Google returned error: {error}")
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(url=f"{frontend_url}/login?error={error}")
+        if is_mobile:
+            return RedirectResponse(url=f"noorai://auth/callback?error={error}")
+        return RedirectResponse(url=f"{frontend_url}/#/login?error={error}")
     
     if not code:
         logger.error("No code received from Google")
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(url=f"{frontend_url}/login?error=no_code")
+        if is_mobile:
+            return RedirectResponse(url="noorai://auth/callback?error=no_code")
+        return RedirectResponse(url=f"{frontend_url}/#/login?error=no_code")
     
     try:
         # Exchange code for token
@@ -108,8 +116,9 @@ async def google_callback(request: Request, code: str = None, error: str = None)
             
             if token_response.status_code != 200:
                 logger.error(f"Token exchange failed: {token_response.status_code}")
-                frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-                return RedirectResponse(url=f"{frontend_url}/login?error=token_exchange_failed")
+                if is_mobile:
+                    return RedirectResponse(url="noorai://auth/callback?error=token_exchange_failed")
+                return RedirectResponse(url=f"{frontend_url}/#/login?error=token_exchange_failed")
             
             token_json = token_response.json()
             access_token = token_json.get("access_token")
@@ -122,8 +131,9 @@ async def google_callback(request: Request, code: str = None, error: str = None)
             
             if user_response.status_code != 200:
                 logger.error(f"Failed to get user info: {user_response.status_code}")
-                frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-                return RedirectResponse(url=f"{frontend_url}/login?error=user_info_failed")
+                if is_mobile:
+                    return RedirectResponse(url="noorai://auth/callback?error=user_info_failed")
+                return RedirectResponse(url=f"{frontend_url}/#/login?error=user_info_failed")
             
             user_info = user_response.json()
             email = user_info['email']
@@ -168,15 +178,18 @@ async def google_callback(request: Request, code: str = None, error: str = None)
             )
             
             # Redirect to frontend with token
-            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+            if is_mobile:
+                return RedirectResponse(url=f"noorai://auth/callback?token={jwt_token}")
+            
             return RedirectResponse(
-                url=f"{frontend_url}/auth/callback?token={jwt_token}"
+                url=f"{frontend_url}/#/auth/callback?token={jwt_token}"
             )
             
     except Exception as e:
         logger.error(f"Google auth error: {str(e)}", exc_info=True)
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-        return RedirectResponse(url=f"{frontend_url}/login?error=auth_failed")
+        if is_mobile:
+            return RedirectResponse(url="noorai://auth/callback?error=auth_failed")
+        return RedirectResponse(url=f"{frontend_url}/#/login?error=auth_failed")
 
 @router.get("/auth/me")
 async def get_current_user_info(current_user: dict = Depends(get_current_user)):
@@ -235,6 +248,38 @@ async def login_user(req: LoginRequest):
     user["last_login"] = datetime.now().isoformat()
     user_db.update_user(email, user)
     token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=90))
+    safe_user = {k: v for k, v in user.items() if k != "password_hash"}
+    return {"token": token, "user": safe_user}
+
+@router.post("/auth/demo")
+async def demo_login():
+    """Quick 1-tap demo login for testing without typing credentials"""
+    demo_email = "seeker@noor.ai"
+    user = user_db.get_user(demo_email)
+    if not user:
+        user = {
+            "email": demo_email,
+            "name": "Seeker of Noor",
+            "password_hash": hash_password("Seeker123!"),
+            "picture": "https://api.dicebear.com/7.x/initials/svg?seed=Seeker%20of%20Noor&backgroundColor=00b875",
+            "created_at": datetime.now().isoformat(),
+            "last_login": datetime.now().isoformat(),
+            "preferences": {},
+            "settings": {
+                "theme": "dark",
+                "location": "Dhaka, Bangladesh",
+                "calculation_method": "University of Islamic Sciences, Karachi",
+                "asr_school": "Hanafi",
+                "ai_adaptive": True,
+                "transliteration": False
+            }
+        }
+        user_db.create_user(demo_email, user)
+    else:
+        user["last_login"] = datetime.now().isoformat()
+        user_db.update_user(demo_email, user)
+        
+    token = create_access_token(data={"sub": demo_email}, expires_delta=timedelta(days=90))
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return {"token": token, "user": safe_user}
 
