@@ -13,10 +13,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Secret key for JWT
-SECRET_KEY = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+# Secret key for JWT (use persistent fallback so server restarts do not invalidate existing tokens)
+SECRET_KEY = os.getenv("SECRET_KEY", "noor_ai_sacred_jwt_secret_key_2026_secure_persistent_token_auth")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_DAYS = 90
 
 # Google OAuth settings
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
@@ -26,12 +26,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 # Simple JWT implementation
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create a simple JWT token"""
+    """Create a persistent JWT token (default 90 days)"""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
     
     to_encode.update({"exp": expire.timestamp()})
     

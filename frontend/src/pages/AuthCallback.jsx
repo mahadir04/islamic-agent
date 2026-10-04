@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../api';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -11,8 +12,16 @@ export default function AuthCallback() {
 
     if (token) {
       localStorage.setItem('token', token);
-      // Directly navigate to dashboard after successful login
-      window.location.href = '/dashboard';
+      getCurrentUser()
+        .then((userData) => {
+          if (userData) {
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+          window.location.href = '/dashboard';
+        })
+        .catch(() => {
+          window.location.href = '/dashboard';
+        });
     } else if (error) {
       navigate(`/login?error=${error}`);
     } else {

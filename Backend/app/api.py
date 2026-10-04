@@ -160,8 +160,8 @@ async def google_callback(request: Request, code: str = None, error: str = None)
                 user_db.update_user(email, user)
                 logger.info(f"✅ Existing user logged in: {email}")
             
-            # Create JWT token
-            access_token_expires = timedelta(minutes=30)
+            # Create persistent JWT token valid for 90 days
+            access_token_expires = timedelta(days=90)
             jwt_token = create_access_token(
                 data={"sub": email},
                 expires_delta=access_token_expires
@@ -215,7 +215,7 @@ async def register_user(req: RegisterRequest):
         }
     }
     user = user_db.create_user(email, new_user)
-    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=7))
+    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=90))
     # Return user without password hash
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return {"token": token, "user": safe_user}
@@ -234,7 +234,7 @@ async def login_user(req: LoginRequest):
     
     user["last_login"] = datetime.now().isoformat()
     user_db.update_user(email, user)
-    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=7))
+    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=90))
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return {"token": token, "user": safe_user}
 

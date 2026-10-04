@@ -135,10 +135,20 @@ export const getCurrentUser = async () => {
     if (!token) return null;
     
     const response = await api.get('/auth/me');
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
     return response.data;
   } catch (error) {
     console.error("Error getting current user:", error);
-    return null;
+    // If not a 401 Unauthorized, return locally cached user so temporary offline / slow server doesn't lose the user
+    try {
+      const cached = localStorage.getItem('user');
+      if (cached && error?.response?.status !== 401) {
+        return JSON.parse(cached);
+      }
+    } catch (_) {}
+    throw error;
   }
 };
 

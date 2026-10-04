@@ -21,7 +21,14 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const [isDarkMode] = useState(true);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const savedUser = localStorage.getItem('user');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const [, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState(null);
 
@@ -41,8 +48,20 @@ export default function App() {
     const token = localStorage.getItem('token');
     if (token) {
       getCurrentUser()
-        .then(u => setUser(u))
-        .catch(() => localStorage.removeItem('token'));
+        .then(u => {
+          if (u) {
+            setUser(u);
+            localStorage.setItem('user', JSON.stringify(u));
+          }
+        })
+        .catch(err => {
+          // ONLY clear token if the server explicitly returned 401 Unauthorized
+          if (err?.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+          }
+        });
       fetchSessions();
     }
   }, [fetchSessions]);
