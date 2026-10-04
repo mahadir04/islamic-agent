@@ -202,24 +202,24 @@ Noor AI is engineered from the ground up for seamless cross-platform performance
 
 ```mermaid
 flowchart TD
-    User([User Query / Prompt]) --> UI[React 18 / Android Mobile App]
-    UI --> API[FastAPI Backend /api/ask]
+    User(["User Query / Prompt"]) --> UI["React 18 / Android Mobile App"]
+    UI --> API["FastAPI Backend /api/ask"]
     
-    API --> SessionMgr[Session Manager\nIsolate User & Chat ID]
-    API --> RAG[Enhanced RAG Retriever\n9,706 Authentic Chunks]
+    API --> SessionMgr["Session Manager<br/>Isolate User & Chat ID"]
+    API --> RAG["Enhanced RAG Retriever<br/>9,706 Authentic Chunks"]
     
-    subgraph Knowledge Base
-        RAG --> DB1[(Sahih al-Bukhari\n7,580 Hadith Chunks)]
-        RAG --> DB2[(Holy Quran\n2,077 Verses & Tafsir)]
-        RAG --> DB3[(Hanafi Fiqh & Fatwas\n40+ Jurisprudence Chunks)]
-        RAG --> DB4[(Prophetic Seerah\nHistorical Records)]
+    subgraph KB ["Knowledge Base"]
+        RAG --> DB1[("Sahih al-Bukhari<br/>7,580 Hadith Chunks")]
+        RAG --> DB2[("Holy Quran<br/>2,077 Verses & Tafsir")]
+        RAG --> DB3[("Hanafi Fiqh & Fatwas<br/>40+ Jurisprudence Chunks")]
+        RAG --> DB4[("Prophetic Seerah<br/>Historical Records")]
     end
     
-    RAG --> ContextAssembler[Context & Session Assembler]
-    ContextAssembler --> LLM[Google Gemini 3.8 / 3.5 Flash Engine]
+    RAG --> ContextAssembler["Context & Session Assembler"]
+    ContextAssembler --> LLM["Google Gemini 3.8 / 3.5 Flash Engine"]
     
-    LLM --> CitationParser[Citation & Tag Processor\n[QURAN] & [HADITH]]
-    CitationParser --> Response([Highlighted, Authentic Response])
+    LLM --> CitationParser["Citation & Tag Processor<br/>Quran & Hadith Visual Callouts"]
+    CitationParser --> Response(["Highlighted, Authentic Response"])
 ```
 
 * **Offline Fallback Guarantee:** If cloud LLM services experience network disruption, Noor AI automatically reverts to local RAG knowledge synthesis, ensuring the platform remains 100% operational.
