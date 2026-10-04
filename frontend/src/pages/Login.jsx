@@ -450,12 +450,27 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
                 <button
                   type="button"
                   onClick={() => {
+                    setServerUrlInput('https://islamic-agent.onrender.com');
+                    handleTestConnection('https://islamic-agent.onrender.com');
+                  }}
+                  className="p-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-left text-xs text-gray-200 col-span-2"
+                >
+                  <div className="font-semibold text-emerald-400 text-[11px] flex items-center gap-1">
+                    <span>🌟</span>
+                    <span>Cloud Production (Deployed Online)</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-mono">https://islamic-agent.onrender.com</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
                     setServerUrlInput('http://192.168.0.191:8000');
                     handleTestConnection('http://192.168.0.191:8000');
                   }}
                   className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-left text-xs text-gray-200"
                 >
-                  <div className="font-semibold text-emerald-400 text-[11px]">Wi-Fi Network</div>
+                  <div className="font-semibold text-teal-400 text-[11px]">Wi-Fi Network</div>
                   <div className="text-[10px] text-gray-400 font-mono">192.168.0.191:8000</div>
                 </button>
 
@@ -469,18 +484,6 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
                 >
                   <div className="font-semibold text-blue-400 text-[11px]">Android Emulator</div>
                   <div className="text-[10px] text-gray-400 font-mono">10.0.2.2:8000</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setServerUrlInput('http://localhost:8000');
-                    handleTestConnection('http://localhost:8000');
-                  }}
-                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-left text-xs text-gray-200 col-span-2"
-                >
-                  <div className="font-semibold text-gray-300 text-[11px]">Localhost (Web Browser)</div>
-                  <div className="text-[10px] text-gray-400 font-mono">http://localhost:8000</div>
                 </button>
               </div>
             </div>

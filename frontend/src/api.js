@@ -17,6 +17,8 @@ export const isNativeApp = () => {
   return false;
 };
 
+export const PRODUCTION_BACKEND_URL = "https://islamic-agent.onrender.com";
+
 export const getBaseUrl = () => {
   // 1. In-app manual configuration (saved in localStorage)
   const custom = typeof window !== 'undefined' ? localStorage.getItem('custom_backend_url') : null;
@@ -32,12 +34,17 @@ export const getBaseUrl = () => {
     return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
   }
 
-  // 3. Native mobile app default: use local Wi-Fi IP so phones and emulators can reach the host server
+  // 3. Native mobile app default: use the deployed cloud production backend!
   if (isNativeApp()) {
-    return "http://192.168.0.191:8000";
+    return PRODUCTION_BACKEND_URL;
   }
 
-  // 4. Default for web development
+  // 4. If running on deployed web app (e.g. Vercel)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return PRODUCTION_BACKEND_URL;
+  }
+
+  // 5. Default for local web development
   return "http://localhost:8000";
 };
 
