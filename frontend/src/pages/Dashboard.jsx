@@ -13,9 +13,23 @@ export default function Dashboard({ isDarkMode, user }) {
     let isMounted = true;
     async function loadData() {
       try {
+        let savedLoc = null;
+        try {
+          savedLoc = JSON.parse(localStorage.getItem('user_detected_location'));
+        } catch (_) {}
+
         const userLoc = user?.settings?.location;
+        let guidePromise;
+        if (userLoc) {
+          guidePromise = getDailyGuidance(userLoc);
+        } else if (savedLoc && savedLoc.lat && savedLoc.lon) {
+          guidePromise = getDailyGuidance(savedLoc.city, savedLoc.country, savedLoc.lat, savedLoc.lon);
+        } else {
+          guidePromise = getDailyGuidance();
+        }
+
         const [guideData, sessData] = await Promise.all([
-          getDailyGuidance(userLoc),
+          guidePromise,
           getSessions()
         ]);
         if (isMounted) {
@@ -34,8 +48,31 @@ export default function Dashboard({ isDarkMode, user }) {
     setDetectingLocation(true);
     const onSuccess = async (pos) => {
       try {
-        const data = await getDailyGuidance(null, null, pos.coords.latitude, pos.coords.longitude);
-        if (data) setGuidance(data);
+        let city = null;
+        let country = null;
+        try {
+          const revRes = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`
+          );
+          if (revRes.ok) {
+            const revData = await revRes.json();
+            city = revData.city || revData.locality || null;
+            country = revData.countryName || null;
+          }
+        } catch (_) {}
+
+        const data = await getDailyGuidance(city, country, pos.coords.latitude, pos.coords.longitude);
+        if (data) {
+          setGuidance(data);
+          try {
+            localStorage.setItem('user_detected_location', JSON.stringify({
+              city: data.city || city,
+              country: data.country || country,
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude
+            }));
+          } catch (_) {}
+        }
       } catch (e) {
         console.error("Geolocation guidance error:", e);
       } finally {
@@ -50,14 +87,26 @@ export default function Dashboard({ isDarkMode, user }) {
         if (ipRes.ok) {
           const ipData = await ipRes.json();
           if (ipData.latitude && ipData.longitude) {
-            const data = await getDailyGuidance(null, null, ipData.latitude, ipData.longitude);
-            if (data) { setGuidance(data); setDetectingLocation(false); return; }
+            const data = await getDailyGuidance(ipData.city, ipData.country_name, ipData.latitude, ipData.longitude);
+            if (data) {
+              setGuidance(data);
+              try {
+                localStorage.setItem('user_detected_location', JSON.stringify({
+                  city: data.city || ipData.city,
+                  country: data.country || ipData.country_name,
+                  lat: ipData.latitude,
+                  lon: ipData.longitude
+                }));
+              } catch (_) {}
+              setDetectingLocation(false);
+              return;
+            }
           }
         }
       } catch (_) {}
-      // Final fallback: ask server to detect using its own IP (may differ from user)
+      // Fallback: ask server to detect using client IP or timezone
       try {
-        const data = await getDailyGuidance("current");
+        const data = await getDailyGuidance();
         if (data) setGuidance(data);
       } catch (e) {
         console.error("All location methods failed:", e);
@@ -70,7 +119,7 @@ export default function Dashboard({ isDarkMode, user }) {
       navigator.geolocation.getCurrentPosition(
         onSuccess,
         onError,
-        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: false }
+        { timeout: 10000, maximumAge: 60000, enableHighAccuracy: true }
       );
     } else {
       await onError(null);

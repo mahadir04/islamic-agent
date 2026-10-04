@@ -217,24 +217,62 @@ def format_12h(time_str: str) -> str:
 
 import math
 
-def get_current_ip_location():
-    """Detect client's real current location via ip-api with fallback"""
+def reverse_geocode(lat: float, lon: float):
+    """Reverse geocode latitude and longitude to city and country name using BigDataCloud."""
     try:
-        req = urllib.request.Request("http://ip-api.com/json/", headers={"User-Agent": "Mozilla/5.0"})
+        url = f"https://api.bigdatacloud.net/data/reverse-geocode-client?latitude={lat}&longitude={lon}&localityLanguage=en"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            city = data.get("city") or data.get("locality") or ""
+            country = data.get("countryName") or ""
+            if city or country:
+                return city, country
+    except Exception as e:
+        logger.warning(f"Reverse geocode failed: {e}")
+    return None, None
+
+def get_location_from_ip(client_ip: Optional[str] = None):
+    """Detect client's real location via ip-api ONLY when a valid external client IP is provided.
+    Never queries without an IP because that would erroneously detect the cloud server's datacenter location."""
+    if not client_ip:
+        return None
+    clean_ip = client_ip.split(",")[0].strip().split(":")[0]
+    if clean_ip in ["127.0.0.1", "localhost", "::1"] or clean_ip.startswith(("10.", "192.168.", "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.", "172.24.", "172.25.", "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.")):
+        return None
+    try:
+        req = urllib.request.Request(f"http://ip-api.com/json/{clean_ip}", headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if data.get("status") == "success":
                 return {
-                    "city": data.get("city", "Dhaka"),
-                    "country": data.get("country", "Bangladesh"),
-                    "country_code": data.get("countryCode", "BD"),
-                    "lat": float(data.get("lat", 23.77)),
-                    "lon": float(data.get("lon", 90.36)),
-                    "timezone": data.get("timezone", "Asia/Dhaka")
+                    "city": data.get("city", ""),
+                    "country": data.get("country", ""),
+                    "lat": float(data.get("lat", 0)),
+                    "lon": float(data.get("lon", 0)),
+                    "timezone": data.get("timezone", "")
                 }
     except Exception as e:
-        logger.warning(f"IP location detection failed: {e}")
+        logger.warning(f"Client IP location detection failed for {clean_ip}: {e}")
     return None
+
+TIMEZONE_DEFAULTS = {
+    "Asia/Dhaka": {"city": "Dhaka", "country": "Bangladesh", "lat": 23.8103, "lon": 90.4125},
+    "Asia/Karachi": {"city": "Karachi", "country": "Pakistan", "lat": 24.8607, "lon": 67.0011},
+    "Asia/Kolkata": {"city": "New Delhi", "country": "India", "lat": 28.6139, "lon": 77.2090},
+    "Asia/Calcutta": {"city": "New Delhi", "country": "India", "lat": 28.6139, "lon": 77.2090},
+    "Asia/Riyadh": {"city": "Riyadh", "country": "Saudi Arabia", "lat": 24.7136, "lon": 46.6753},
+    "Asia/Dubai": {"city": "Dubai", "country": "United Arab Emirates", "lat": 25.2048, "lon": 55.2708},
+    "Asia/Singapore": {"city": "Singapore", "country": "Singapore", "lat": 1.3521, "lon": 103.8198},
+    "Asia/Kuala_Lumpur": {"city": "Kuala Lumpur", "country": "Malaysia", "lat": 3.1390, "lon": 101.6869},
+    "Asia/Jakarta": {"city": "Jakarta", "country": "Indonesia", "lat": -6.2088, "lon": 106.8456},
+    "Asia/Istanbul": {"city": "Istanbul", "country": "Turkey", "lat": 41.0082, "lon": 28.9784},
+    "Africa/Cairo": {"city": "Cairo", "country": "Egypt", "lat": 30.0444, "lon": 31.2357},
+    "Europe/London": {"city": "London", "country": "United Kingdom", "lat": 51.5074, "lon": -0.1278},
+    "America/New_York": {"city": "New York", "country": "United States", "lat": 40.7128, "lon": -74.0060},
+    "America/Chicago": {"city": "Chicago", "country": "United States", "lat": 41.8781, "lon": -87.6298},
+    "America/Toronto": {"city": "Toronto", "country": "Canada", "lat": 43.6532, "lon": -79.3832},
+}
 
 def _gregorian_to_hijri(year: int, month: int, day: int):
     """Pure-Python Gregorian → Hijri conversion (no external dependencies).
@@ -376,7 +414,7 @@ def compute_astronomical_prayer_times(lat: float, lon: float, timezone_offset: f
         "Isha": fmt(isha)
     }
 
-def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Muslim World League", asr_school="Hanafi", tz_offset_hours=None):
+def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Muslim World League", asr_school="Hanafi", tz_offset_hours=None, timezone_str=None, client_ip=None):
     """Fetch live prayer times for current or specified location with countdown and dynamic Hijri date"""
     # Use the user's local time if tz_offset_hours is provided, otherwise server local time
     if tz_offset_hours is not None:
@@ -386,18 +424,45 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
     else:
         now = datetime.now()
     
-    # Auto-detect current location if not provided
-    if not city or city.lower() in ["current", "auto", "detect", "makkah, saudi arabia", "makkah"]:
-        ip_loc = get_current_ip_location()
-        if ip_loc:
-            city = ip_loc["city"]
-            country = ip_loc["country"]
-            if lat is None or lon is None:
+    has_coords = (lat is not None and lon is not None)
+    is_generic_city = not city or city.lower().strip() in [
+        "current", "auto", "detect", "my location", "use current location"
+    ]
+
+    # If coordinates are provided, resolve human city & country via reverse geocoding
+    if has_coords:
+        if is_generic_city or not country:
+            rev_city, rev_country = reverse_geocode(lat, lon)
+            if rev_city and (is_generic_city or not city):
+                city = rev_city
+            if rev_country and not country:
+                country = rev_country
+    else:
+        # No coordinates provided: try client IP or timezone lookup
+        if is_generic_city:
+            ip_loc = get_location_from_ip(client_ip)
+            if ip_loc:
+                city = ip_loc["city"]
+                country = ip_loc["country"]
                 lat = ip_loc["lat"]
                 lon = ip_loc["lon"]
+                has_coords = True
+            elif timezone_str:
+                if timezone_str in TIMEZONE_DEFAULTS:
+                    def_loc = TIMEZONE_DEFAULTS[timezone_str]
+                    city = def_loc["city"]
+                    country = def_loc["country"]
+                    lat = def_loc["lat"]
+                    lon = def_loc["lon"]
+                    has_coords = True
+                elif "/" in timezone_str:
+                    tz_parts = timezone_str.split("/")
+                    city = tz_parts[-1].replace("_", " ")
+                    if not country and len(tz_parts) >= 2:
+                        country = tz_parts[0]
 
     # Use provided city/country; leave as None if GPS will determine location
-    clean_city = city.split(",")[0].strip() if city else (None if (lat is not None and lon is not None) else "Mecca")
+    clean_city = city.split(",")[0].strip() if city else (None if has_coords else "Dhaka")
     clean_country = (country or "").strip()
     if city and "," in city and not country:
         parts = city.split(",")
@@ -420,15 +485,14 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
                 data = json.loads(resp.read().decode("utf-8"))
                 if data.get("code") == 200:
                     timings_raw = data["data"]["timings"]
-                    # Use timezone meta to derive a city/country name for display
                     meta = data["data"].get("meta", {})
-                    timezone = meta.get("timezone", "")
-                    if timezone:
-                        tz_parts = timezone.split("/")
-                        if not clean_city:
+                    meta_tz = meta.get("timezone", "")
+                    if meta_tz:
+                        tz_parts = meta_tz.split("/")
+                        if not clean_city or clean_city.lower() in ["current", "auto", "detect"]:
                             clean_city = tz_parts[-1].replace("_", " ")
                         if not clean_country and len(tz_parts) >= 2:
-                            clean_country = tz_parts[0]  # e.g. "Asia"
+                            clean_country = tz_parts[0]
         except Exception as e:
             logger.warning(f"Aladhan timings-by-coords failed: {e}")
 

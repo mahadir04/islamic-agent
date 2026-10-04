@@ -241,11 +241,13 @@ async def login_user(req: LoginRequest):
 # Daily Guidance & Prayer Times routes
 @router.get("/daily-guidance")
 async def get_daily_guidance(
+    request: Request,
     city: Optional[str] = None,
     country: Optional[str] = None,
     lat: Optional[float] = None,
     lon: Optional[float] = None,
     tz_offset: Optional[float] = None,
+    timezone: Optional[str] = None,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Fetch prayer times, next prayer countdown, verse and hadith of the day, and sunnah progress for current or specified location"""
@@ -253,19 +255,29 @@ async def get_daily_guidance(
         settings = current_user.get("settings", {}) if current_user else {}
         preferences = current_user.get("preferences", {}) if current_user else {}
         
-        user_loc = city or settings.get("location")
+        has_coords = (lat is not None and lon is not None)
+        
+        # When GPS coordinates are passed, do not let static default profile location override them
+        if has_coords:
+            loc_city = city
+            loc_country = country or ""
+        else:
+            user_loc = city or settings.get("location")
+            loc_city = user_loc
+            loc_country = country or ""
+            if user_loc and "," in user_loc:
+                parts = user_loc.split(",")
+                loc_city = parts[0].strip()
+                loc_country = parts[1].strip()
+
         calc_method = settings.get("calculation_method", "Muslim World League")
         asr_school = settings.get("asr_school", "Hanafi")
         
-        # Parse city and country if provided
-        loc_city = user_loc
-        loc_country = country or ""
-        if user_loc and "," in user_loc:
-            parts = user_loc.split(",")
-            loc_city = parts[0].strip()
-            loc_country = parts[1].strip()
+        # Extract client IP if behind proxy/load balancer
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else None)
         
-        # 1. Prayer times (auto-detects current location if city is None or 'current')
+        # 1. Prayer times (accurately resolves GPS coords, timezone, or client IP)
         prayer_data = get_prayer_timings(
             city=loc_city,
             country=loc_country,
@@ -273,7 +285,9 @@ async def get_daily_guidance(
             lon=lon,
             method=calc_method,
             asr_school=asr_school,
-            tz_offset_hours=tz_offset
+            tz_offset_hours=tz_offset,
+            timezone_str=timezone,
+            client_ip=client_ip
         )
         
         # 2. Verse and Hadith of the day
