@@ -586,6 +586,10 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
     display_country = clean_country.upper() if clean_country else ""
     location_str = f"{display_city}, {display_country}" if display_country else display_city
 
+    hours_remaining = min_delta_minutes // 60
+    minutes_part = min_delta_minutes % 60
+    formatted_time = f"{hours_remaining} hrs {minutes_part} mins" if hours_remaining > 0 else f"{minutes_part} mins"
+
     return {
         "location": location_str,
         "city": clean_city,
@@ -593,6 +597,9 @@ def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Musl
         "hijri_date": hijri_str,
         "next_prayer": next_prayer,
         "minutes_remaining": min_delta_minutes,
+        "hours_remaining": hours_remaining,
+        "minutes_part": minutes_part,
+        "formatted_remaining": formatted_time,
         "prayers": prayer_list
     }
 

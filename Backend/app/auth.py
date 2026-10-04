@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 import secrets
@@ -6,6 +8,11 @@ import json
 import hashlib
 import base64
 import hmac
+
+# Ensure .env is loaded
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path, override=True)
+
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 import httpx

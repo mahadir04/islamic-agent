@@ -1,6 +1,37 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { askQuestion, getSession, createNewSession, getSessions, deleteSession } from "./api";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const computeClientTopic = (text = "", userMsgCount = 1) => {
+  const q = text.toLowerCase();
+  let name = "Spiritual Inquiries & Learning";
+  if (/prayer|salah|namaz|rakat|fajr|wudu|taharah|ghusl|sujood/.test(q)) {
+    name = "Prayer & Purification (Salah & Taharah)";
+  } else if (/fasting|sawm|ramadan|iftar|suhoor|tarawih/.test(q)) {
+    name = "Fasting & Ramadan (Sawm)";
+  } else if (/zakat|charity|sadaqah|wealth|gold|nisab/.test(q)) {
+    name = "Zakat & Ethical Wealth";
+  } else if (/hajj|umrah|makkah|kaaba|tawaf|ihram/.test(q)) {
+    name = "Hajj & Umrah Pilgrimage";
+  } else if (/anxiety|patience|sabr|tawakkul|stress|hardship|peace|grief/.test(q)) {
+    name = "Tawakkul (Reliance on Allah)";
+  } else if (/marriage|family|parents|children|nikah|divorce|spouse/.test(q)) {
+    name = "Family & Social Ethics";
+  } else if (/quran|surah|ayah|recitation|tajweed|tafsir/.test(q)) {
+    name = "Quranic Sciences & Reflection";
+  } else if (/hadith|sunnah|prophet|bukhari|muslim|seerah/.test(q)) {
+    name = "Prophetic Sunnah & Seerah";
+  } else if (/halal|haram|ruling|permissible|fiqh/.test(q)) {
+    name = "Islamic Jurisprudence (Fiqh)";
+  } else if (text.trim().length > 0) {
+    name = "Quranic Wisdom & Daily Reflection";
+  }
+  const explored = Math.min(Math.max(1, userMsgCount), 7);
+  const percentage = Math.round((explored / 7) * 100);
+  return { name, explored, total: 7, percentage };
+};
 
 export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUpdate, user }) {
   const navigate = useNavigate();
@@ -70,12 +101,42 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
     loadRecentSessions();
   }, [loadRecentSessions]);
 
-  // Load active session messages
+  // Load active session messages and metadata
   useEffect(() => {
     if (sessionId) {
       getSession(sessionId).then(sess => {
         if (sess?.messages) {
           setMessages(sess.messages);
+        }
+
+        // Topic Progress: load saved topic or compute dynamically from messages
+        if (sess?.topic) {
+          setCurrentTopic(sess.topic);
+        } else if (sess?.messages && sess.messages.length > 0) {
+          const userMsgs = sess.messages.filter(m => m.role === 'user');
+          const lastMsg = userMsgs[userMsgs.length - 1]?.content || "";
+          setCurrentTopic(computeClientTopic(lastMsg, userMsgs.length));
+        } else {
+          setCurrentTopic(null);
+        }
+
+        // Spiritual Context: load saved sources or extract from bot responses
+        if (sess?.sources && sess.sources.length > 0) {
+          const parsed = sess.sources.slice(0, 4).map((s, idx) => {
+            const lines = typeof s === 'string' ? s.split('\n') : [];
+            return {
+              title: lines[0]?.replace('---', '').trim() || `Reference ${idx + 1}`,
+              snippet: lines.slice(1).join(' ').trim().slice(0, 130) + '...'
+            };
+          });
+          setRelatedSources(parsed);
+        } else {
+          setRelatedSources([]);
+        }
+
+        // Suggested Actions: load saved or default
+        if (sess?.suggested_actions && sess.suggested_actions.length > 0) {
+          setSuggestedActions(sess.suggested_actions);
         }
       }).catch(console.error);
     } else {
@@ -87,6 +148,8 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
           content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today? Whether you have questions about the Quran, need guidance on daily practices, or seek a moment of reflection, I am here to help.`
         }
       ]);
+      setCurrentTopic(null);
+      setRelatedSources([]);
     }
   }, [sessionId, user]);
 
@@ -246,58 +309,304 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
   };
 
   /**
-   * Parse [QURAN]...[/QURAN] and [HADITH]...[/HADITH] tags in AI responses
-   * and render them as highlighted sacred-text blocks.
+   * Parse [QURAN]/[HADITH] tags AND raw "--- Source X ---" RAG fallback blocks.
+   * Renders them as animated, visually rich citation cards.
    */
   const renderMessageContent = (text) => {
     if (!text) return null;
-    // Split on citation tags, keeping the delimiters
-    const parts = text.split(/\[(QURAN|HADITH)\](.*?)\[\/(QURAN|HADITH)\]/gs);
-    if (parts.length === 1) {
-      // No citations — render plain with line breaks
-      return <span className="whitespace-pre-line">{text}</span>;
+
+    // ── Keyframe animations injected once into <head> ──────────────────────
+    if (!document.getElementById('noor-citation-styles')) {
+      const style = document.createElement('style');
+      style.id = 'noor-citation-styles';
+      style.textContent = `
+        @keyframes noor-fadeslide {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes noor-shimmer {
+          0%   { background-position: -200% center; }
+          100% { background-position:  200% center; }
+        }
+        @keyframes noor-pulse-border {
+          0%, 100% { border-color: rgba(96,165,250,0.6); }
+          50%       { border-color: rgba(96,165,250,1); }
+        }
+        @keyframes noor-gold-pulse {
+          0%, 100% { border-color: rgba(234,179,8,0.6); box-shadow: 0 0 0 0 rgba(234,179,8,0); }
+          50%       { border-color: rgba(234,179,8,1);   box-shadow: 0 0 12px 2px rgba(234,179,8,0.15); }
+        }
+        .noor-fadeslide { animation: noor-fadeslide 0.4s ease both; }
+        .noor-quran-card { animation: noor-fadeslide 0.45s ease both, noor-gold-pulse 3s ease-in-out infinite; }
+        .noor-hadith-card { animation: noor-fadeslide 0.45s ease both, noor-pulse-border 3s ease-in-out infinite; }
+        .noor-source-card { animation: noor-fadeslide 0.4s ease both; }
+      `;
+      document.head.appendChild(style);
     }
-    // Re-split capturing groups correctly
+
+    // ── Detect fallback RAG format ("--- Source X ---" blocks) ─────────────
+    const isRagFallback = /---\s*Source \d+\s*---/.test(text);
+    if (isRagFallback) {
+      // Split into: intro text + source blocks
+      const introMatch = text.match(/^([\s\S]*?)(?=---\s*Source 1\s*---)/);
+      const introText = introMatch ? introMatch[1].trim() : '';
+      const sourceBlocks = [...text.matchAll(/---\s*Source (\d+)\s*---([\s\S]*?)(?=---\s*Source \d+\s*---|$)/g)];
+
+      return (
+        <div className="space-y-3">
+          {/* Intro line */}
+          {introText && (
+            <p className="text-gray-300 text-xs leading-relaxed noor-fadeslide">{introText}</p>
+          )}
+          {/* Source cards */}
+          {sourceBlocks.map((blk, i) => {
+            const num = blk[1];
+            const body = blk[2].trim();
+            const isQuran = /quran\.txt/i.test(body);
+            const isHadith = /hadith/i.test(body);
+            const lines = body.split('\n').filter(l => l.trim());
+            const titleLine = lines[0] || '';
+            const contentLines = lines.slice(1).join('\n').trim();
+            const delay = `${i * 0.08}s`;
+
+            if (isQuran) {
+              return (
+                <div
+                  key={i}
+                  className="noor-quran-card rounded-2xl border-l-4 overflow-hidden"
+                  style={{
+                    animationDelay: delay,
+                    background: 'linear-gradient(135deg, rgba(161,122,0,0.12) 0%, rgba(234,179,8,0.06) 100%)',
+                    borderColor: 'rgba(234,179,8,0.7)',
+                    boxShadow: '0 2px 20px rgba(234,179,8,0.08)'
+                  }}
+                >
+                  <div
+                    className="flex items-center gap-2 px-4 py-2"
+                    style={{ background: 'linear-gradient(90deg, rgba(234,179,8,0.18) 0%, transparent 100%)' }}
+                  >
+                    <span style={{ fontSize: '15px' }}>✨</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#f0c040' }}>
+                      Quranic Reference · Source {num}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-[11px] font-semibold" style={{ color: 'rgba(234,179,8,0.7)' }}>{titleLine}</p>
+                    <p
+                      className="text-sm leading-relaxed font-medium"
+                      style={{
+                        color: '#fde68a',
+                        fontFamily: '"Georgia", serif',
+                        textShadow: '0 0 20px rgba(234,179,8,0.2)'
+                      }}
+                    >
+                      {contentLines}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
+            if (isHadith) {
+              return (
+                <div
+                  key={i}
+                  className="noor-hadith-card rounded-2xl border-l-4 overflow-hidden"
+                  style={{
+                    animationDelay: delay,
+                    background: 'linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(96,165,250,0.06) 100%)',
+                    borderColor: 'rgba(96,165,250,0.7)',
+                    boxShadow: '0 2px 20px rgba(96,165,250,0.08)'
+                  }}
+                >
+                  <div
+                    className="flex items-center gap-2 px-4 py-2"
+                    style={{ background: 'linear-gradient(90deg, rgba(96,165,250,0.18) 0%, transparent 100%)' }}
+                  >
+                    <span style={{ fontSize: '15px' }}>📜</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#93c5fd' }}>
+                      Prophetic Hadith · Source {num}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 space-y-2">
+                    <p className="text-[11px] font-semibold" style={{ color: 'rgba(96,165,250,0.7)' }}>{titleLine}</p>
+                    <p
+                      className="text-sm leading-relaxed italic"
+                      style={{
+                        color: '#bfdbfe',
+                        fontFamily: '"Georgia", serif',
+                        textShadow: '0 0 20px rgba(96,165,250,0.15)'
+                      }}
+                    >
+                      {contentLines}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+
+            // Generic source card
+            return (
+              <div
+                key={i}
+                className="noor-source-card rounded-2xl border border-white/10 px-4 py-3"
+                style={{ animationDelay: delay, background: 'rgba(255,255,255,0.03)' }}
+              >
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Source {num}</p>
+                <p className="text-xs text-gray-300 leading-relaxed">{body}</p>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // ── Normal mode: [QURAN]/[HADITH] tag parsing + markdown ───────────────
     const segments = [];
-    const regex = /\[(QURAN|HADITH)\](.*?)\[\/(QURAN|HADITH)\]/gs;
+    const regex = /\[(QURAN|HADITH)\]([\s\S]*?)\[\/(QURAN|HADITH)\]/g;
     let lastIndex = 0;
     let match;
     while ((match = regex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        segments.push({ type: 'text', content: text.slice(lastIndex, match.index) });
+        const mdText = text.slice(lastIndex, match.index).trim();
+        if (mdText) segments.push({ type: 'markdown', content: mdText });
       }
       segments.push({ type: match[1], content: match[2].trim() });
       lastIndex = regex.lastIndex;
     }
     if (lastIndex < text.length) {
-      segments.push({ type: 'text', content: text.slice(lastIndex) });
+      const mdText = text.slice(lastIndex).trim();
+      if (mdText) segments.push({ type: 'markdown', content: mdText });
     }
+    if (segments.length === 0) segments.push({ type: 'markdown', content: text });
+
+    const MarkdownBlock = ({ content, delay = '0s' }) => (
+      <div className="noor-fadeslide" style={{ animationDelay: delay }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            p: ({ node, ...props }) => <p className="mb-2 last:mb-0 text-gray-200 leading-relaxed" {...props} />,
+            strong: ({ node, ...props }) => <strong className="font-semibold text-white" {...props} />,
+            em: ({ node, ...props }) => <em className="italic text-gray-300" {...props} />,
+            ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1 my-2 text-gray-200" {...props} />,
+            ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1 my-2 text-gray-200" {...props} />,
+            li: ({ node, ...props }) => <li className="ml-2" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h1: ({ node, ...props }) => <h1 className="text-base font-bold text-white mt-3 mb-1" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h2: ({ node, ...props }) => <h2 className="text-sm font-bold text-white mt-3 mb-1" {...props} />,
+            // eslint-disable-next-line jsx-a11y/heading-has-content
+            h3: ({ node, ...props }) => <h3 className="text-sm font-semibold text-emerald-300 mt-2 mb-1" {...props} />,
+            blockquote: ({ node, ...props }) => (
+              <blockquote className="border-l-2 border-gray-500 pl-3 my-2 text-gray-400 italic" {...props} />
+            ),
+            code: ({ node, inline, ...props }) =>
+              inline
+                ? <code className="bg-white/10 rounded px-1 text-emerald-300 font-mono text-[11px]" {...props} />
+                : <pre className="bg-black/30 rounded-lg p-3 my-2 overflow-x-auto text-xs font-mono text-gray-300"><code {...props} /></pre>,
+            // eslint-disable-next-line jsx-a11y/anchor-has-content
+            a: ({ node, ...props }) => <a className="text-emerald-400 underline hover:text-emerald-300" target="_blank" rel="noopener noreferrer" {...props} />,
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
+    );
+
     return (
-      <>
+      <div className="space-y-2">
         {segments.map((seg, i) => {
+          const delay = `${i * 0.07}s`;
+
           if (seg.type === 'QURAN') {
             return (
-              <div key={i} className="my-3 px-4 py-3 rounded-xl border-l-4 border-emerald-400 bg-emerald-500/10">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="text-emerald-400 text-[10px] font-bold uppercase tracking-widest">📖 Quranic Verse</span>
+              <div
+                key={i}
+                className="noor-quran-card my-3 rounded-2xl border-l-4 overflow-hidden"
+                style={{
+                  animationDelay: delay,
+                  background: 'linear-gradient(135deg, rgba(161,122,0,0.14) 0%, rgba(234,179,8,0.06) 100%)',
+                  borderColor: 'rgba(234,179,8,0.75)',
+                  boxShadow: '0 2px 24px rgba(234,179,8,0.1)'
+                }}
+              >
+                {/* Header bar */}
+                <div
+                  className="flex items-center gap-2 px-4 py-2"
+                  style={{ background: 'linear-gradient(90deg, rgba(234,179,8,0.2) 0%, transparent 100%)' }}
+                >
+                  <span style={{ fontSize: 16 }}>✨</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#f0c040' }}>
+                    Holy Quran
+                  </span>
+                  <div className="ml-auto flex gap-0.5">
+                    {'★★★'.split('').map((s,j) => <span key={j} style={{ color:'rgba(234,179,8,0.4)', fontSize:8 }}>{s}</span>)}
+                  </div>
                 </div>
-                <p className="text-emerald-200 text-sm leading-relaxed font-medium italic">{seg.content}</p>
+                {/* Verse body */}
+                <div className="px-4 pb-4 pt-2">
+                  <p
+                    className="text-sm leading-loose font-medium"
+                    style={{
+                      color: '#fde68a',
+                      fontFamily: '"Georgia", "Times New Roman", serif',
+                      textShadow: '0 0 24px rgba(234,179,8,0.25)',
+                      letterSpacing: '0.01em'
+                    }}
+                  >
+                    ❝ {seg.content} ❞
+                  </p>
+                </div>
               </div>
             );
           }
+
           if (seg.type === 'HADITH') {
             return (
-              <div key={i} className="my-3 px-4 py-3 rounded-xl border-l-4 border-amber-400 bg-amber-500/10">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <span className="text-amber-400 text-[10px] font-bold uppercase tracking-widest">📚 Hadith</span>
+              <div
+                key={i}
+                className="noor-hadith-card my-3 rounded-2xl border-l-4 overflow-hidden"
+                style={{
+                  animationDelay: delay,
+                  background: 'linear-gradient(135deg, rgba(29,78,216,0.14) 0%, rgba(96,165,250,0.06) 100%)',
+                  borderColor: 'rgba(96,165,250,0.75)',
+                  boxShadow: '0 2px 24px rgba(96,165,250,0.1)'
+                }}
+              >
+                {/* Header bar */}
+                <div
+                  className="flex items-center gap-2 px-4 py-2"
+                  style={{ background: 'linear-gradient(90deg, rgba(96,165,250,0.2) 0%, transparent 100%)' }}
+                >
+                  <span style={{ fontSize: 16 }}>📜</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: '#93c5fd' }}>
+                    Prophetic Hadith
+                  </span>
+                  <div className="ml-auto flex gap-0.5">
+                    {'●●●'.split('').map((s,j) => <span key={j} style={{ color:'rgba(96,165,250,0.4)', fontSize:8 }}>{s}</span>)}
+                  </div>
                 </div>
-                <p className="text-amber-200 text-sm leading-relaxed italic">{seg.content}</p>
+                {/* Hadith body */}
+                <div className="px-4 pb-4 pt-2">
+                  <p
+                    className="text-sm leading-loose italic"
+                    style={{
+                      color: '#bfdbfe',
+                      fontFamily: '"Georgia", "Times New Roman", serif',
+                      textShadow: '0 0 20px rgba(96,165,250,0.2)',
+                      letterSpacing: '0.01em'
+                    }}
+                  >
+                    ❝ {seg.content} ❞
+                  </p>
+                </div>
               </div>
             );
           }
-          return <span key={i} className="whitespace-pre-line">{seg.content}</span>;
+
+          return <MarkdownBlock key={i} content={seg.content} delay={delay} />;
         })}
-      </>
+      </div>
     );
   };
 

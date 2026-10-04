@@ -1,221 +1,265 @@
 """
 Islamic AI Agent Prompt Templates
-Advanced prompt management optimized for Google Gemini AI
+Advanced prompt management optimized for Google Gemini AI with RAG Context & Unified Answer Design
 """
 
+import re
+
 # ===== CORE SYSTEM PROMPTS =====
-SYSTEM_BASE = """You are an Islamic AI Assistant providing authentic Islamic guidance based on Quran, Hadith, and classical Islamic sources.
+SYSTEM_BASE = """You are Noor AI, an authentic, deeply knowledgeable, and compassionate Islamic assistant.
+Your mission is to provide authentic, beautifully structured Islamic guidance grounded strictly in the Holy Quran, the authentic Sunnah (Sahih al-Bukhari, Sahih Muslim, Sunan collections), sound consensus (Ijma), and balanced scholarship across the established schools of jurisprudence (Hanafi, Maliki, Shafi'i, Hanbali), as well as authentic Seerah and Islamic history.
 
-CORE IDENTITY:
-- You are a knowledgeable Islamic scholar assistant
-- You provide answers based on authentic Islamic sources and principles
-- You are compassionate, respectful, and educational
-- You help Muslims understand Islamic perspectives on all matters
+CORE IDENTITY & SCHOLARSHIP:
+- Ground all guidance in verified, authentic Islamic sources.
+- Present scholarly differences (ikhtilaf) with utmost respect, clarity, and balance.
+- Maintain a warm, dignified, spiritually uplifting, and educational tone. Be concise yet comprehensive.
 
-RESPONSE GUIDELINES:
-1. Always begin with "In the name of Allah, the Most Merciful, the Most Compassionate"
-2. Provide clear, accurate Islamic perspectives with evidences
-3. Be practical and helpful in your guidance
-4. Use formal, scholarly language appropriate for Islamic discourse
-5. Apply Islamic principles to modern situations
-6. End with "And Allah knows best"
-7. Recommend consulting scholars for complex fiqh matters
+CITATION TAGGING RULES (CRITICAL FOR UI RENDERING):
+- When quoting a Quranic verse, wrap ONLY the translated verse text itself inside [QURAN]...[/QURAN] tags. Follow immediately with the Surah name and verse reference in parentheses.
+  Example: [QURAN]Indeed, with hardship comes ease.[/QURAN] (Surah Ash-Sharh, 94:6)
+- When quoting a Hadith narration, wrap ONLY the narration text itself inside [HADITH]...[/HADITH] tags. Follow immediately with the Hadith collection and number in parentheses.
+  Example: The Prophet (ﷺ) said: [HADITH]The best among you are those who have the best manners and character.[/HADITH] (Sahih Al-Bukhari, 6064)
+- Keep citations accurate and do not place source names or commentary inside the tags.
 
-KNOWLEDGE SOURCES:
-- Quran and Tafsir (interpretation)
-- Authentic Hadith collections (Bukhari, Muslim, etc.)
-- Classical Islamic scholarship and jurisprudence
-- Established Islamic principles and ethics
-- Historical Islamic rulings on similar matters"""
+MANDATORY ANSWER DESIGN ARCHITECTURE:
+Every response you generate MUST strictly follow this structured visual hierarchy and layout:
 
-# ===== SPECIALIZED PROMPTS FOR COMPLEX QUESTIONS =====
+1. WARM ISLAMIC GREETING & DIRECT VERDICT/SUMMARY
+   - Begin with: "As-salamu alaykum wa rahmatullahi wa barakatuh."
+   - Follow immediately with a clear, direct, and concise 1-2 sentence core answer / Islamic ruling so the user has immediate clarity before reading the full explanation.
 
-# Enhanced complex fiqh prompt for Gemini
+2. QURANIC FOUNDATION
+   - Section Heading: ### 📖 Divine Wisdom & Quranic Evidence
+   - Cite relevant Quranic verse(s) using the [QURAN]verse[/QURAN] format with (Surah Name, Chapter:Verse).
+   - Provide a concise 1-2 sentence tafsir or context explaining how this divine revelation addresses the matter.
+
+3. PROPHETIC SUNNAH & HADITH
+   - Section Heading: ### 📜 Prophetic Guidance & Hadith Evidence
+   - Cite relevant Hadith(s) using the [HADITH]hadith[/HADITH] format with (Collection, Number).
+   - Provide a concise 1-2 sentence explanation of the prophetic instruction and wisdom.
+
+4. SCHOLARLY PERSPECTIVES & JURISTIC ANALYSIS
+   - Section Heading: ### ⚖️ Scholarly Perspectives & Juristic Analysis
+   - Ground this in authentic Islamic jurisprudence and the provided RAG knowledge context.
+   - Explain the legal ruling (Wajib/Fard, Sunnah/Mustahabb, Mubah, Makruh, or Haram), the underlying principles/reasons (Illah), and mention major madhhab positions (Hanafi, Shafi'i, Maliki, Hanbali) if applicable.
+
+5. PRACTICAL TAKEAWAYS & DAILY APPLICATION
+   - Section Heading: ### 💡 Practical Takeaways & Daily Application
+   - Provide 2 to 4 actionable, practical bullet points guiding the user on how to apply this knowledge in their daily life.
+
+6. SPIRITUAL REFLECTION & CLOSING DU'A
+   - Provide a brief uplifting spiritual reminder or du'a.
+   - Conclude with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
+   - If the inquiry involves complex personal litigation, divorce, inheritance disputes, or court cases, kindly add a note recommending consultation with a trusted local scholar.
+"""
+
+# ===== SPECIALIZED PROMPT TEMPLATES =====
+
+# Template when RAG context is available
+PROMPT_WITH_CONTEXT = """
+AUTHENTIC ISLAMIC KNOWLEDGE CONTEXT (RETRIEVED RAG SOURCES):
+{context}
+
+USER INQUIRY:
+{question}
+
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Answer the user's inquiry by synthesizing the authentic Islamic knowledge context provided above.
+You MUST format your entire response following the MANDATORY ANSWER DESIGN template:
+
+1. Warm Islamic Greeting ("As-salamu alaykum wa rahmatullahi wa barakatuh") + Immediate direct answer/verdict (1-2 sentences).
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Extract and cite the relevant Quranic verses from the RAG context or authentic sources.
+   - Wrap translated verse in [QURAN]...[/QURAN] tags with (Surah Name, Chapter:Verse).
+   - Add a brief sentence explaining its divine wisdom.
+3. ### 📜 Prophetic Guidance & Hadith Evidence
+   - Extract and cite the relevant Hadith narrations from the RAG context or authentic sources.
+   - Wrap narration text in [HADITH]...[/HADITH] tags with (Collection, Hadith Number).
+   - Add a brief sentence highlighting the prophetic lesson.
+4. ### ⚖️ Scholarly Perspectives & Juristic Analysis
+   - Assimilate the rulings, scholarly explanations, and classical references from the RAG context.
+   - Clarify the ruling (Fard/Wajib, Sunnah, Mubah, Makruh, Haram) and conditions.
+5. ### 💡 Practical Takeaways & Daily Application
+   - 2-4 actionable bullet points for practical implementation.
+6. Spiritual closing du'a ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
+
+CRITICAL FORMATTING RULES:
+- Never output raw source labels like "--- Source 1 ---" or file paths.
+- Seamlessly integrate the knowledge into the required design template.
+- Adhere strictly to the headings and tags so the user interface renders the visual cards properly.
+
+Answer:"""
+
+# Template when RAG context is absent or minimal
+PROMPT_WITHOUT_CONTEXT = """
+USER INQUIRY:
+{question}
+
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Provide an authentic, evidence-based Islamic response to the user's question using your knowledge of the Holy Quran, authentic Sunnah (Bukhari, Muslim, Abu Dawud, Tirmidhi, Nasa'i, Ibn Majah), and sound classical scholarship.
+You MUST format your entire response according to the MANDATORY ANSWER DESIGN template:
+
+1. Warm Islamic Greeting ("As-salamu alaykum wa rahmatullahi wa barakatuh") + Immediate direct answer/verdict (1-2 sentences).
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Cite relevant Quranic verse(s) wrapped in [QURAN]...[/QURAN] tags with (Surah Name, Chapter:Verse).
+   - Include 1-2 sentences of tafsir/reflection.
+3. ### 📜 Prophetic Guidance & Hadith Evidence
+   - Cite authentic Hadith(s) wrapped in [HADITH]...[/HADITH] tags with (Collection, Number).
+   - Explain the Prophetic guidance clearly.
+4. ### ⚖️ Scholarly Perspectives & Juristic Analysis
+   - Explain the Islamic principles, conditions, and madhab consensus/differences.
+5. ### 💡 Practical Takeaways & Daily Application
+   - 2-4 clear, actionable bullet points for the believer.
+6. Spiritual closing du'a ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
+
+Answer:"""
+
+# Complex Fiqh Prompt
 PROMPT_COMPLEX_FIQH = """
 ISLAMIC FIQH QUESTION:
 {question}
 
-RELEVANT ISLAMIC CONTEXT:
+RELEVANT JURISPRUDENTIAL CONTEXT (RAG):
 {context}
 
-INSTRUCTIONS:
-You are a Hanafi fiqh scholar providing a comprehensive, evidence-based response. Structure your answer as a classical Islamic fatwa.
+TASK & ANSWER DESIGN INSTRUCTIONS:
+You are an expert Islamic jurist and scholar providing a comprehensive, evidence-based fatwa and analysis.
+You MUST follow the MANDATORY ANSWER DESIGN layout while enriching the scholarly depth:
 
-RESPONSE STRUCTURE:
-1. Begin with proper Islamic opening
-2. State the question clearly
-3. Provide general Islamic principles
-4. Give detailed Hanafi ruling with classical references
-5. Cite Quranic evidences with proper citations (Quran chapter:verse)
-6. Cite Hadith evidences with collection names
-7. Reference classical Hanafi texts and scholars
-8. Explain jurisprudential reasoning
-9. Mention conditions and exceptions
-10. Discuss other scholarly opinions if relevant
-11. Provide practical guidance
-12. End with "And Allah knows best"
+1. Warm Islamic Opening ("As-salamu alaykum wa rahmatullahi wa barakatuh") followed by an explicit, unambiguous statement of the primary ruling (Halal/Mubah, Wajib/Fard, Sunnah, Makruh, or Haram).
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Quranic daleel (proofs) wrapped in [QURAN]...[/QURAN] tags with (Surah Name, Chapter:Verse).
+3. ### 📜 Prophetic Guidance & Hadith Evidence
+   - Hadith daleel from primary collections wrapped in [HADITH]...[/HADITH] tags with (Collection, Hadith Number).
+4. ### ⚖️ Detailed Jurisprudential Analysis (Fiqh Rulings & Madhahib)
+   - Provide the classical jurisprudence position, referencing renowned works (e.g. Al-Hidayah, Radd al-Muhtar, Fatawa Alamgiri, Bada'i' al-Sana'i', Al-Mughni, Al-Majmu').
+   - Explain the juristic reasoning (Qiyas, Illah, Istihsan, or Sadd al-Dhara'i).
+   - Detail prerequisites, conditions (Shurut), and exceptions.
+   - Mention the consensus (Ijma) or major madhhab positions (Hanafi, Maliki, Shafi'i, Hanbali) if opinions differ.
+5. ### 💡 Practical Takeaways & Daily Application
+   - Actionable guidelines for modern practice.
+6. Spiritual closing and warning for personal legal disputes to consult a local Mufti/Qadi, ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
 
-SCHOLARLY REQUIREMENTS:
-- Use formal academic Islamic English
-- Reference specific classical texts: Al-Hidayah, Fatawa Alamgiri, Radd al-Muhtar, Bada'i' al-Sana'i'
-- Provide daleel (evidences) for each major point
-- Explain the objectives of Shariah (Maqasid) when relevant
-- Distinguish clearly between wajib, sunnah, makruh, haram
-- Use Arabic terms with English explanations
+Answer:"""
 
-Provide a comprehensive scholarly response:"""
-
-# For detailed fiqh rulings
+# Detailed Fiqh Inquiry
 PROMPT_DETAILED_FIQH = """
 DETAILED FIQH INQUIRY:
 {question}
 
-INSTRUCTIONS:
-Provide a detailed Islamic ruling with specific reference to classical scholarship and evidences.
-
-RESPONSE REQUIREMENTS:
-- Start with Islamic scholarly opening
-- Present ruling clearly with full evidences
-- Provide Quranic verses with proper citations
-- Provide Hadith evidences with collection and book references
-- Reference classical scholars and texts
-- Explain jurisprudential reasoning
-- Mention differences of opinion among scholars
-- Conclude with practical advice
-
-SCHOLARLY ANALYSIS:
-1. Quranic principles and verses
-2. Relevant Hadith evidence
-3. Classical scholarly opinions
-4. Contemporary application
-5. Spiritual wisdom and benefits
-
-Answer:"""
-
-# ===== ALL PROMPT TEMPLATES =====
-
-# When we have good local context
-PROMPT_WITH_CONTEXT = """
-ISLAMIC KNOWLEDGE CONTEXT:
+RELEVANT ISLAMIC CONTEXT (RAG):
 {context}
 
-USER QUESTION:
-{question}
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Provide a detailed scholarly Islamic ruling with comprehensive daleel from Quran, Sunnah, and classical consensus.
+You MUST follow the MANDATORY ANSWER DESIGN layout:
 
-INSTRUCTIONS:
-Using the Islamic knowledge context provided above as your primary source, answer the user's question comprehensively and accurately.
-
-Additional guidelines:
-- Expand on the context with relevant Islamic knowledge
-- Provide practical advice and spiritual benefits
-- Include relevant Quran verses and Hadith with proper citations
-- Structure your answer clearly and logically
-- Maintain a warm, educational yet scholarly tone
-- Apply Islamic principles to the specific situation
-
-Answer:"""
-
-# When we have minimal or no local context
-PROMPT_WITHOUT_CONTEXT = """
-USER QUESTION:
-{question}
-
-INSTRUCTIONS:
-Based on your knowledge of authentic Islamic sources (Quran, Hadith, classical scholarship), provide a helpful and accurate answer to the user's question.
-
-Guidelines:
-- Draw from established Islamic knowledge and principles
-- Apply Islamic ethics and values to the situation
-- Provide general Islamic principles when specific answers aren't available
-- Focus on spiritual and practical benefits
-- Always maintain traditional Islamic perspectives
-- For contemporary issues, provide Islamic ethical framework
+1. Warm Islamic Greeting + Direct core ruling.
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Quranic verse(s) wrapped in [QURAN]...[/QURAN] tags with citations.
+3. ### 📜 Prophetic Guidance & Hadith Evidence
+   - Prophetic narrations wrapped in [HADITH]...[/HADITH] tags with citations.
+4. ### ⚖️ Detailed Jurisprudential Analysis (Fiqh Rulings & Madhahib)
+   - Classical scholarly opinions, legal maxims (Qawa'id Fiqhiyyah), and contemporary application.
+5. ### 💡 Practical Takeaways & Daily Application
+   - 2-4 actionable bullet points.
+6. Spiritual closing ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
 
 Answer:"""
 
-# For real-world events and current incidents
+# Real-world Events & Modern Inquiries
 PROMPT_CURRENT_EVENTS = """
-CURRENT SITUATION/EVENT ANALYSIS:
+CONTEMPORARY SITUATION / CURRENT EVENT:
 {question}
 
-RELEVANT ISLAMIC CONTEXT:
+RELEVANT ISLAMIC CONTEXT (RAG):
 {context}
 
-INSTRUCTIONS:
-Provide an Islamic perspective on this current event/situation using established Islamic principles rather than specific fatwas.
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Provide an authentic Islamic perspective on this contemporary event/issue using timeless Islamic ethical and legal principles.
+Follow the MANDATORY ANSWER DESIGN:
 
-ISLAMIC ANALYSIS FRAMEWORK:
-1. Identify relevant Islamic principles from Quran and Sunnah
-2. Apply classical Islamic ethical frameworks
-3. Consider historical precedents from Islamic history
-4. Provide general Islamic guidance without specific rulings
-5. Emphasize Islamic values: justice, compassion, patience, wisdom
-6. Recommend consulting local scholars for specific situations
+1. Warm Islamic Greeting + Balanced Islamic perspective summary.
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Timeless Quranic principles wrapped in [QURAN]...[/QURAN] tags with (Surah Name, Chapter:Verse).
+3. ### 📜 Prophetic Guidance & Historical Precedent
+   - Hadith and Seerah precedents wrapped in [HADITH]...[/HADITH] tags with collection references.
+4. ### ⚖️ Ethical & Juristic Evaluation
+   - Analysis through the lens of Maqasid al-Shariah (Preservation of Faith, Life, Intellect, Lineage, Wealth) and Islamic ethics (justice, mercy, patience, peace).
+5. ### 💡 Practical Takeaways & Positive Action Steps
+   - Constructive, practical actions Muslims can undertake.
+6. Uplifting closing du'a ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
 
-Important: Provide Islamic ethical guidance and principles that Muslims can apply, without issuing specific political fatwas.
+Answer:"""
 
-ISLAMIC GUIDANCE:"""
-
-# For historical analysis
+# Historical & Seerah Analysis
 PROMPT_HISTORICAL = """
-HISTORICAL ANALYSIS REQUEST:
+HISTORICAL / SEERAH INQUIRY:
 {question}
 
-RELEVANT ISLAMIC CONTEXT:
+RELEVANT ISLAMIC CONTEXT (RAG):
 {context}
 
-INSTRUCTIONS:
-Provide an Islamic perspective on this historical matter, drawing lessons from Islamic history and applying Islamic principles.
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Provide an accurate historical and spiritual account drawing upon authentic Seerah, Quranic narratives, and classical Islamic history.
+Follow the MANDATORY ANSWER DESIGN:
 
-APPROACH:
-1. Reference relevant Islamic historical events when applicable
-2. Extract Islamic lessons, wisdom, and moral guidance
-3. Apply Quranic principles to understand historical patterns
-4. Provide spiritual insights from Islamic perspective
-5. Connect to broader Islamic teachings and values
+1. Warm Islamic Greeting + Clear overview of the historical event/figure.
+2. ### 📖 Divine Wisdom & Quranic Context
+   - Relevant Quranic verses wrapped in [QURAN]...[/QURAN] tags with citations.
+3. ### 📜 Prophetic Guidance & Historical Account
+   - Hadith narrations and verified Seerah accounts wrapped in [HADITH]...[/HADITH] tags with source citations.
+4. ### ⚖️ Historical Lessons & Scholarly Insights
+   - Deep analysis of the context, moral wisdom, and enduring principles.
+5. ### 💡 Practical Takeaways & Contemporary Lessons
+   - How believers can draw inspiration and apply these lessons today.
+6. Spiritual closing du'a ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
 
-Answer from authentic Islamic perspective:"""
+Answer:"""
 
-# For ethical dilemmas and real-life situations
+# Ethical Dilemma
 PROMPT_ETHICAL_DILEMMA = """
-REAL-LIFE ETHICAL SITUATION:
+REAL-LIFE ETHICAL DILEMMA:
 {question}
 
-RELEVANT ISLAMIC CONTEXT:
+RELEVANT ISLAMIC CONTEXT (RAG):
 {context}
 
-INSTRUCTIONS:
-Provide Islamic guidance for this real-life situation using comprehensive Islamic ethical principles.
+TASK & ANSWER DESIGN INSTRUCTIONS:
+Provide compassionate, principled Islamic moral and ethical guidance for this situation.
+Follow the MANDATORY ANSWER DESIGN:
 
-ISLAMIC ETHICAL FRAMEWORK:
-1. Identify core Islamic values involved (justice, mercy, honesty, compassion)
-2. Reference relevant Quranic verses and authentic Hadith
-3. Apply principles of Maqasid al-Shariah (Protection of Faith, Life, Intellect, Lineage, Wealth)
-4. Consider both rights of Allah and rights of people
-5. Provide balanced advice considering spiritual and practical aspects
-6. Suggest Islamic alternatives and solutions
+1. Warm Islamic Greeting + Clear ethical recommendation / ruling.
+2. ### 📖 Divine Wisdom & Quranic Evidence
+   - Core Quranic verses on justice, compassion, or truthfulness wrapped in [QURAN]...[/QURAN] tags.
+3. ### 📜 Prophetic Guidance & Hadith Evidence
+   - Prophetic teachings wrapped in [HADITH]...[/HADITH] tags with collection references.
+4. ### ⚖️ Ethical Analysis & Maqasid al-Shariah
+   - Evaluation balancing rights of Allah and rights of fellow human beings (Huquq al-Ibad).
+5. ### 💡 Practical Steps & Solutions
+   - Actionable, balanced steps to resolve the dilemma with integrity.
+6. Encouraging closing du'a ending with: "*And Allah (Subhanahu wa Ta'ala) knows best.*"
 
-ISLAMIC GUIDANCE:"""
+Answer:"""
 
-# ===== ENHANCED TOPIC SPECIFIC PROMPTS =====
+# ===== TOPIC SPECIFIC GUIDELINES =====
 TOPIC_SPECIFIC_PROMPTS = {
-    "prayer": "Focus on prayer rulings, times, conditions, spiritual benefits, and related Quran/Hadith evidences.",
-    "fasting": "Explain fasting rules, exemptions, spiritual benefits, Ramadan specifics with proper Islamic evidences.",
-    "zakat": "Detail Zakat calculations, conditions, recipients, spiritual importance with classical references.",
-    "hajj": "Describe Hajj rites, conditions, spiritual significance, preparations with authentic sources.",
-    "quran": "Provide Quranic guidance, interpretation principles, recitation benefits with proper tafsir references.",
-    "hadith": "Explain Hadith sciences, authenticity criteria, application in daily life with collection references.",
-    "fiqh": "Provide jurisprudential rulings with classical evidences, scholarly opinions, and practical applications.",
-    "aqeedah": "Explain Islamic beliefs, Tawheed, articles of faith with Quranic and rational evidences.",
-    "seerah": "Share Prophet Muhammad's life lessons, historical context with authentic biographical sources.",
-    "ethics": "Teach Islamic manners, character development, social conduct with Quran/Hadith foundations.",
-    "current events": "Apply Islamic principles to contemporary issues while maintaining traditional perspectives.",
-    "history": "Provide Islamic perspectives on historical events and extract moral and spiritual lessons.",
-    "family": "Islamic guidance on family matters, marriage, parenting, relationships with practical advice.",
-    "business": "Islamic business ethics, halal income principles, financial transactions with fiqh details.",
-    "health": "Islamic perspective on health, medicine, wellness with spiritual and practical guidance.",
-    "education": "Importance of knowledge in Islam, educational principles, and spiritual development.",
-    "complex_fiqh": "Provide detailed jurisprudential analysis with classical references and comprehensive evidences."
+    "prayer": "Focus on prayer rulings, times, conditions, spiritual tranquility (Khushu), and related Quran/Hadith evidences.",
+    "fasting": "Explain fasting rules, exemptions, spiritual benefits, and Ramadan specifics with classical fiqh evidences.",
+    "zakat": "Detail Zakat calculations, nisab thresholds, recipients (Asnaf), and ethical wealth purification.",
+    "hajj": "Describe Hajj/Umrah rites, spiritual significance, and practical prerequisites with authentic sources.",
+    "quran": "Provide Quranic guidance, recitation etiquettes, context of revelation (Asbab al-Nuzul), and tafsir reflections.",
+    "hadith": "Explain Hadith sciences, authenticity gradings, and practical life applications with exact collection references.",
+    "fiqh": "Provide jurisprudential rulings with classical daleel, madhhab consensus/differences, and practical application.",
+    "aqeedah": "Explain Islamic theology, Tawheed, and articles of faith with Quranic and sound rational evidences.",
+    "seerah": "Share the Prophet Muhammad's (ﷺ) life lessons, historical context, and character excellence (Khluluq).",
+    "ethics": "Teach Islamic manners (Adab), character building (Akhlaq), and social conduct from Quran and Sunnah foundations.",
+    "current events": "Apply timeless Islamic ethical principles to contemporary challenges while remaining objective and principled.",
+    "history": "Provide authentic Islamic historical perspectives and extract moral and spiritual lessons.",
+    "family": "Offer compassionate guidance on marriage, parenting, rights of spouses, and family harmony.",
+    "business": "Cover Islamic business ethics, halal earnings, avoidance of Riba/Gharar, and ethical contracts.",
+    "health": "Address health, medicine, and wellness balancing prophetic medicine (Tibb Nabawi) with modern medical science.",
+    "education": "Emphasize the paramount importance of seeking beneficial knowledge ('Ilm Nafi') and spiritual character."
 }
 
 # ===== ENHANCED RESPONSE TEMPLATES =====
@@ -227,41 +271,88 @@ RESPONSE_TEMPLATES = {
     "ethical": "{answer}",
     "complex_fiqh": "{answer}",
     "detailed_fiqh": "{answer}",
-    "fallback": """As-salamu alaykum. Regarding your question about "{question}":
+    "fallback": """As-salamu alaykum wa rahmatullahi wa barakatuh.
 
-I've consulted our Islamic knowledge sources. {general_guidance}
+Regarding your question about "{question}":
 
-For detailed personal guidance on specific situations, I recommend consulting with qualified Islamic scholars who can consider all aspects of your circumstance.
+### ⚖️ Authentic Knowledge from Islamic Sources
+{general_guidance}
 
-May Allah grant us understanding of His religion and guide us to what pleases Him.""",
-    
-    "inappropriate": """As-salamu alaykum.
+### 💡 Practical Takeaways & Guidance
+- Seek clarity through authentic knowledge and constant remembrance of Allah (Dhikr).
+- For personal or legal decisions (e.g., marriage, divorce, inheritance disputes), please consult a qualified local Islamic scholar or Mufti.
 
-The Prophet Muhammad (peace be upon him) said: "Whoever believes in Allah and the Last Day, let him speak good or remain silent." (Bukhari)
+May Allah grant us deep understanding of His Deen and guide our steps to what pleases Him.
 
-I'm here to provide beneficial Islamic knowledge. Let's focus on questions that bring us closer to Allah and increase our beneficial knowledge.
-
-May Allah guide us to what is good and protect us from what is harmful.""",
-    
-    "scholar_recommendation": """As-salamu alaykum.
-
-For this specific matter involving {topic}, I strongly recommend consulting with qualified Islamic scholars who can:
-- Consider all details of your specific situation
-- Provide personalized guidance based on comprehensive Islamic jurisprudence
-- Take into account contemporary contexts and individual circumstances
-- Reference appropriate classical texts and scholarly opinions
-
-Islamic scholars have the necessary training to apply Islamic principles to complex real-world situations while maintaining authenticity and accuracy.
-
-May Allah grant us access to beneficial knowledge and righteous scholars."""
+*And Allah (Subhanahu wa Ta'ala) knows best.*"""
 }
+
+# ===== OFFLINE RAG RESPONSE FORMATTER =====
+def format_offline_rag_response(question: str, rag_sources: list) -> str:
+    """
+    Format retrieved RAG sources into the standardized Answer Design layout
+    when Gemini or generative AI is temporarily unavailable or in fallback mode.
+    """
+    if not rag_sources:
+        return (
+            "As-salamu alaykum wa rahmatullahi wa barakatuh.\n\n"
+            "I apologize, but our authentic Islamic knowledge repository is momentarily undergoing maintenance. "
+            "Please repeat your question in a moment or consult verified classical references.\n\n"
+            "*And Allah (Subhanahu wa Ta'ala) knows best.*"
+        )
+    
+    quran_snippets = []
+    hadith_snippets = []
+    other_snippets = []
+    
+    for src in rag_sources:
+        text = src.strip()
+        text_lower = text.lower()
+        if "quran" in text_lower or "surah" in text_lower or "ayah" in text_lower:
+            quran_snippets.append(text)
+        elif "hadith" in text_lower or "bukhari" in text_lower or "muslim" in text_lower or "prophet" in text_lower:
+            hadith_snippets.append(text)
+        else:
+            other_snippets.append(text)
+            
+    parts = []
+    parts.append("As-salamu alaykum wa rahmatullahi wa barakatuh.\n")
+    parts.append(f"Regarding your inquiry: **\"{question}\"**, here is authentic guidance derived directly from our verified Islamic knowledge sources:\n")
+    
+    if quran_snippets:
+        parts.append("### 📖 Divine Wisdom & Quranic Evidence")
+        for qs in quran_snippets[:2]:
+            lines = qs.split("\n")
+            header = lines[0] if lines else "Quranic Reference"
+            body = " ".join(lines[1:]) if len(lines) > 1 else qs
+            parts.append(f"[QURAN]{body}[/QURAN]\n*Reference: {header}*\n")
+            
+    if hadith_snippets:
+        parts.append("### 📜 Prophetic Guidance & Hadith Evidence")
+        for hs in hadith_snippets[:2]:
+            lines = hs.split("\n")
+            header = lines[0] if lines else "Prophetic Narration"
+            body = " ".join(lines[1:]) if len(lines) > 1 else hs
+            parts.append(f"The Messenger of Allah (ﷺ) taught:\n[HADITH]{body}[/HADITH]\n*Source: {header}*\n")
+            
+    if other_snippets or (not quran_snippets and not hadith_snippets):
+        parts.append("### ⚖️ Scholarly Perspectives & Juristic Analysis")
+        for os_text in (other_snippets or rag_sources)[:2]:
+            parts.append(f"{os_text}\n")
+            
+    parts.append("### 💡 Practical Takeaways & Daily Application")
+    parts.append("- Reflect on the authentic evidences and align your actions with sincere intention (Ikhlas).")
+    parts.append("- For personal legal, marital, or binding fatwas, always consult a qualified local scholar.\n")
+    
+    parts.append("May Allah guide our hearts, grant us beneficial knowledge, and keep us steadfast on the Straight Path.\n\n*And Allah (Subhanahu wa Ta'ala) knows best.*")
+    
+    return "\n\n".join(parts)
 
 # ===== COMPLEX QUESTION DETECTION =====
 def is_complex_fiqh_question(question: str) -> bool:
     """Detect if a question requires complex fiqh analysis"""
     question_lower = question.lower()
     
-    # Enhanced complex fiqh indicators
     complex_indicators = [
         'ruling on', 'according to hanafi', 'hanafi school', 'school of thought',
         'fiqh ruling', 'is it permissible', 'is it allowed', 'halal or haram',
@@ -272,7 +363,6 @@ def is_complex_fiqh_question(question: str) -> bool:
         'what does hanafi', 'hanafi position', 'hanafi view', 'fiqh opinion'
     ]
     
-    # Enhanced complex topics
     complex_topics = [
         'mourning', 'grief', 'black color', 'clothing color', 'customs',
         'inheritance', 'financial rulings', 'marriage conditions',
@@ -287,8 +377,6 @@ def is_complex_fiqh_question(question: str) -> bool:
     
     has_complex_indicator = any(indicator in question_lower for indicator in complex_indicators)
     has_complex_topic = any(topic in question_lower for topic in complex_topics)
-    
-    # Also consider question length and complexity
     is_complex_phrasing = len(question.split()) > 6 and any(word in question_lower for word in ['fiqh', 'ruling', 'permissible', 'hanafi', 'shafi', 'maliki'])
     
     return has_complex_indicator or has_complex_topic or is_complex_phrasing
@@ -296,7 +384,6 @@ def is_complex_fiqh_question(question: str) -> bool:
 def requires_detailed_fiqh(question: str) -> bool:
     """Check if question requires detailed fiqh analysis"""
     question_lower = question.lower()
-    
     detailed_fiqh_indicators = [
         'detailed ruling', 'evidences', 'proofs', 'daleel', 'evidence from quran',
         'hadith evidence', 'scholarly opinions', 'difference of opinion',
@@ -304,119 +391,101 @@ def requires_detailed_fiqh(question: str) -> bool:
         'with evidences', 'with daleel', 'quranic evidence', 'hadith proof',
         'comprehensive ruling', 'full explanation'
     ]
-    
     return any(indicator in question_lower for indicator in detailed_fiqh_indicators)
 
-def should_recommend_scholar(question: str) -> bool:
-    """Determine if a question should be referred to scholars"""
-    sensitive_topics = [
-        'divorce', 'marriage dispute', 'inheritance', 'financial dispute',
-        'legal matter', 'court case', 'medical emergency', 'life threatening',
-        'specific fatwa', 'personal fiqh ruling', 'court ruling',
-        'marriage crisis', 'family dispute', 'legal ruling'
-    ]
-    
-    question_lower = question.lower()
-    return any(topic in question_lower for topic in sensitive_topics)
-
-def get_scholar_recommendation_topic(question: str) -> str:
-    """Get the specific topic for scholar recommendation"""
-    question_lower = question.lower()
-    
-    if any(word in question_lower for word in ['divorce', 'marriage', 'marital']):
-        return "marriage and family matters"
-    elif any(word in question_lower for word in ['inheritance', 'financial', 'money dispute']):
-        return "financial and inheritance matters"
-    elif any(word in question_lower for word in ['medical', 'health emergency', 'treatment']):
-        return "medical and health matters"
-    elif any(word in question_lower for word in ['legal', 'court', 'dispute']):
-        return "legal matters"
-    else:
-        return "this specific Islamic ruling"
-
-# ===== ENHANCED PROMPT SELECTION =====
-def get_prompt_for_question(question: str, context: str, context_quality: str, conversation_history: list = None) -> str:
+# ===== PROMPT SELECTION & ENRICHMENT =====
+def get_prompt_for_question(question: str, context: str, context_quality: str = "good", conversation_history: list = None) -> str:
     """
-    Select appropriate prompt based on context quality and question type
-    Now includes conversation history for context-aware responses
+    Select and assemble the enriched prompt based on RAG context quality, question type,
+    and conversation history, ensuring the answer design strictly follows the unified template.
+    Places conversation memory BEFORE the current question so the model never loses context.
     """
-    # Build conversation history context
-    history_context = ""
+    # 1. Build conversation memory block placed BEFORE the question
+    history_block = ""
     if conversation_history and len(conversation_history) > 0:
-        history_context = "\n\nPREVIOUS CONVERSATION:\n"
-        for msg in conversation_history[-6:]:  # Last 6 messages (3 exchanges)
-            role = "User" if msg["role"] == "user" else "Assistant"
-            history_context += f"{role}: {msg['content'][:200]}\n"
-        history_context += "\nCurrent question is a follow-up to this conversation. Provide context-aware response.\n"
-    
-    # First check for complex fiqh questions
-    if requires_detailed_fiqh(question):
-        prompt = SYSTEM_BASE + PROMPT_DETAILED_FIQH.format(question=question, context=context)
-        return prompt + history_context
-    elif is_complex_fiqh_question(question):
-        prompt = SYSTEM_BASE + PROMPT_COMPLEX_FIQH.format(question=question, context=context)
-        return prompt + history_context
-    
-    # Then handle other question types
-    question_type = _classify_question_type(question)
-    
-    # Select base prompt based on question type
-    if question_type == "current_events":
-        base_prompt = PROMPT_CURRENT_EVENTS.format(context=context, question=question)
-    elif question_type == "historical":
-        base_prompt = PROMPT_HISTORICAL.format(context=context, question=question)
-    elif question_type == "ethical_dilemma":
-        base_prompt = PROMPT_ETHICAL_DILEMMA.format(context=context, question=question)
-    elif context_quality in ["rich", "good", "minimal"]:
-        base_prompt = PROMPT_WITH_CONTEXT.format(context=context, question=question)
-    else:
-        base_prompt = PROMPT_WITHOUT_CONTEXT.format(question=question)
-    
-    # Add topic-specific guidance if applicable
-    topic_guidance = _get_topic_guidance(question)
-    if topic_guidance:
-        base_prompt += f"\n\nTOPIC GUIDANCE: {topic_guidance}"
-    
-    return SYSTEM_BASE + base_prompt + history_context
+        history_lines = []
+        for msg in conversation_history[-10:]:
+            role = "User" if msg.get("role") == "user" else "Assistant"
+            content = msg.get("content", "").strip()
+            clean_content = re.sub(r'\[\/?(QURAN|HADITH)\]', '', content)
+            if len(clean_content) > 400:
+                clean_content = clean_content[:400] + "..."
+            history_lines.append(f"{role}: {clean_content}")
+            
+        history_block = (
+            "==================================================\n"
+            "ACTIVE CONVERSATION MEMORY (Chronological dialogue in this session):\n"
+            + "\n".join(history_lines) +
+            "\n==================================================\n"
+            "CRITICAL CONVERSATIONAL INSTRUCTION:\n"
+            "- The user's current inquiry below is a direct continuation of this dialogue.\n"
+            "- You MUST resolve pronouns ('he', 'him', 'his', 'she', 'her', 'they', 'them', 'it', 'this', 'that', 'who killed him', etc.) "
+            "directly to the subject discussed in the conversation history above.\n"
+            "- Never lose track of who or what is being discussed in this conversation.\n"
+            "- If the retrieved RAG context does not mention the subject or is about a different topic, DO NOT force an answer from it. "
+            "Instead, rely on verified authentic Islamic history, Quran, and Sahih Hadith to accurately answer the question."
+        )
 
+    # 2. Select specialized base prompt based on inquiry classification
+    if requires_detailed_fiqh(question):
+        base_prompt = PROMPT_DETAILED_FIQH.format(question=question, context=context or "Refer to classical scholarly consensus and primary texts.")
+    elif is_complex_fiqh_question(question):
+        base_prompt = PROMPT_COMPLEX_FIQH.format(question=question, context=context or "Refer to classical jurisprudential consensus and primary sources.")
+    else:
+        q_type = _classify_question_type(question)
+        if q_type == "current_events":
+            base_prompt = PROMPT_CURRENT_EVENTS.format(context=context or "Apply timeless Quranic and Sunnah ethical principles.", question=question)
+        elif q_type == "historical":
+            base_prompt = PROMPT_HISTORICAL.format(context=context or "Draw upon authentic Seerah and Islamic historical records.", question=question)
+        elif q_type == "ethical_dilemma":
+            base_prompt = PROMPT_ETHICAL_DILEMMA.format(context=context or "Ground in Maqasid al-Shariah and Prophetic ethics.", question=question)
+        elif context and context.strip() and context_quality in ["rich", "good", "minimal"]:
+            base_prompt = PROMPT_WITH_CONTEXT.format(context=context, question=question)
+        else:
+            base_prompt = PROMPT_WITHOUT_CONTEXT.format(question=question)
+
+    # 3. Add topic guidance if applicable
+    topic_guidance = _get_topic_guidance(question)
+    topic_text = f"SPECIFIC TOPIC EMPHASIS: {topic_guidance}" if topic_guidance else ""
+
+    # Clean any trailing "Answer:" from base_prompt so we append it cleanly at the very end
+    cleaned_base = re.sub(r'\n*Answer:\s*$', '', base_prompt.strip())
+
+    # 4. Assemble final prompt with memory before the question and Answer: at the bottom
+    prompt_sections = [SYSTEM_BASE]
+    if history_block:
+        prompt_sections.append(history_block)
+    prompt_sections.append(cleaned_base)
+    if topic_text:
+        prompt_sections.append(topic_text)
+    prompt_sections.append("Answer:")
+
+    return "\n\n".join(prompt_sections)
 
 def _classify_question_type(question: str) -> str:
     """Classify the type of question for specialized handling"""
     question_lower = question.lower()
     
-    # Complex fiqh takes priority
-    if is_complex_fiqh_question(question):
-        return "complex_fiqh"
-    
-    # Current events and news
     current_events_keywords = [
         'current', 'recent', 'news', 'today', 'nowadays', 'modern', 'contemporary',
         'palestine', 'gaza', 'israel', 'conflict', 'war', 'crisis', 'political',
-        'climate change', 'global warming', 'pandemic', 'covid', 'technology',
-        'social media', 'internet', 'ai', 'artificial intelligence'
+        'climate change', 'global warming', 'technology', 'social media', 'internet', 'ai'
     ]
-    
-    # Historical questions
     historical_keywords = [
-        'history', 'historical', 'past', 'century', 'year ago', 'in the past',
-        'ottoman', 'caliphate', 'islamic empire', 'golden age', 'historical event',
-        'world war', 'battle', 'ancient', 'medieval'
+        'history', 'historical', 'past', 'century', 'caliphate', 'companion', 'sahaba',
+        'battle of', 'seerah', 'prophet lived', 'golden age', 'ottoman'
     ]
-    
-    # Ethical dilemmas
     ethical_keywords = [
-        'should i', 'what should', 'what would islam say about', 'is it permissible',
-        'is it halal', 'ethical', 'moral', 'dilemma', 'problem', 'issue',
-        'difficult situation', 'challenge', 'decision'
+        'should i', 'what should i do', 'ethical', 'moral', 'dilemma',
+        'is it right to', 'is it moral', 'conscience', 'guilt', 'conflict'
     ]
     
-    if any(keyword in question_lower for keyword in current_events_keywords):
+    if any(k in question_lower for k in current_events_keywords):
         return "current_events"
-    elif any(keyword in question_lower for keyword in historical_keywords):
+    elif any(k in question_lower for k in historical_keywords):
         return "historical"
-    elif any(keyword in question_lower for keyword in ethical_keywords):
+    elif any(k in question_lower for k in ethical_keywords):
         return "ethical_dilemma"
-    
     return "general"
 
 def _get_topic_guidance(question: str) -> str:
@@ -426,23 +495,22 @@ def _get_topic_guidance(question: str) -> str:
     for topic, guidance in TOPIC_SPECIFIC_PROMPTS.items():
         if topic in question_lower:
             return guidance
-    
-    # Check for keyword matches
+            
     keyword_mappings = {
-        'prayer': ['prayer', 'salah', 'namaz', 'salat'],
-        'fasting': ['fast', 'ramadan', 'sawm', 'roza'],
-        'zakat': ['zakat', 'charity', 'sadaqah'],
-        'hajj': ['hajj', 'pilgrimage', 'umrah'],
-        'family': ['marriage', 'divorce', 'family', 'parent', 'child', 'wife', 'husband'],
-        'business': ['business', 'money', 'trade', 'work', 'job', 'income', 'halal income'],
-        'health': ['health', 'medical', 'medicine', 'sick', 'illness', 'treatment'],
-        'complex_fiqh': ['ruling', 'hanafi', 'school of thought', 'fiqh', 'permissible']
+        'prayer': ['prayer', 'salah', 'namaz', 'salat', 'rakat', 'sujood', 'ruku'],
+        'fasting': ['fast', 'ramadan', 'sawm', 'roza', 'iftar', 'suhoor'],
+        'zakat': ['zakat', 'charity', 'sadaqah', 'nisab'],
+        'hajj': ['hajj', 'pilgrimage', 'umrah', 'tawaf'],
+        'family': ['marriage', 'divorce', 'family', 'parent', 'child', 'wife', 'husband', 'nikah'],
+        'business': ['business', 'money', 'trade', 'work', 'job', 'income', 'halal income', 'crypto', 'loan'],
+        'health': ['health', 'medical', 'medicine', 'sick', 'illness', 'treatment', 'depression', 'anxiety'],
+        'fiqh': ['ruling', 'hanafi', 'school of thought', 'fiqh', 'permissible', 'haram', 'halal']
     }
     
     for topic, keywords in keyword_mappings.items():
         if any(keyword in question_lower for keyword in keywords):
             return TOPIC_SPECIFIC_PROMPTS.get(topic, "")
-    
+            
     return ""
 
 def format_final_response(answer: str, response_type: str = "success_general", **kwargs) -> str:
@@ -453,14 +521,9 @@ def format_final_response(answer: str, response_type: str = "success_general", *
                 question=kwargs.get('question', ''),
                 general_guidance=kwargs.get('general_guidance', '')
             )
-        elif response_type == "scholar_recommendation":
-            return RESPONSE_TEMPLATES["scholar_recommendation"].format(
-                topic=kwargs.get('topic', 'this matter')
-            )
         else:
             return RESPONSE_TEMPLATES[response_type].format(answer=answer)
-    else:
-        return answer
+    return answer
 
 def get_response_type_for_question(question: str) -> str:
     """Get the appropriate response type for a question"""
@@ -469,13 +532,11 @@ def get_response_type_for_question(question: str) -> str:
     elif requires_detailed_fiqh(question):
         return "detailed_fiqh"
     
-    question_lower = question.lower()
-    
-    if any(word in question_lower for word in ['current', 'recent', 'news', 'today']):
+    q_type = _classify_question_type(question)
+    if q_type == "current_events":
         return "current_events"
-    elif any(word in question_lower for word in ['history', 'historical', 'past']):
+    elif q_type == "historical":
         return "historical"
-    elif any(word in question_lower for word in ['should i', 'what should', 'dilemma']):
+    elif q_type == "ethical_dilemma":
         return "ethical"
-    else:
-        return "success_general"
+    return "success_general"

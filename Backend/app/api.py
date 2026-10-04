@@ -557,6 +557,20 @@ async def ask_question(
         session_manager.add_message(session_id, "user", req.question, user_id=user_id)
         session_manager.add_message(session_id, "bot", answer, user_id=user_id)
         
+        # Save topic, sources, and suggested actions to session
+        session = session_manager.get_session(session_id, user_id=user_id)
+        if session:
+            session.topic = {
+                "name": topic_name,
+                "explored": subtopics_explored,
+                "total": 7,
+                "percentage": progress_pct
+            }
+            if sources:
+                session.sources = sources
+            session.suggested_actions = suggested_actions
+            session_manager.save_sessions()
+        
         return {
             "answer": answer,
             "session_id": session_id,

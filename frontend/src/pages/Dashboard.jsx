@@ -2,6 +2,26 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDailyGuidance, toggleUserSunnah, getSessions } from '../api';
 
+const formatRemainingTime = (rawMinutes) => {
+  if (rawMinutes === undefined || rawMinutes === null || rawMinutes === "--") {
+    return { hasHours: false, hours: 0, minutes: "--" };
+  }
+  const total = parseInt(rawMinutes, 10);
+  if (isNaN(total)) {
+    return { hasHours: false, hours: 0, minutes: rawMinutes };
+  }
+  if (total < 0) {
+    return { hasHours: false, hours: 0, minutes: 0 };
+  }
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return {
+    hasHours: hours > 0,
+    hours,
+    minutes
+  };
+};
+
 export default function Dashboard({ isDarkMode, user }) {
   const navigate = useNavigate();
   const [guidance, setGuidance] = useState(null);
@@ -369,14 +389,36 @@ export default function Dashboard({ isDarkMode, user }) {
               {/* Next Prayer Big Countdown */}
               <div className="mb-6">
                 <span className="text-xs text-gray-400 uppercase font-medium tracking-wider">Next prayer</span>
-                <div className="flex items-baseline gap-3 mt-1">
+                <div className="flex items-baseline gap-3 mt-1 flex-wrap">
                   <span className="text-3xl font-serif-luxury font-medium text-white">
                     {prayers.next_prayer}
                   </span>
-                  <div className="flex items-baseline gap-1 text-emerald-400">
-                    <span className="text-3xl font-semibold">{prayers.minutes_remaining}</span>
-                    <span className="text-xs font-medium text-emerald-300">min</span>
-                  </div>
+                  {(() => {
+                    const timeRemaining = formatRemainingTime(prayers.minutes_remaining);
+                    return (
+                      <div className="flex items-baseline gap-1.5 text-emerald-400">
+                        {timeRemaining.hasHours ? (
+                          <>
+                            <span className="text-3xl font-semibold">{timeRemaining.hours}</span>
+                            <span className="text-xs font-medium text-emerald-300 mr-1">
+                              {timeRemaining.hours === 1 ? "hr" : "hrs"}
+                            </span>
+                            <span className="text-3xl font-semibold">{timeRemaining.minutes}</span>
+                            <span className="text-xs font-medium text-emerald-300">
+                              {timeRemaining.minutes === 1 ? "min" : "mins"}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-3xl font-semibold">{timeRemaining.minutes}</span>
+                            <span className="text-xs font-medium text-emerald-300">
+                              {timeRemaining.minutes === 1 ? "min" : "mins"}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
