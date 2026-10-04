@@ -10,10 +10,11 @@
 
 <p align="center">
   <a href="#-executive-summary"><img src="https://img.shields.io/badge/Status-Production%20Ready-emerald?style=for-the-badge" alt="Status" /></a>
-  <a href="#-mobile-app--cross-platform"><img src="https://img.shields.io/badge/Android%20APK-Ready%20(4.98MB)-success?style=for-the-badge&logo=android" alt="Android APK" /></a>
-  <a href="#-technology-architecture"><img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
-  <a href="#-technology-architecture"><img src="https://img.shields.io/badge/React%2018-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 18" /></a>
-  <a href="#-technology-architecture"><img src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Google Gemini" /></a>
+  <a href="#-premium-uiux--sacred-design-language"><img src="https://img.shields.io/badge/UI%2FUX-Sacred%20Minimalism-10b981?style=for-the-badge&logo=figma&logoColor=white" alt="UI/UX" /></a>
+  <a href="#-cross-platform-ecosystem-web--android-mobile"><img src="https://img.shields.io/badge/Android%20APK-Ready%20(4.98MB)-success?style=for-the-badge&logo=android" alt="Android APK" /></a>
+  <a href="#-tech-stack--technical-specifications"><img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" /></a>
+  <a href="#-tech-stack--technical-specifications"><img src="https://img.shields.io/badge/React%2018-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 18" /></a>
+  <a href="#-tech-stack--technical-specifications"><img src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Google Gemini" /></a>
   <a href="#-monetization--commercial-strategy"><img src="https://img.shields.io/badge/License-Commercial%20Ready-blue?style=for-the-badge" alt="Commercial License" /></a>
 </p>
 
@@ -23,14 +24,15 @@
 1. [🌟 Executive Summary & Market Opportunity](#-executive-summary--market-opportunity)
 2. [💎 Core Value Proposition & Competitive Advantages](#-core-value-proposition--competitive-advantages)
 3. [✨ Flagship Product Features](#-flagship-product-features)
-4. [📱 Cross-Platform Ecosystem (Web + Android Mobile)](#-cross-platform-ecosystem-web--android-mobile)
-5. [🧠 Intelligent Architecture & RAG Pipeline](#-intelligent-architecture--rag-pipeline)
-6. [📊 RAG Benchmark & Performance Metrics](#-rag-benchmark--performance-metrics)
-7. [💼 Monetization & Business Models](#-monetization--business-models)
-8. [🛡️ Islamic Ethical AI & Content Integrity](#-islamic-ethical-ai--content-integrity)
-9. [🛠️ Tech Stack & Technical Specifications](#-tech-stack--technical-specifications)
-10. [🚀 Rapid Deployment & Installation Guide](#-rapid-deployment--installation-guide)
-11. [🗺️ Commercial Roadmap](#-commercial-roadmap)
+4. [🎨 Premium UI/UX & Sacred Design Language](#-premium-uiux--sacred-design-language)
+5. [📱 Cross-Platform Ecosystem (Web + Android Mobile)](#-cross-platform-ecosystem-web--android-mobile)
+6. [🧠 Intelligent Architecture & RAG Pipeline](#-intelligent-architecture--rag-pipeline)
+7. [📊 RAG Benchmark & Performance Metrics](#-rag-benchmark--performance-metrics)
+8. [💼 Monetization & Business Models](#-monetization--business-models)
+9. [🛡️ Islamic Ethical AI & Content Integrity](#-islamic-ethical-ai--content-integrity)
+10. [🛠️ Tech Stack & Technical Specifications](#-tech-stack--technical-specifications)
+11. [🚀 Rapid Deployment & Installation Guide](#-rapid-deployment--installation-guide)
+12. [🗺️ Commercial Roadmap](#-commercial-roadmap)
 
 ---
 
@@ -98,6 +100,76 @@ Over **1.9 billion Muslims worldwide** seek authentic spiritual guidance, Qurani
 * **Automated Prayer Times & Qibla Direction:** Real-time geolocation detection via IP services providing Fajr, Dhuhr, Asr, Maghrib, and Isha with 12h formatting and countdown indicators.
 * **Daily Masnoon Duas:** Categorized supplications from Hisnul Muslim for protection, morning/evening, and anxiety.
 * **Habit & Streak Tracker:** Real-time engagement analytics logging prayers completed, verses read, and inquiry activity.
+
+---
+
+## 🎨 Premium UI/UX & Sacred Design Language
+
+Noor AI is crafted with an uncompromising commitment to **aesthetic beauty**, **reverence**, and **tactile delight**. Moving away from legacy religious apps plagued with intrusive pop-up advertisements and cluttered navigation, Noor AI balances the serenity of **classical Islamic manuscript illumination** with the clarity of a **cutting-edge AI workspace**.
+
+### 🏛️ The Sacred Design Philosophy
+* **Mindful Focus (*Khushu'*):** Clean, distraction-free typography and generous spatial margins create an atmospheric environment conducive to spiritual contemplation and deep theological study.
+* **Atmospheric Depth:** Multi-layered glassmorphism panels (`backdrop-filter: blur(16px)`), luminous 1px boundary trims, and subtle Arabesque radial backdrops elevate the interface beyond generic flat layouts.
+* **Harmonious Tactility:** Soft micro-interactions (`translateY(-2px)` card elevations, shimmer gradients, smooth typing indicators) provide fluid tactile feedback on every interaction.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       NOOR AI SACRED COLOR PALETTE                          │
+├────────────────────┬──────────────┬─────────────────────────────────────────┤
+│ Token Name         │ Hex / Value  │ Role & Application                      │
+├────────────────────┼──────────────┼─────────────────────────────────────────┤
+│ 🟢 Emerald Accent  │ `#10b981`    │ Primary brand tone, verified citations  │
+│ 🌿 Emerald Deep    │ `#059669`    │ Quran callout borders, active badges   │
+│ ✨ Emerald Glow    │ `rgba(...)`  │ Luminous focus rings & aura highlights  │
+│ 🟡 Gold / Amber    │ `#d97706`    │ Hadith callouts, bookmarks, accents     │
+│ 🌌 Obsidian Dark   │ `#06090e`    │ Core viewport backdrop (OLED black)     │
+│ 🪟 Obsidian Glass  │ `#0b1017`    │ Elevated translucent glass cards        │
+│ ⚪ Pristine Light  │ `#f8fafc`    │ Day mode surface with softened contrast │
+└────────────────────┴──────────────┴─────────────────────────────────────────┘
+```
+
+### ✍️ Multi-Tier Typography Architecture
+
+A bespoke typographic hierarchy engineered for dual-script harmony (Arabic & Latin):
+
+| Font Family | Style / Classification | Primary Role & UX Context |
+| :--- | :--- | :--- |
+| **Amiri** | Classical Naskh Arabic Calligraphy | The Holy Quran, Hadith narrations, and Masnoon Duas with complete diacritical marks (*Tashkeel*). |
+| **Playfair Display** | Editorial Luxury Serif | Hero banners, section headers, and spiritual reflections (*"Your daily guidance, curated by Noor"*). |
+| **Plus Jakarta Sans** | Modern Geometric Sans-Serif | High-legibility UI text, navigation menus, prayer timestamps, and settings toggles. |
+| **JetBrains Mono** | Technical Monospace | Scholarly chapter indices, verification tags, latency benchmarks, and Surah:Ayah coordinates. |
+
+### 💎 Signature UI/UX Components & Micro-Interactions
+
+```
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │ 📖 QURAN 2:255 (Ayat al-Kursi)                          [Reflect in Chat]
+ ├────────────────────────────────────────────────────────────────────────┤
+ │  اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...                            │
+ │  "Allah - there is no deity except Him, the Ever-Living, the Sustainer"│
+ └────────────────────────────────────────────────────────────────────────┘
+ [Emerald Manuscript Card: Sacred Arabic border, verified reference tag, 1-click reflect]
+```
+
+1. **Sacred Citation Callouts in Chat:**
+   - 📖 **Quranic Manuscript Cards:** Rendered with vibrant emerald left-borders, authentic Arabic calligraphy, English translations, and Surah:Ayah attribution badges.
+   - 📚 **Hadith Scholar Cards:** Warm amber-bordered cards with narrator chains (*Isnad*), book names, and chapter numbers.
+   - ⚖️ **Comparative Fiqh Grids:** Side-by-side madhab breakdowns for clear jurisprudential comparisons without sectarian bias.
+   - 💬 **"Reflect in Chat" Deep Linking:** One click on any verse or narration opens a targeted, isolated theological discussion in the AI companion.
+
+2. **Live Quranic Audio Scrubber & Ayah Highlighting:**
+   - Stream high-fidelity recitations by Shaykh Mishary Rashid Alafasy.
+   - Real-time active verse auto-scrolling with synchronized glowing emerald highlights.
+   - Floating audio playback console with forward/backward Ayah jumping and playback speed controls.
+
+3. **Algorithmic Daily Dashboard & Prayer Widgetry:**
+   - **Real-Time Prayer Countdown:** Prominently highlights the upcoming prayer with dynamic minute-by-minute countdowns and 12-hour formatted timetables.
+   - **Authentic Hijri Date Calculation:** Pure-Python astronomical Julian Day Number calendar conversion that automatically rolls over each day without third-party API dependencies.
+   - **Interactive Sunnah Progress Circle:** Animated SVG circumference ring illustrating daily completion rates with optimistic real-time toggling.
+
+4. **Adaptive Dark / Light Theming:**
+   - **Midnight Emerald (Dark):** Specifically engineered for low-light night prayers (*Tahajjud*) and Fajr contemplation with reduced blue light emission.
+   - **Daylight Pearl (Light):** High-contrast, glare-free aesthetic designed for bright outdoor reading and daytime study.
 
 ---
 
