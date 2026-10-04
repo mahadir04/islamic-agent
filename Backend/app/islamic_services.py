@@ -376,9 +376,15 @@ def compute_astronomical_prayer_times(lat: float, lon: float, timezone_offset: f
         "Isha": fmt(isha)
     }
 
-def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Muslim World League", asr_school="Hanafi"):
+def get_prayer_timings(city=None, country=None, lat=None, lon=None, method="Muslim World League", asr_school="Hanafi", tz_offset_hours=None):
     """Fetch live prayer times for current or specified location with countdown and dynamic Hijri date"""
-    now = datetime.now()
+    # Use the user's local time if tz_offset_hours is provided, otherwise server local time
+    if tz_offset_hours is not None:
+        from datetime import timezone
+        user_tz = timezone(timedelta(hours=tz_offset_hours))
+        now = datetime.now(timezone.utc).astimezone(user_tz).replace(tzinfo=None)
+    else:
+        now = datetime.now()
     
     # Auto-detect current location if not provided
     if not city or city.lower() in ["current", "auto", "detect", "makkah, saudi arabia", "makkah"]:

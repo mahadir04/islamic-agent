@@ -245,6 +245,7 @@ async def get_daily_guidance(
     country: Optional[str] = None,
     lat: Optional[float] = None,
     lon: Optional[float] = None,
+    tz_offset: Optional[float] = None,
     current_user: Optional[dict] = Depends(get_current_user_optional)
 ):
     """Fetch prayer times, next prayer countdown, verse and hadith of the day, and sunnah progress for current or specified location"""
@@ -271,7 +272,8 @@ async def get_daily_guidance(
             lat=lat,
             lon=lon,
             method=calc_method,
-            asr_school=asr_school
+            asr_school=asr_school,
+            tz_offset_hours=tz_offset
         )
         
         # 2. Verse and Hadith of the day

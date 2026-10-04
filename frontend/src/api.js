@@ -150,6 +150,9 @@ export const getDailyGuidance = async (city, country, lat, lon) => {
     if (country) params.country = country;
     if (lat !== undefined && lat !== null) params.lat = lat;
     if (lon !== undefined && lon !== null) params.lon = lon;
+    // Send browser timezone offset so backend can calculate correct "next prayer"
+    // getTimezoneOffset() returns minutes BEHIND UTC (e.g. UTC+8 → -480), we negate to get hours ahead
+    params.tz_offset = -new Date().getTimezoneOffset() / 60;
     const response = await api.get('/daily-guidance', { params });
     return response.data;
   } catch (error) {
