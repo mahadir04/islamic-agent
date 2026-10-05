@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { App as CapApp } from '@capacitor/app';
 import Chat from "./Chat";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
@@ -53,7 +54,44 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Check if token was returned in window.location.search or window.location.hash
+    // Process deep links from native Android appUrlOpen event (Capacitor)
+    const handleIncomingDeepUrl = async (rawUrl) => {
+      if (!rawUrl) return;
+      try {
+        console.log('App opened with URL:', rawUrl);
+        // Normalize custom schemes (noorai://auth/callback?token=...)
+        const pseudoUrl = rawUrl.replace(/^noorai:\/\//, 'https://noorai.app/');
+        const parsed = new URL(pseudoUrl);
+        const token = parsed.searchParams.get('token');
+        const err = parsed.searchParams.get('error');
+
+        if (token) {
+          localStorage.setItem('token', token);
+          const u = await getCurrentUser();
+          if (u) {
+            setUser(u);
+            localStorage.setItem('user', JSON.stringify(u));
+          }
+          fetchSessions();
+          window.location.hash = '#/dashboard';
+        } else if (err) {
+          window.location.hash = `#/login?error=${encodeURIComponent(err)}`;
+        }
+      } catch (err) {
+        console.error('Error handling deep link URL:', err);
+      }
+    };
+
+    let handlerPromise = null;
+    try {
+      handlerPromise = CapApp.addListener('appUrlOpen', (event) => {
+        handleIncomingDeepUrl(event?.url);
+      });
+    } catch (e) {
+      // Not running in Capacitor environment
+    }
+
+    // Also check if token was returned in window.location.search or window.location.hash (Web OAuth)
     const searchParams = new URLSearchParams(window.location.search);
     const hash = window.location.hash || '';
     const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
@@ -68,10 +106,17 @@ export default function App() {
             setUser(u);
             localStorage.setItem('user', JSON.stringify(u));
           }
+          fetchSessions();
         })
         .catch(console.error);
     }
-  }, []);
+
+    return () => {
+      if (handlerPromise && typeof handlerPromise.then === 'function') {
+        handlerPromise.then(h => h.remove()).catch(() => {});
+      }
+    };
+  }, [fetchSessions]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');

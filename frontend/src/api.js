@@ -20,23 +20,30 @@ export const isNativeApp = () => {
 export const PRODUCTION_BACKEND_URL = "https://islamic-agent.onrender.com";
 
 export const getBaseUrl = () => {
-  // 1. In-app manual configuration (saved in localStorage)
+  // If running on native mobile app (Capacitor Android / iOS)
+  if (isNativeApp()) {
+    const custom = typeof window !== 'undefined' ? localStorage.getItem('custom_backend_url') : null;
+    if (custom && custom.trim()) {
+      const cleanCustom = custom.trim().replace(/\/$/, '');
+      // Clear out any old unreachable private network IP addresses left over from developer testing
+      if (
+        cleanCustom.includes('192.168.') || 
+        cleanCustom.includes('10.0.2.2') || 
+        cleanCustom.includes('localhost') || 
+        cleanCustom.startsWith('http://')
+      ) {
+        localStorage.removeItem('custom_backend_url');
+        return PRODUCTION_BACKEND_URL;
+      }
+      return cleanCustom;
+    }
+    return PRODUCTION_BACKEND_URL;
+  }
+
+  // 1. In-app manual configuration (saved in localStorage for web testing)
   const custom = typeof window !== 'undefined' ? localStorage.getItem('custom_backend_url') : null;
   if (custom && custom.trim()) {
     return custom.trim().replace(/\/$/, '');
-  }
-
-  // 2. Build-time environment variables
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL.replace(/\/$/, '');
-  }
-  if (process.env.REACT_APP_BACKEND_URL) {
-    return process.env.REACT_APP_BACKEND_URL.replace(/\/$/, '');
-  }
-
-  // 3. Native mobile app default: use the deployed cloud production backend!
-  if (isNativeApp()) {
-    return PRODUCTION_BACKEND_URL;
   }
 
   // 4. If running on deployed web app (e.g. Vercel)

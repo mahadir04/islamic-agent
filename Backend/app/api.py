@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from app.agent import IslamicAgent
@@ -80,6 +80,88 @@ async def google_login(platform: Optional[str] = None):
     logger.info(f"Redirecting to Google ({state}): {google_auth_url}")
     return RedirectResponse(google_auth_url)
 
+def _make_mobile_redirect_html(deep_link_url: str, title: str = "Returning to Noor AI...", is_error: bool = False) -> str:
+    btn_text = "Return to Noor AI App" if is_error else "Open Noor AI App"
+    status_icon = "⚠️" if is_error else "✨"
+    status_msg = "Please tap below to return to the app." if is_error else "Sign-in successful! Returning you to Noor AI..."
+    border_color = "rgba(239, 68, 68, 0.4)" if is_error else "rgba(16, 185, 129, 0.4)"
+    title_color = "#EF4444" if is_error else "#10B981"
+    
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{title}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #070B10;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
+    }}
+    .card {{
+      background: #0D1520;
+      border: 1px solid {border_color};
+      border-radius: 24px;
+      padding: 36px 24px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }}
+    .icon {{
+      font-size: 38px;
+      margin-bottom: 16px;
+    }}
+    h1 {{
+      font-size: 20px;
+      margin: 0 0 10px;
+      color: {title_color};
+    }}
+    p {{
+      color: #94A3B8;
+      font-size: 14px;
+      margin: 0 0 24px;
+      line-height: 1.5;
+    }}
+    .btn {{
+      display: inline-block;
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: 15px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-sizing: border-box;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }}
+  </style>
+  <script>
+    window.onload = function() {{
+      window.location.href = "{deep_link_url}";
+    }};
+  </script>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">{status_icon}</div>
+    <h1>{title}</h1>
+    <p>{status_msg}</p>
+    <a href="{deep_link_url}" class="btn">{btn_text}</a>
+  </div>
+</body>
+</html>"""
+
 @router.get("/auth/google/callback")
 async def google_callback(request: Request, code: str = None, error: str = None, state: str = None):
     """Handle Google OAuth callback"""
@@ -89,13 +171,15 @@ async def google_callback(request: Request, code: str = None, error: str = None,
     if error:
         logger.error(f"Google returned error: {error}")
         if is_mobile:
-            return RedirectResponse(url=f"noorai://auth/callback?error={error}")
+            deep_link = f"noorai://auth/callback?error={error}"
+            return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "Authentication Error", is_error=True))
         return RedirectResponse(url=f"{frontend_url}/#/login?error={error}")
     
     if not code:
         logger.error("No code received from Google")
         if is_mobile:
-            return RedirectResponse(url="noorai://auth/callback?error=no_code")
+            deep_link = "noorai://auth/callback?error=no_code"
+            return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "No Authorization Code", is_error=True))
         return RedirectResponse(url=f"{frontend_url}/#/login?error=no_code")
     
     try:
@@ -117,7 +201,8 @@ async def google_callback(request: Request, code: str = None, error: str = None,
             if token_response.status_code != 200:
                 logger.error(f"Token exchange failed: {token_response.status_code}")
                 if is_mobile:
-                    return RedirectResponse(url="noorai://auth/callback?error=token_exchange_failed")
+                    deep_link = "noorai://auth/callback?error=token_exchange_failed"
+                    return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "Authentication Failed", is_error=True))
                 return RedirectResponse(url=f"{frontend_url}/#/login?error=token_exchange_failed")
             
             token_json = token_response.json()
@@ -132,7 +217,8 @@ async def google_callback(request: Request, code: str = None, error: str = None,
             if user_response.status_code != 200:
                 logger.error(f"Failed to get user info: {user_response.status_code}")
                 if is_mobile:
-                    return RedirectResponse(url="noorai://auth/callback?error=user_info_failed")
+                    deep_link = "noorai://auth/callback?error=user_info_failed"
+                    return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "Profile Fetch Failed", is_error=True))
                 return RedirectResponse(url=f"{frontend_url}/#/login?error=user_info_failed")
             
             user_info = user_response.json()
@@ -179,7 +265,8 @@ async def google_callback(request: Request, code: str = None, error: str = None,
             
             # Redirect to frontend with token
             if is_mobile:
-                return RedirectResponse(url=f"noorai://auth/callback?token={jwt_token}")
+                deep_link = f"noorai://auth/callback?token={jwt_token}"
+                return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "Sign-in Successful"))
             
             return RedirectResponse(
                 url=f"{frontend_url}/#/auth/callback?token={jwt_token}"
@@ -188,7 +275,8 @@ async def google_callback(request: Request, code: str = None, error: str = None,
     except Exception as e:
         logger.error(f"Google auth error: {str(e)}", exc_info=True)
         if is_mobile:
-            return RedirectResponse(url="noorai://auth/callback?error=auth_failed")
+            deep_link = "noorai://auth/callback?error=auth_failed"
+            return HTMLResponse(content=_make_mobile_redirect_html(deep_link, "Authentication Error", is_error=True))
         return RedirectResponse(url=f"{frontend_url}/#/login?error=auth_failed")
 
 @router.get("/auth/me")

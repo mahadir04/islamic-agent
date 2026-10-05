@@ -63,7 +63,13 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
     } catch (err) {
       console.error(err);
       const detail = err.response?.data?.detail;
-      setError(detail || (isRegister ? 'Failed to create account.' : 'Invalid email or password.'));
+      if (detail) {
+        setError(detail);
+      } else if (!err.response) {
+        setError('Cannot connect to server. Please check your internet connection.');
+      } else {
+        setError(isRegister ? 'Failed to create account. Please check your details.' : 'Invalid email or password.');
+      }
     } finally {
       setLoading(false);
     }
