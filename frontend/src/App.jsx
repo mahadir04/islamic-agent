@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import Chat from "./Chat";
 import Login from "./pages/Login";
 import AuthCallback from "./pages/AuthCallback";
@@ -10,6 +11,31 @@ import HadithReader from "./pages/HadithReader";
 import Duas from "./pages/Duas";
 import Settings from "./pages/Settings";
 import { getSessions, getCurrentUser } from "./api";
+
+// Safely parse user claims from token for instant UI display
+const parseJwtPayload = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const parsed = JSON.parse(jsonPayload);
+    const email = parsed.sub || parsed.email || '';
+    const name = parsed.name || (email ? email.split('@')[0] : 'Muslim Seeker');
+    return {
+      email,
+      name,
+      picture: parsed.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=00b875`,
+      settings: { theme: 'dark', location: 'Dhaka, Bangladesh' }
+    };
+  } catch (e) {
+    return null;
+  }
+};
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -67,14 +93,35 @@ export default function App() {
 
         if (token) {
           localStorage.setItem('token', token);
-          const u = await getCurrentUser();
-          if (u) {
-            setUser(u);
-            localStorage.setItem('user', JSON.stringify(u));
+          try {
+            await Browser.close();
+          } catch (_) {}
+
+          // Set immediate local user from token so UI unlocks without waiting
+          const fallbackUser = parseJwtPayload(token);
+          if (fallbackUser) {
+            setUser(fallbackUser);
+            localStorage.setItem('user', JSON.stringify(fallbackUser));
           }
-          fetchSessions();
+
+          // Fetch full backend profile in background
+          getCurrentUser()
+            .then((u) => {
+              if (u) {
+                setUser(u);
+                localStorage.setItem('user', JSON.stringify(u));
+              }
+              fetchSessions();
+            })
+            .catch(() => {
+              fetchSessions();
+            });
+
           window.location.hash = '#/dashboard';
         } else if (err) {
+          try {
+            await Browser.close();
+          } catch (_) {}
           window.location.hash = `#/login?error=${encodeURIComponent(err)}`;
         }
       } catch (err) {
@@ -91,6 +138,15 @@ export default function App() {
       // Not running in Capacitor environment
     }
 
+    // Check cold-start launch URL (when app was opened directly by browser deep link)
+    try {
+      CapApp.getLaunchUrl().then((ret) => {
+        if (ret && ret.url) {
+          handleIncomingDeepUrl(ret.url);
+        }
+      }).catch(() => {});
+    } catch (e) {}
+
     // Also check if token was returned in window.location.search or window.location.hash (Web OAuth)
     const searchParams = new URLSearchParams(window.location.search);
     const hash = window.location.hash || '';
@@ -100,6 +156,11 @@ export default function App() {
 
     if (incomingToken) {
       localStorage.setItem('token', incomingToken);
+      const fallbackUser = parseJwtPayload(incomingToken);
+      if (fallbackUser) {
+        setUser(fallbackUser);
+        localStorage.setItem('user', JSON.stringify(fallbackUser));
+      }
       getCurrentUser()
         .then(u => {
           if (u) {

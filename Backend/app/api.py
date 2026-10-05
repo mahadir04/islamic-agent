@@ -83,9 +83,14 @@ async def google_login(platform: Optional[str] = None):
 def _make_mobile_redirect_html(deep_link_url: str, title: str = "Returning to Noor AI...", is_error: bool = False) -> str:
     btn_text = "Return to Noor AI App" if is_error else "Open Noor AI App"
     status_icon = "⚠️" if is_error else "✨"
-    status_msg = "Please tap below to return to the app." if is_error else "Sign-in successful! Returning you to Noor AI..."
+    status_msg = "Please tap below to return to the app." if is_error else "Sign-in successful! Opening Noor AI..."
     border_color = "rgba(239, 68, 68, 0.4)" if is_error else "rgba(16, 185, 129, 0.4)"
     title_color = "#EF4444" if is_error else "#10B981"
+    frontend_url = os.getenv("FRONTEND_URL", "https://islamic-agent-pn2n.vercel.app").rstrip('/')
+    
+    query_part = deep_link_url.split("?", 1)[1] if "?" in deep_link_url else ""
+    intent_url = f"intent://auth/callback?{query_part}#Intent;scheme=noorai;package=com.noorai.app;end"
+    web_fallback_url = f"{frontend_url}/#/auth/callback?{query_part}"
     
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -133,7 +138,7 @@ def _make_mobile_redirect_html(deep_link_url: str, title: str = "Returning to No
       line-height: 1.5;
     }}
     .btn {{
-      display: inline-block;
+      display: block;
       width: 100%;
       padding: 14px 20px;
       background: linear-gradient(135deg, #10B981 0%, #059669 100%);
@@ -144,11 +149,29 @@ def _make_mobile_redirect_html(deep_link_url: str, title: str = "Returning to No
       text-decoration: none;
       box-sizing: border-box;
       box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+      margin-bottom: 12px;
+    }}
+    .btn-secondary {{
+      display: block;
+      width: 100%;
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #CBD5E1;
+      font-weight: 500;
+      font-size: 13px;
+      border-radius: 10px;
+      text-decoration: none;
+      box-sizing: border-box;
     }}
   </style>
   <script>
     window.onload = function() {{
-      window.location.href = "{deep_link_url}";
+      try {{
+        window.location.href = "{intent_url}";
+      }} catch (e) {{
+        window.location.href = "{deep_link_url}";
+      }}
     }};
   </script>
 </head>
@@ -157,7 +180,8 @@ def _make_mobile_redirect_html(deep_link_url: str, title: str = "Returning to No
     <div class="icon">{status_icon}</div>
     <h1>{title}</h1>
     <p>{status_msg}</p>
-    <a href="{deep_link_url}" class="btn">{btn_text}</a>
+    <a href="{intent_url}" class="btn">{btn_text}</a>
+    <a href="{deep_link_url}" class="btn-secondary">Open with Scheme (noorai://)</a>
   </div>
 </body>
 </html>"""
@@ -256,10 +280,15 @@ async def google_callback(request: Request, code: str = None, error: str = None,
                 user_db.update_user(email, user)
                 logger.info(f"✅ Existing user logged in: {email}")
             
-            # Create persistent JWT token valid for 90 days
+            # Create persistent JWT token valid for 90 days with user profile in claims
             access_token_expires = timedelta(days=90)
             jwt_token = create_access_token(
-                data={"sub": email},
+                data={
+                    "sub": email,
+                    "email": email,
+                    "name": user.get("name", name),
+                    "picture": user.get("picture", picture)
+                },
                 expires_delta=access_token_expires
             )
             
@@ -316,7 +345,10 @@ async def register_user(req: RegisterRequest):
         }
     }
     user = user_db.create_user(email, new_user)
-    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=90))
+    token = create_access_token(
+        data={"sub": email, "email": email, "name": name, "picture": new_user["picture"]},
+        expires_delta=timedelta(days=90)
+    )
     # Return user without password hash
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return {"token": token, "user": safe_user}
@@ -327,15 +359,23 @@ async def login_user(req: LoginRequest):
     email = req.email.lower().strip()
     user = user_db.get_user(email)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="No account found with this email. Please register or tap 'Continue with Google'.")
     
     stored_hash = user.get("password_hash")
-    if not stored_hash or not verify_password(stored_hash, req.password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    if not stored_hash:
+        raise HTTPException(
+            status_code=400,
+            detail="This account was registered with Google Sign-In. Please sign in by tapping 'Continue with Google'."
+        )
+    if not verify_password(stored_hash, req.password):
+        raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
     
     user["last_login"] = datetime.now().isoformat()
     user_db.update_user(email, user)
-    token = create_access_token(data={"sub": email}, expires_delta=timedelta(days=90))
+    token = create_access_token(
+        data={"sub": email, "email": email, "name": user.get("name", ""), "picture": user.get("picture", "")},
+        expires_delta=timedelta(days=90)
+    )
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return {"token": token, "user": safe_user}
 

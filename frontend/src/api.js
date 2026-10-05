@@ -112,7 +112,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !error.config.url.includes('/auth/login') && !error.config.url.includes('/auth/register') && !error.config.url.includes('/auth/demo') && !error.config.url.includes('/daily-guidance')) {
+    const url = error.config?.url || '';
+    if (
+      error.response?.status === 401 &&
+      !url.includes('/auth/login') &&
+      !url.includes('/auth/register') &&
+      !url.includes('/auth/demo') &&
+      !url.includes('/auth/me') &&
+      !url.includes('/daily-guidance')
+    ) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       if (window.location.hash) {

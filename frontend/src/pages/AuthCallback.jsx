@@ -1,11 +1,40 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Browser } from '@capacitor/browser';
 import { getCurrentUser } from '../api';
+
+const parseJwtPayload = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const parsed = JSON.parse(jsonPayload);
+    const email = parsed.sub || parsed.email || '';
+    const name = parsed.name || (email ? email.split('@')[0] : 'Muslim Seeker');
+    return {
+      email,
+      name,
+      picture: parsed.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=00b875`,
+      settings: { theme: 'dark', location: 'Dhaka, Bangladesh' }
+    };
+  } catch (e) {
+    return null;
+  }
+};
 
 export default function AuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    try {
+      Browser.close().catch(() => {});
+    } catch (_) {}
+
     const searchParams = new URLSearchParams(window.location.search);
     const hash = window.location.hash || '';
     const hashQuery = hash.includes('?') ? hash.split('?')[1] : '';
@@ -16,6 +45,10 @@ export default function AuthCallback() {
 
     if (token) {
       localStorage.setItem('token', token);
+      const fallbackUser = parseJwtPayload(token);
+      if (fallbackUser) {
+        localStorage.setItem('user', JSON.stringify(fallbackUser));
+      }
       getCurrentUser()
         .then((userData) => {
           if (userData) {

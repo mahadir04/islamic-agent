@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Browser } from '@capacitor/browser';
 import { 
   loginWithEmail, 
   registerWithEmail, 
@@ -92,7 +93,7 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
     }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
     let backendUrl = getBaseUrl().replace(/\/$/, "");
@@ -103,9 +104,14 @@ export default function Login({ isDarkMode, onLoginSuccess }) {
     const targetUrl = `${backendUrl}/api/auth/google${isMobile ? '?platform=mobile' : ''}`;
     
     if (isMobile) {
-      // In native mobile app, open the system browser for Google OAuth
-      window.open(targetUrl, '_system');
-      setLoading(false);
+      try {
+        await Browser.open({ url: targetUrl, windowName: '_system' });
+      } catch (err) {
+        console.warn('Browser.open failed, fallback to window.open:', err);
+        window.open(targetUrl, '_system');
+      } finally {
+        setLoading(false);
+      }
       return;
     }
     window.location.href = targetUrl;

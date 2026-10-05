@@ -76,8 +76,9 @@ def decode_token(token: str):
         if signature != expected_signature:
             return None
         
-        # Decode payload
-        payload_bytes = base64.urlsafe_b64decode(payload + "==")
+        # Decode payload with correct standard base64 padding
+        padded_payload = payload + "=" * (-len(payload) % 4)
+        payload_bytes = base64.urlsafe_b64decode(padded_payload)
         payload_data = json.loads(payload_bytes)
         
         # Check expiration
@@ -118,11 +119,26 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     from app.auth import user_db
     user = user_db.get_user(email)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        # Recover/create user so that ephemeral server restarts on Render never kick users out
+        name = payload.get("name") or email.split("@")[0].replace(".", " ").capitalize()
+        picture = payload.get("picture") or f"https://api.dicebear.com/7.x/initials/svg?seed={name}&backgroundColor=00b875"
+        user = {
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "created_at": datetime.utcnow().isoformat(),
+            "last_login": datetime.utcnow().isoformat(),
+            "preferences": {},
+            "settings": {
+                "theme": "dark",
+                "location": "Dhaka, Bangladesh",
+                "calculation_method": "University of Islamic Sciences, Karachi",
+                "asr_school": "Hanafi",
+                "ai_adaptive": True,
+                "transliteration": False
+            }
+        }
+        user = user_db.create_user(email, user)
     
     return user
 
