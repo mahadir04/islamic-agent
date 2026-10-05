@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, Response
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from app.agent import IslamicAgent
@@ -808,5 +808,107 @@ async def update_profile(
     user_db.update_user(email, user)
     safe_user = {k: v for k, v in user.items() if k != "password_hash"}
     return safe_user
+
+# ── Voice Audio Playback Endpoint (TTS) ──
+import re
+import urllib.parse
+
+_tts_cache: Dict[str, bytes] = {}
+
+def _split_text_into_chunks(text: str, max_len: int = 150) -> List[str]:
+    """Split text into manageable segments for TTS without breaking sentences or words"""
+    text = text.strip()
+    if not text:
+        return []
+    if len(text) <= max_len:
+        return [text]
+    
+    parts = re.split(r'([.?!;،\n]+)', text)
+    chunks = []
+    curr = ""
+    for part in parts:
+        if not part:
+            continue
+        if len(curr) + len(part) <= max_len:
+            curr += part
+        else:
+            if curr.strip():
+                chunks.append(curr.strip())
+            curr = part
+            while len(curr) > max_len:
+                words = curr.split(' ')
+                sub = ""
+                for w in words:
+                    if len(sub) + len(w) + 1 <= max_len:
+                        sub = f"{sub} {w}".strip()
+                    else:
+                        break
+                if sub:
+                    chunks.append(sub)
+                    curr = curr[len(sub):].strip()
+                else:
+                    chunks.append(curr[:max_len])
+                    curr = curr[max_len:].strip()
+    if curr.strip():
+        chunks.append(curr.strip())
+    return [c for c in chunks if c]
+
+@router.get("/tts")
+async def text_to_speech(text: str, lang: str = "ar"):
+    """
+    Stream authentic high quality audio/mpeg for Hadiths and supplications.
+    Works identically to Quran audio using HTML5 audio playback.
+    """
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Text parameter is required")
+    
+    clean_text = text.strip()
+    if len(clean_text) > 2500:
+        clean_text = clean_text[:2500]
+        
+    cache_key = f"{lang}:{clean_text}"
+    if cache_key in _tts_cache:
+        return Response(content=_tts_cache[cache_key], media_type="audio/mpeg", headers={
+            "Cache-Control": "public, max-age=86400",
+            "Accept-Ranges": "bytes"
+        })
+    
+    chunks = _split_text_into_chunks(clean_text, max_len=140)
+    if not chunks:
+        raise HTTPException(status_code=400, detail="Unable to process text")
+    
+    target_lang = "ar" if lang.lower().startswith("ar") else "en"
+    
+    combined_audio = bytearray()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://translate.google.com/"
+    }
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for chunk in chunks:
+            encoded_q = urllib.parse.quote(chunk)
+            url = f"https://translate.google.com/translate_tts?ie=UTF-8&tl={target_lang}&client=tw-ob&q={encoded_q}"
+            try:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200 and resp.content:
+                    combined_audio.extend(resp.content)
+            except Exception as e:
+                logger.warning(f"Error fetching TTS chunk: {e}")
+                continue
+                
+    if not combined_audio:
+        raise HTTPException(status_code=502, detail="TTS service temporarily unavailable")
+        
+    audio_bytes = bytes(combined_audio)
+    if len(_tts_cache) > 100:
+        _tts_cache.pop(next(iter(_tts_cache)))
+    _tts_cache[cache_key] = audio_bytes
+    
+    return Response(content=audio_bytes, media_type="audio/mpeg", headers={
+        "Cache-Control": "public, max-age=86400",
+        "Accept-Ranges": "bytes",
+        "Content-Length": str(len(audio_bytes))
+    })
 
 # End of router routes

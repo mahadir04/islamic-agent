@@ -20,34 +20,35 @@ logger = logging.getLogger(__name__)
 
 class IslamicAgent:
     def __init__(self):
-        self.model_name = "gemini-flash-latest"
+        self.model_name = "gemini-3.8-flash"
         self.gemini_available = self._initialize_gemini()
         self.retriever = EnhancedRetriever()
     
     def _initialize_gemini(self):
-        """Initialize Google Gemini AI"""
+        """Initialize Google Gemini AI with active generation model"""
         try:
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
                 logger.error("❌ GEMINI_API_KEY not found in environment")
                 return False
             genai.configure(api_key=api_key)
-            # Test the connection with working models
             models_to_try = [
-                "gemini-flash-latest",
-                "gemini-2.5-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.6-flash",
+                "gemini-3.1-flash-lite",
                 "gemini-flash-lite-latest",
-                "gemini-2.5-flash-lite",
-                "gemini-3.5-flash",
-                "gemini-pro-latest"
+                "gemini-3-flash-preview",
+                "gemini-3.8-flash",
+                "gemini-3.7-flash"
             ]
             for m_name in models_to_try:
                 try:
                     model = genai.GenerativeModel(m_name)
                     response = model.generate_content("Salam")
-                    self.model_name = m_name
-                    logger.info(f"✅ Gemini initialized successfully with model {self.model_name}")
-                    return True
+                    if response and response.text:
+                        self.model_name = m_name
+                        logger.info(f"✅ Gemini initialized successfully with model {self.model_name}")
+                        return True
                 except Exception as inner_e:
                     logger.warning(f"Failed to initialize {m_name}: {inner_e}")
             return False
@@ -139,7 +140,11 @@ class IslamicAgent:
             except Exception as e:
                 logger.warning(f"Error retrieving RAG context: {e}")
 
-            # If Gemini is offline, fallback gracefully to standardized Answer Design using retrieved RAG knowledge
+            # If Gemini was not initialized initially, attempt once more
+            if not self.gemini_available:
+                self.gemini_available = self._initialize_gemini()
+
+            # If Gemini is still offline, fallback gracefully to standardized Answer Design using retrieved RAG knowledge
             if not self.gemini_available:
                 return {
                     "answer": format_offline_rag_response(question, local_results),
@@ -160,18 +165,19 @@ class IslamicAgent:
             answer = None
             models_to_try = [
                 self.model_name,
-                "gemini-flash-latest",
-                "gemini-2.5-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.6-flash",
+                "gemini-3.1-flash-lite",
                 "gemini-flash-lite-latest",
-                "gemini-2.5-flash-lite",
-                "gemini-3.5-flash",
-                "gemini-pro-latest"
+                "gemini-3-flash-preview",
+                "gemini-3.8-flash",
+                "gemini-3.7-flash"
             ]
             for m_name in dict.fromkeys(models_to_try):
                 try:
                     model = genai.GenerativeModel(m_name)
                     response = model.generate_content(prompt)
-                    if response.text:
+                    if response and response.text:
                         answer = self._clean_response(response.text)
                         self.model_name = m_name
                         break
@@ -201,10 +207,14 @@ class IslamicAgent:
 Verse text: "{verse_text}"
 Keep it under 3 concise sentences focusing on core meaning, context of revelation if applicable, and practical spiritual reflection."""
             if self.gemini_available:
-                model = genai.GenerativeModel(self.model_name)
-                resp = model.generate_content(prompt)
-                if resp.text:
-                    return self._clean_response(resp.text)
+                for m_name in [self.model_name, "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"]:
+                    try:
+                        model = genai.GenerativeModel(m_name)
+                        resp = model.generate_content(prompt)
+                        if resp and resp.text:
+                            return self._clean_response(resp.text)
+                    except Exception:
+                        continue
             return f"This verse in Surah {surah_id} conveys profound divine wisdom, guiding believers towards righteousness, mindfulness of Allah, and moral excellence."
         except Exception as e:
             logger.error(f"Tafsir generation error: {e}")

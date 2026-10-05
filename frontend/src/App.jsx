@@ -10,6 +10,8 @@ import QuranReader from "./pages/QuranReader";
 import HadithReader from "./pages/HadithReader";
 import Duas from "./pages/Duas";
 import Settings from "./pages/Settings";
+import NotificationBanner from "./components/NotificationBanner";
+import { sendNotificationAlert } from "./services/notificationService";
 import { getSessions, getCurrentUser } from "./api";
 
 // Safely parse user claims from token for instant UI display
@@ -201,8 +203,43 @@ export default function App() {
     }
   }, [fetchSessions]);
 
+  // Periodic Prayer Alert Monitoring (every 40 seconds)
+  useEffect(() => {
+    const alertedPrayers = new Set();
+
+    const interval = setInterval(() => {
+      try {
+        const cached = localStorage.getItem('cached_prayer_times');
+        if (!cached) return;
+        const prayerList = JSON.parse(cached);
+        if (!Array.isArray(prayerList)) return;
+
+        const now = new Date();
+        const curH = String(now.getHours()).padStart(2, '0');
+        const curM = String(now.getMinutes()).padStart(2, '0');
+        const curTime = `${curH}:${curM}`;
+        const todayStr = now.toDateString();
+
+        for (const p of prayerList) {
+          const key = `${p.name}-${todayStr}`;
+          if (p.time === curTime && !alertedPrayers.has(key)) {
+            alertedPrayers.add(key);
+            sendNotificationAlert({
+              title: `Adhan Alert · ${p.name} Prayer`,
+              body: `It is now time for ${p.name} prayer. Come to prayer, come to success.`,
+              type: 'adhan'
+            });
+          }
+        }
+      } catch (_) {}
+    }, 40000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <Router>
+      <NotificationBanner />
       <Routes>
         <Route path="/" element={<Navigate to={localStorage.getItem('token') ? "/dashboard" : "/login"} replace />} />
         

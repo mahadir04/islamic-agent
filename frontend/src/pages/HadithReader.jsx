@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getHadithBooks, getHadithBook, searchHadiths } from '../api';
+import { getHadithBooks, getHadithBook, searchHadiths, getApiUrl } from '../api';
 import AppNavigation from '../components/AppNavigation';
 
 export default function HadithReader({ isDarkMode, user }) {
@@ -26,10 +26,12 @@ export default function HadithReader({ isDarkMode, user }) {
   const [hadithFontSize, setHadithFontSize] = useState(15);
   const [readingTheme, setReadingTheme] = useState('dark');
 
-  // Voice Playback State (Web Speech API)
+  // Voice Playback State (HTML5 Audio Streaming + SpeechSynthesis fallback)
   const [playingHadithId, setPlayingHadithId] = useState(null);
+  const [audioObj, setAudioObj] = useState(null);
+  const [isAudioLoading, setIsAudioLoading] = useState(false);
   const [isVoicePaused, setIsVoicePaused] = useState(false);
-  const [voiceLang, setVoiceLang] = useState('en');
+  const [voiceLang, setVoiceLang] = useState('ar');
   const [voiceRate, setVoiceRate] = useState(1.0);
 
   // Load 97 Books list
@@ -66,33 +68,162 @@ export default function HadithReader({ isDarkMode, user }) {
     fetchBookDetail();
   }, [selectedBookId, page, globalSearchResults]);
 
-  // Clean up speech synthesis on unmount or book switch
+  // Clean up audio on unmount or book switch
   useEffect(() => {
     return () => {
+      if (audioObj) {
+        audioObj.pause();
+        audioObj.src = '';
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
     };
-  }, []);
+  }, [audioObj]);
 
   useEffect(() => {
+    if (audioObj) {
+      audioObj.pause();
+      audioObj.src = '';
+      setAudioObj(null);
+    }
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
     setPlayingHadithId(null);
     setIsVoicePaused(false);
+    setIsAudioLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBookId, page]);
 
   const handlePlayHadithVoice = (hadith, forcedLang = null) => {
-    if (!('speechSynthesis' in window)) {
-      alert("Voice playback is not supported on this browser.");
+    const currentLang = forcedLang || voiceLang;
+
+    // Toggle pause / resume if same Hadith is currently loaded
+    if (playingHadithId === hadith.hadithNumber && audioObj) {
+      if (audioObj.paused) {
+        audioObj.play().catch(e => console.error("Audio resume error:", e));
+        setIsVoicePaused(false);
+      } else {
+        audioObj.pause();
+        setIsVoicePaused(true);
+      }
       return;
     }
 
-    const currentLang = forcedLang || voiceLang;
+    // Stop any existing playback
+    if (audioObj) {
+      audioObj.pause();
+      audioObj.src = '';
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
 
-    // Toggle pause / resume if same Hadith
-    if (playingHadithId === hadith.hadithNumber) {
+    setPlayingHadithId(hadith.hadithNumber);
+    setIsVoicePaused(false);
+    setIsAudioLoading(true);
+
+    let textToSpeak = '';
+    if (currentLang === 'ar' && hadith.text_ar) {
+      textToSpeak = hadith.text_ar;
+    } else {
+      textToSpeak = `${hadith.narrator ? hadith.narrator + '. ' : ''}${hadith.text_en}`;
+    }
+
+    const cleanText = textToSpeak.replace(/[\r\n]+/g, ' ').trim();
+    const ttsUrl = `${getApiUrl()}/tts?lang=${encodeURIComponent(currentLang)}&text=${encodeURIComponent(cleanText.slice(0, 1500))}`;
+
+    const audio = new Audio(ttsUrl);
+    audio.playbackRate = voiceRate;
+    setAudioObj(audio);
+
+    audio.oncanplay = () => {
+      setIsAudioLoading(false);
+    };
+
+    audio.onplay = () => {
+      setIsAudioLoading(false);
+      setIsVoicePaused(false);
+    };
+
+    audio.onpause = () => {
+      setIsVoicePaused(true);
+    };
+
+    audio.onended = () => {
+      setPlayingHadithId(null);
+      setIsVoicePaused(false);
+      setIsAudioLoading(false);
+    };
+
+    audio.onerror = (e) => {
+      console.warn("HTML5 audio playback error, falling back to Web Speech API:", e);
+      setIsAudioLoading(false);
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
+        utterance.rate = voiceRate;
+        utterance.onend = () => {
+          setPlayingHadithId(null);
+          setIsVoicePaused(false);
+        };
+        utterance.onerror = () => {
+          setPlayingHadithId(null);
+          setIsVoicePaused(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setPlayingHadithId(null);
+        setIsVoicePaused(false);
+      }
+    };
+
+    audio.play().catch(err => {
+      console.warn("Audio autoplay blocked or streaming error, attempting fallback:", err);
+      setIsAudioLoading(false);
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = currentLang === 'ar' ? 'ar-SA' : 'en-US';
+        utterance.rate = voiceRate;
+        utterance.onend = () => {
+          setPlayingHadithId(null);
+          setIsVoicePaused(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        setPlayingHadithId(null);
+        setIsVoicePaused(false);
+      }
+    });
+  };
+
+  const handleStopVoice = () => {
+    if (audioObj) {
+      audioObj.pause();
+      audioObj.src = '';
+      setAudioObj(null);
+    }
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setPlayingHadithId(null);
+    setIsVoicePaused(false);
+    setIsAudioLoading(false);
+  };
+
+  const handlePauseResumeVoice = () => {
+    if (audioObj) {
+      if (audioObj.paused) {
+        audioObj.play().catch(e => console.error(e));
+        setIsVoicePaused(false);
+      } else {
+        audioObj.pause();
+        setIsVoicePaused(true);
+      }
+      return;
+    }
+    if ('speechSynthesis' in window) {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
         setIsVoicePaused(false);
@@ -100,75 +231,6 @@ export default function HadithReader({ isDarkMode, user }) {
         window.speechSynthesis.pause();
         setIsVoicePaused(true);
       }
-      return;
-    }
-
-    // Cancel previous audio
-    window.speechSynthesis.cancel();
-
-    let textToSpeak = '';
-    let speechLang = 'en-US';
-
-    if (currentLang === 'ar' && hadith.text_ar) {
-      textToSpeak = hadith.text_ar;
-      speechLang = 'ar-SA';
-    } else {
-      textToSpeak = `${hadith.narrator ? hadith.narrator + '. ' : ''}${hadith.text_en}`;
-      speechLang = 'en-US';
-    }
-
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = speechLang;
-    utterance.rate = voiceRate;
-
-    const voices = window.speechSynthesis.getVoices();
-    if (voices && voices.length > 0) {
-      const match = voices.find(v => v.lang.startsWith(speechLang.slice(0, 2)));
-      if (match) utterance.voice = match;
-    }
-
-    utterance.onstart = () => {
-      setPlayingHadithId(hadith.hadithNumber);
-      setIsVoicePaused(false);
-    };
-
-    utterance.onend = () => {
-      setPlayingHadithId(null);
-      setIsVoicePaused(false);
-    };
-
-    utterance.onerror = () => {
-      setPlayingHadithId(null);
-      setIsVoicePaused(false);
-    };
-
-    utterance.onpause = () => {
-      setIsVoicePaused(true);
-    };
-
-    utterance.onresume = () => {
-      setIsVoicePaused(false);
-    };
-
-    window.speechSynthesis.speak(utterance);
-  };
-
-  const handleStopVoice = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    setPlayingHadithId(null);
-    setIsVoicePaused(false);
-  };
-
-  const handlePauseResumeVoice = () => {
-    if (!('speechSynthesis' in window)) return;
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      setIsVoicePaused(false);
-    } else {
-      window.speechSynthesis.pause();
-      setIsVoicePaused(true);
     }
   };
 
@@ -553,7 +615,7 @@ export default function HadithReader({ isDarkMode, user }) {
         )}
 
         {/* ── Main View: Hadiths Stream ── */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 md:p-10 max-w-5xl mx-auto w-full space-y-6 sm:space-y-8">
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 md:p-10 pb-44 sm:pb-28 max-w-5xl mx-auto w-full space-y-6 sm:space-y-8">
           
           {/* Global Hadith Search Bar */}
           <form onSubmit={handleGlobalSearch} className="relative w-full">
@@ -889,15 +951,21 @@ export default function HadithReader({ isDarkMode, user }) {
 
       {/* ── Floating Hadith Voice Playback Controller ── */}
       {playingHadithId && (
-        <div className="fixed bottom-16 md:bottom-6 inset-x-4 max-w-md mx-auto z-40 bg-[#09111b]/95 border border-emerald-500/40 rounded-2xl p-3.5 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-3 text-xs animate-slide-up">
+        <div className={`fixed ${readMode ? 'bottom-6' : 'bottom-20 md:bottom-6'} inset-x-4 max-w-md mx-auto z-40 bg-[#09111b]/95 border border-emerald-500/40 rounded-2xl p-3.5 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-3 text-xs animate-slide-up`}>
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <span className="animate-pulse">🔊</span>
+              {isAudioLoading ? (
+                <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span className="animate-pulse">🔊</span>
+              )}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-white truncate">Reciting Hadith #{playingHadithId}</p>
+              <p className="font-semibold text-white truncate">
+                {isAudioLoading ? 'Loading Audio Recitation...' : `Reciting Hadith #${playingHadithId}`}
+              </p>
               <p className="text-[10px] text-emerald-400/80">
-                {voiceLang === 'ar' ? 'Arabic Recitation' : 'English Narration'} · {voiceRate}x
+                {voiceLang === 'ar' ? 'Authentic Arabic' : 'English Narration'} · {voiceRate}x
               </p>
             </div>
           </div>
@@ -923,6 +991,7 @@ export default function HadithReader({ isDarkMode, user }) {
                 const rates = [0.8, 1.0, 1.25];
                 const nextRate = rates[(rates.indexOf(voiceRate) + 1) % rates.length];
                 setVoiceRate(nextRate);
+                if (audioObj) audioObj.playbackRate = nextRate;
               }}
               className="px-2 py-1 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-[10px] text-gray-300 font-mono transition"
               title="Playback Speed"
@@ -961,8 +1030,10 @@ export default function HadithReader({ isDarkMode, user }) {
       <AppNavigation
         isOpen={sidebarOpen}
         onClose={(v) => setSidebarOpen(typeof v === 'boolean' ? v : false)}
+        onOpen={() => setSidebarOpen(true)}
         user={user}
         readMode={readMode}
+        hideBottomNav={readMode}
       />
     </div>
   );

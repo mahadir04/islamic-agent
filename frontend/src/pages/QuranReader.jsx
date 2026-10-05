@@ -479,7 +479,7 @@ export default function QuranReader({ isDarkMode, user }) {
         )}
 
         {/* ── Main View: Surah Header & Verses Stream ── */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 md:p-10 max-w-5xl mx-auto w-full space-y-6 sm:space-y-8">
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 md:p-10 pb-36 sm:pb-20 max-w-5xl mx-auto w-full space-y-6 sm:space-y-8">
           
           {/* Surah Header Card */}
           <div className="bg-[#0b1017] border border-white/[0.06] rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -752,8 +752,10 @@ export default function QuranReader({ isDarkMode, user }) {
       <AppNavigation
         isOpen={sidebarOpen}
         onClose={(v) => setSidebarOpen(typeof v === 'boolean' ? v : false)}
+        onOpen={() => setSidebarOpen(true)}
         user={user}
         readMode={readMode}
+        hideBottomNav={readMode}
       />
     </div>
   );

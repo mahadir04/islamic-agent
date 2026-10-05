@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateProfile } from '../api';
 import AppNavigation from '../components/AppNavigation';
+import {
+  checkNotificationPermission,
+  requestNotificationPermission,
+  sendNotificationAlert
+} from '../services/notificationService';
 
 export default function Settings({ isDarkMode, user, setUser }) {
   const navigate = useNavigate();
@@ -60,6 +65,41 @@ export default function Settings({ isDarkMode, user, setUser }) {
   // Global Save State
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [permissionStatus, setPermissionStatus] = useState('prompt');
+  const [testNotificationSent, setTestNotificationSent] = useState(false);
+
+  useEffect(() => {
+    checkNotificationPermission().then(status => {
+      setPermissionStatus(status);
+    });
+  }, []);
+
+  const handleRequestPermission = async () => {
+    const granted = await requestNotificationPermission();
+    setPermissionStatus(granted ? 'granted' : 'denied');
+    if (granted) {
+      setAdhanAlerts(true);
+    }
+    return granted;
+  };
+
+  const handleTestAlert = async (type = 'adhan') => {
+    if (permissionStatus !== 'granted') {
+      const granted = await handleRequestPermission();
+      if (!granted) {
+        // Still dispatch in-app alert even if system blocked
+      }
+    }
+    await sendNotificationAlert({
+      title: type === 'adhan' ? 'Adhan Alert · Maghrib Prayer' : 'Hadith of the Day · Reflection',
+      body: type === 'adhan' 
+        ? `Allahu Akbar. It is time for Maghrib prayer in ${location || 'your area'}.`
+        : '"Actions are judged by their intentions, and every person will get what was intended." (Sahih al-Bukhari)',
+      type: type === 'adhan' ? 'adhan' : 'hadith'
+    });
+    setTestNotificationSent(true);
+    setTimeout(() => setTestNotificationSent(false), 3500);
+  };
 
   useEffect(() => {
     if (user) {
@@ -573,6 +613,63 @@ export default function Settings({ isDarkMode, user, setUser }) {
              ══════════════════════════════════════════════ */}
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-fadeIn">
+
+              {/* ── Status & Diagnostic Card ── */}
+              <div className="bg-gradient-to-r from-emerald-950/40 via-[#0b141d] to-[#070b10] border border-emerald-500/30 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🔔</span>
+                      <h3 className="text-sm font-semibold text-white tracking-wide">
+                        Notification Alert System
+                      </h3>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                        permissionStatus === 'granted'
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          : permissionStatus === 'denied'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/40'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                      }`}>
+                        {permissionStatus === 'granted' ? 'Active & Ready ✓' : permissionStatus === 'denied' ? 'Blocked in Browser/App' : 'Permission Required'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-300">
+                      Authentic Adhan calls, pre-prayer reminders, and daily prophetic hadith alerts for Web & Android App.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {permissionStatus !== 'granted' && (
+                      <button
+                        type="button"
+                        onClick={handleRequestPermission}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-950/40 transition active:scale-95"
+                      >
+                        Enable Notifications
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleTestAlert('adhan')}
+                      className="px-3.5 py-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <span>🔊</span>
+                      <span>{testNotificationSent ? 'Alert Dispatched! ✓' : 'Test Adhan Alert'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleTestAlert('hadith')}
+                      className="px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] text-gray-300 text-xs font-semibold transition active:scale-95 flex items-center gap-1.5"
+                    >
+                      <span>📜</span>
+                      <span>Test Hadith Alert</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Card 1: Adhan & Prayer Alerts */}
               <div className="bg-[#0b1017] border border-white/[0.08] rounded-2xl p-6 sm:p-7 shadow-xl space-y-6">
                 <div className="flex items-center justify-between">
@@ -1239,6 +1336,7 @@ export default function Settings({ isDarkMode, user, setUser }) {
       <AppNavigation
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        onOpen={() => setSidebarOpen(true)}
         user={user}
       />
     </div>

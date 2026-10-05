@@ -378,6 +378,7 @@ export default function Duas({ isDarkMode, user }) {
       <AppNavigation
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        onOpen={() => setSidebarOpen(true)}
         user={user}
       />
     </div>

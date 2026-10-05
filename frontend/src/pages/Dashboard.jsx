@@ -55,7 +55,14 @@ export default function Dashboard({ isDarkMode, user }) {
           getSessions()
         ]);
         if (isMounted) {
-          if (guideData) setGuidance(guideData);
+          if (guideData) {
+            setGuidance(guideData);
+            if (guideData?.prayers?.prayers) {
+              try {
+                localStorage.setItem('cached_prayer_times', JSON.stringify(guideData.prayers.prayers));
+              } catch (_) {}
+            }
+          }
           if (sessData) setSessions(sessData.slice(0, 3));
         }
       } catch (err) {
@@ -360,7 +367,7 @@ export default function Dashboard({ isDarkMode, user }) {
       </header>
 
       {/* ── Main Container ── */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-12 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 pb-32 sm:pb-20 space-y-8">
         
         {/* Hero Section */}
         <section className="space-y-1.5">
@@ -736,6 +743,7 @@ export default function Dashboard({ isDarkMode, user }) {
       <AppNavigation
         isOpen={sidebarOpen}
         onClose={(v) => setSidebarOpen(typeof v === 'boolean' ? v : false)}
+        onOpen={() => setSidebarOpen(true)}
         user={user}
       />
     </div>

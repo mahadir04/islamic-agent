@@ -169,9 +169,14 @@ class EnhancedRetriever:
         }
     
     def search_local_knowledge(self, question, max_results=5):
-        """High-accuracy, sub-10ms BM25 search with exact verse/hadith citation and category boosts"""
+        """
+        High-accuracy BM25 search with strict relevance & proper context filtering.
+        Returns ONLY genuine matches from repository documents.
+        If no proper context is found in the documents, returns an empty list []
+        so the AI agent can directly provide authentic guidance via Gemini.
+        """
         if not question or not question.strip():
-            return self.knowledge_base[:max_results]
+            return []
 
         normalized_query = question.strip()
         if normalized_query in self.cache:
@@ -179,9 +184,30 @@ class EnhancedRetriever:
 
         q_tokens = tokenize(normalized_query)
         if not q_tokens:
-            return self.knowledge_base[:max_results]
+            return []
 
         q_lower = normalized_query.lower()
+
+        # Identify non-generic core subject terms
+        generic_query_words = {
+            'what', 'is', 'the', 'ruling', 'on', 'can', 'i', 'how', 'to', 'who', 'was', 
+            'does', 'islam', 'say', 'about', 'tell', 'me', 'give', 'explain', 'in', 'for', 
+            'with', 'of', 'and', 'or', 'a', 'an', 'do', 'should', 'why', 'are', 'permissible', 
+            'allowed', 'valid', 'hukum', 'according', 'opinion', 'difference', 'between',
+            'please', 'show', 'know', 'want', 'need', 'something', 'anything', 'any'
+        }
+        core_tokens = [t for t in q_tokens if t not in generic_query_words and len(t) > 2]
+
+        has_quran_ref = bool(re.search(r'(\d+)[:\.](\d+)', q_lower))
+        has_hadith_ref = bool(re.search(r'(?:bukhari|hadith)\s+(\d+)', q_lower))
+
+        # If the query is about specific subjects that are completely absent from the local index,
+        # the repository does NOT contain proper context. Return empty list immediately.
+        if core_tokens and not (has_quran_ref or has_hadith_ref):
+            unknown_core = [t for t in core_tokens if t not in self.inverted_index]
+            if unknown_core:
+                return []
+
         candidate_scores = defaultdict(float)
         k1 = 1.5
         b = 0.75
@@ -237,17 +263,39 @@ class EnhancedRetriever:
                 candidate_scores[doc_id] += 35.0
 
         if not candidate_scores:
-            return self.knowledge_base[:max_results]
+            return []
 
-        # Sort and take top matches
+        # Sort candidate matches by score
         ranked = sorted(candidate_scores.items(), key=lambda x: x[1], reverse=True)
-        results = [self.knowledge_base[doc_id] for doc_id, _ in ranked[:max_results]]
 
-        # Store in LRU cache (up to 1,000 queries)
+        # 6. Strict validation: Ensure documents contain proper context for the core subject
+        valid_results = []
+        for doc_id, score in ranked:
+            doc_text = self.knowledge_base[doc_id]
+            doc_lower = doc_text.lower()
+
+            if has_quran_ref or has_hadith_ref:
+                valid_results.append(doc_text)
+            elif core_tokens:
+                matched_terms = [t for t in core_tokens if t in doc_lower]
+                ratio = len(matched_terms) / len(core_tokens)
+                if len(core_tokens) == 1 and ratio == 1.0 and score >= 6.0:
+                    valid_results.append(doc_text)
+                elif len(core_tokens) == 2 and ratio >= 1.0 and score >= 8.0:
+                    valid_results.append(doc_text)
+                elif len(core_tokens) >= 3 and ratio >= 0.6 and score >= 10.0:
+                    valid_results.append(doc_text)
+            elif score >= 12.0:
+                valid_results.append(doc_text)
+
+            if len(valid_results) >= max_results:
+                break
+
+        # Cache valid results
         if len(self.cache) < 1000:
-            self.cache[normalized_query] = results
+            self.cache[normalized_query] = valid_results
 
-        return results
+        return valid_results
     
     def _get_default_islamic_knowledge(self):
         """Default Islamic knowledge base"""

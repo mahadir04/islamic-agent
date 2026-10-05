@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 export default function AppNavigation({
   isOpen,
   onClose,
+  onOpen,
   user,
   hideBottomNav = false,
   readMode = false
@@ -337,18 +338,25 @@ export default function AppNavigation({
             <span className="text-[10px] font-medium">Hadith</span>
           </button>
 
-          {/* More (Opens Full Sidebar) */}
+          {/* More (Opens Full Features Sidebar Drawer) */}
           <button
             type="button"
             onClick={() => {
-              if (onClose) onClose(true);
+              if (isOpen) {
+                if (onClose) onClose();
+              } else {
+                if (onOpen) onOpen();
+                else if (onClose) onClose(true);
+              }
             }}
-            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-gray-400 hover:text-emerald-400 transition"
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+              isOpen ? 'text-emerald-400' : 'text-gray-400 hover:text-emerald-400'
+            }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-medium">Features</span>
           </button>
         </nav>
       )}
