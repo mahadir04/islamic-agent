@@ -70,6 +70,7 @@ def diagnostic():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return {"error": "GEMINI_API_KEY is not set"}
+    masked = f"{api_key[:6]}...{api_key[-4:]} (len: {len(api_key)})"
     genai.configure(api_key=api_key)
     results = {}
     for m in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash"]:
@@ -80,7 +81,7 @@ def diagnostic():
             break
         except Exception as e:
             results[m] = f"ERROR: {str(e)[:150]}"
-    return {"gemini_tests": results}
+    return {"api_key_masked": masked, "gemini_tests": results}
 
 if __name__ == "__main__":
     import uvicorn
