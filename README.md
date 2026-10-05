@@ -67,8 +67,11 @@ Over **1.9 billion Muslims worldwide** seek authentic spiritual guidance, Qurani
 | **Hadith Authenticity** | High risk of hallucinated texts | Static text lists only | **Verified against 97 Bukhari Books + Isnad** |
 | **Cross-School Fiqh (Madhabs)** | Often biased or conflated | Single school or none | **Balanced: Hanafi, Shafi'i, Maliki, Hanbali** |
 | **Citation Highlighting** | Plain raw text | Non-interactive text | **Auto-tagged `[QURAN]` & `[HADITH]` Visual Callouts** |
+| **Dual-Mode Answer Engine** | Generic guessing | No generative AI | **RAG synthesis with explanations & Direct Gemini fallback** |
 | **Daily Spiritual Content** | Not applicable | Repeated static lists | **Dynamic Hash Rotation unique per calendar day** |
 | **Full Quran Explorer** | Fragmented text chunks | Ad-heavy readers | **114 Surahs, Mishary Audio, Ayah-by-Ayah Tafsir** |
+| **Hadith Voice Audio** | None | Robotic text-to-speech | **Native HTML5 MPEG streaming with speed controls** |
+| **Alerts & Notifications** | None | Basic phone alarms | **Cross-Platform: Web Notification API + Native Android** |
 | **Mobile Experience** | Generic mobile web | Outdated UI / Ad popups | **Native Android APK (~4.98MB) + PWA Ready** |
 | **Data Privacy** | Trains on private user prompts | Sells location data | **Zero data brokering; isolated session storage** |
 
@@ -76,30 +79,36 @@ Over **1.9 billion Muslims worldwide** seek authentic spiritual guidance, Qurani
 
 ## ✨ Flagship Product Features
 
-### 1. 🤖 Intelligent Conversational Scholar ("Noor AI")
-* **Strict Session Isolation:** Every discussion is partitioned by unique session and user IDs — conversations never leak context or overlap.
-* **Smart Context Memory:** Retains chronological conversational history within each session for deep multi-turn theological inquiries.
-* **Auto-Loading Intelligence:** Instantaneously recalls your latest conversation when opening chat, with one-click creation of new spiritual sessions.
-* **"Reflect in Chat" Deep Linking:** Exploring any Surah ayah or Hadith narration lets users click *"Reflect in Chat"* to instantly open a fresh, dedicated dialogue analyzing that exact citation.
-* **Sacred Citation Callouts:** AI responses dynamically parse and highlight:
-  * 📖 **Quranic Verses** in emerald borders with Arabic typography.
-  * 📚 **Hadith Narrations** in warm amber cards with source references.
+### 1. 🤖 Intelligent Dual-Mode Conversational Scholar ("Noor AI")
+* **Document-Grounded RAG Mode (With Context):** When an inquiry matches the verified local knowledge repository (Quran, Sahih al-Bukhari, classical Fiqh, Seerah, Fatwas), the passages are supplied to Gemini. Rather than simply dumping quotes, Gemini synthesizes the references into easy-to-understand explanations, breaking down Quranic revelation context, Prophetic wisdom, juristic opinions, and practical spiritual thoughts.
+* **Direct Gemini Answer Mode (Without Context):** If no document in the local repository provides the proper context (e.g. contemporary topics like cryptocurrency, modern bioethics, new technologies), Noor AI seamlessly answers directly using Gemini's comprehensive knowledge of the Holy Quran, authentic Sunnah, and classical scholarship—providing verified `[QURAN]` and `[HADITH]` visual citations with deep explanations and practical takeaways.
+* **Zero False-Positive Retrieval:** Strict subject validation and core-token filtering ensure that queries absent from local documents never receive irrelevant excerpts.
+* **Strict Session Isolation & Active Memory:** Multi-turn discussions are partitioned by unique session and user IDs with chronological memory to resolve conversational follow-ups and pronouns seamlessly.
+* **Sacred Citation Callouts:** Dynamic tag processors highlight:
+  * 📖 **Quranic Verses** in luminous emerald callout cards with Surah:Ayah badges and Tafsir reflections.
+  * 📚 **Hadith Narrations** in warm amber cards with collection and Hadith numbers.
+  * ⚖️ **Juristic Analysis** with madhab comparisons (Hanafi, Shafi'i, Maliki, Hanbali).
+  * 💡 **Practical Thoughts & Daily Application** bullet points for actionable spiritual growth.
 
 ### 2. 📖 Comprehensive Quran Explorer (114 Surahs)
-* Complete 114 Surah repository with Arabic script, English translations, and Juz tracking.
-* **Mishary Rashid Alafasy Audio:** Ayah-by-ayah streaming audio player with real-time playback controls.
+* Complete 114 Surah repository with Arabic calligraphy script, English translations, and Juz tracking.
+* **Mishary Rashid Alafasy Audio:** Ayah-by-ayah streaming audio player with real-time playback controls and synchronized verse highlighting.
 * **Classical Tafsir on Demand:** Instant retrieval of authentic scholarly commentary (Ibn Kathir, Al-Jalalayn, Ma'ariful Quran).
+* **Distraction-Free Read Mode:** Dedicated toggle hiding distracting navigation chrome for immersive recitation.
 
-### 3. 📚 Sahih al-Bukhari Encyclopedia (97 Books)
+### 3. 📚 Sahih al-Bukhari Encyclopedia & Hadith Voice Audio
 * Complete local library of all 97 books of Sahih al-Bukhari with chapter numbers and classical Arabic titles.
-* Lightning-fast search indexing across narrators, themes, and keywords.
-* Direct bookmarking, clipboard copying, and contextual reflection.
+* **HTML5 Streaming Hadith Voice Audio:** Dedicated `/api/tts` endpoint delivering high-fidelity MPEG audio playback with Play/Pause/Resume, buffering indicators, and variable speed toggles (`0.8x`, `1.0x`, `1.25x`), mirroring the Quran audio experience.
+* Lightning-fast BM25 search indexing across narrators, themes, and keywords.
+* Direct bookmarking, clipboard copying, and *"Reflect in Chat"* theological deep-linking.
 
-### 4. 🧭 Intelligent Daily Dashboard & Spiritual Tools
-* **Dynamic Verse & Hadith of the Day:** Deterministic calendar-based algorithm guarantees a fresh, non-repeating verse and hadith every morning with today's date badge.
-* **Automated Prayer Times & Qibla Direction:** Real-time geolocation detection via IP services providing Fajr, Dhuhr, Asr, Maghrib, and Isha with 12h formatting and countdown indicators.
-* **Daily Masnoon Duas:** Categorized supplications from Hisnul Muslim for protection, morning/evening, and anxiety.
-* **Habit & Streak Tracker:** Real-time engagement analytics logging prayers completed, verses read, and inquiry activity.
+### 4. 🧭 Intelligent Daily Dashboard, Prayer Alerts & Notifications
+* **Unified Cross-Platform Notification Engine:** Supports both Web browser notifications and native Android (`@capacitor/local-notifications`) with Web Audio API chime synthesis.
+* **Automated Adhan & Prayer Monitor:** Background 40-second interval evaluator checking user prayer timetables against current time to trigger timely Adhan alerts and reminders.
+* **In-App Toast Banner & Test Suite:** Custom animated `NotificationBanner` with instant alert preview and interactive test buttons in Settings.
+* **Dynamic Verse & Hadith of the Day:** Deterministic calendar-based algorithm guaranteeing a fresh, non-repeating verse and hadith every morning.
+* **Automated Geolocation Prayer Times:** Real-time IP geolocation providing Fajr, Dhuhr, Asr, Maghrib, and Isha with 12h formatting and countdown indicators.
+* **Daily Masnoon Duas & Sunnah Habit Tracker:** Supplications from Hisnul Muslim with interactive daily prayer checklists.
 
 ---
 
@@ -198,7 +207,7 @@ Noor AI is engineered from the ground up for seamless cross-platform performance
 
 ---
 
-## 🧠 Intelligent Architecture & RAG Pipeline
+## 🧠 Intelligent Dual-Mode Architecture & RAG Pipeline
 
 ```mermaid
 flowchart TD
@@ -206,23 +215,33 @@ flowchart TD
     UI --> API["FastAPI Backend /api/ask"]
     
     API --> SessionMgr["Session Manager<br/>Isolate User & Chat ID"]
-    API --> RAG["Enhanced RAG Retriever<br/>9,706 Authentic Chunks"]
+    API --> RAG["Enhanced RAG Retriever<br/>BM25 & Proper-Context Validator"]
     
-    subgraph KB ["Knowledge Base"]
+    subgraph KB ["Local Knowledge Repository (9,706 Chunks)"]
         RAG --> DB1[("Sahih al-Bukhari<br/>7,580 Hadith Chunks")]
         RAG --> DB2[("Holy Quran<br/>2,077 Verses & Tafsir")]
         RAG --> DB3[("Hanafi Fiqh & Fatwas<br/>40+ Jurisprudence Chunks")]
         RAG --> DB4[("Prophetic Seerah<br/>Historical Records")]
     end
     
-    RAG --> ContextAssembler["Context & Session Assembler"]
-    ContextAssembler --> LLM["Google Gemini 3.8 / 3.5 Flash Engine"]
+    RAG --> CheckContext{"Proper Context<br/>Found in Docs?"}
     
-    LLM --> CitationParser["Citation & Tag Processor<br/>Quran & Hadith Visual Callouts"]
-    CitationParser --> Response(["Highlighted, Authentic Response"])
+    CheckContext -- "Yes (Matches Docs)" --> WithContext["PROMPT_WITH_CONTEXT<br/>Feed Doc Passages to Gemini"]
+    CheckContext -- "No (Modern / Absent Topic)" --> DirectMode["PROMPT_WITHOUT_CONTEXT<br/>Direct Authentic Gemini Answer"]
+    
+    WithContext --> LLM["Active Google Gemini Cascade<br/>3.5 Flash Lite / 3.6 Flash / 3.1 Flash Lite"]
+    DirectMode --> LLM
+    
+    LLM --> CitationParser["Citation & Tag Processor<br/>Auto-tag [QURAN] & [HADITH] Visual Callouts"]
+    CitationParser --> Response(["Synthesized Response with Explanations & Thoughts"])
+    
+    LLM -. "Fallback if Offline" .-> OfflineSynth["Offline RAG Knowledge Synthesizer"]
+    OfflineSynth -.-> Response
 ```
 
-* **Offline Fallback Guarantee:** If cloud LLM services experience network disruption, Noor AI automatically reverts to local RAG knowledge synthesis, ensuring the platform remains 100% operational.
+* **Proper Context Verification:** Queries are analyzed against the inverted index using non-generic core terms. If a subject (e.g. *cryptocurrency, lab-grown meat, artificial intelligence*) is not covered by the local repository, Noor AI skips irrelevant local excerpts and triggers Direct Gemini Answer Mode.
+* **Explanation & Thoughts Guarantee:** Whether answering from retrieved documents or directly via Gemini, the AI is explicitly commanded to provide lucid explanations for all citations and 2–4 practical, actionable thoughts for daily spiritual life—never just dumping raw quotes.
+* **Offline Fallback Guarantee:** If cloud LLM services experience network disruption, Noor AI automatically reverts to offline RAG knowledge synthesis, ensuring the platform remains 100% operational.
 * **9,706 Verified Knowledge Chunks:** Curated, structured, and indexed locally for ultra-low latency lookups.
 
 ---
@@ -292,11 +311,13 @@ Noor AI is packaged with a commercially proven software architecture suitable fo
 | Component | Technology | Rationale / Highlights |
 | :--- | :--- | :--- |
 | **Backend Framework** | **Python 3.10+ / FastAPI** | Async execution, native OpenAPI docs, sub-millisecond route handling. |
-| **Knowledge Engine** | **Enhanced RAG (9,706 entries)** | Zero-hallucination factual grounding in Quran, Bukhari, and Fiqh. |
-| **AI Model Tier** | **Google Gemini 3.8 / 3.5 Flash** | Ultra-low latency, high reasoning quality, reliable tool formatting. |
+| **Knowledge Engine** | **Enhanced RAG (9,706 entries)** | BM25 inverted index, strict proper-context filtering, zero hallucination. |
+| **AI Model Tier** | **Google Gemini Active Cascade** | Auto-failover across 3.5 Flash Lite, 3.6 Flash, 3.1 Flash Lite, 3.8 Flash. |
+| **Audio Streaming** | **HTML5 Audio / FastAPI `/api/tts`** | High-fidelity MPEG stream playback for Quran & Hadiths with speed controls. |
+| **Notification Engine** | **Capacitor Local Notifications & Web API** | Autonomous prayer time Adhan alerts, Web Audio API chimes, and in-app toasts. |
 | **Frontend Framework** | **React 18 / Tailwind CSS** | Virtual DOM performance, responsive design, dark mode aesthetics. |
-| **Mobile Runtime** | **Capacitor 5 / Gradle** | Native Android bridge, minimal APK footprint (~4.98MB). |
-| **Security & Auth** | **JWT / PBKDF2 / SHA-256** | Stateless session tokens, encrypted passwords, CORS guardrails. |
+| **Mobile Runtime** | **Capacitor / Gradle** | Native Android bridge, minimal APK footprint (~4.98MB). |
+| **Security & Auth** | **JWT / PBKDF2 / SHA-256 / Google OAuth** | Stateless session tokens, encrypted passwords, cross-platform auth. |
 
 ---
 
@@ -342,7 +363,7 @@ cd frontend
 npm run build
 
 # Sync assets with Android native container
-npx cap sync
+npx cap sync android
 
 # Compile Android APK directly via Gradle
 cd android
@@ -360,9 +381,10 @@ cd android
 - [x] **Phase 2: Modern Web Experience** — Emerald design system, prayer times, habit tracking, daily rotation.
 - [x] **Phase 3: Conversational Intelligence** — Multi-session chat isolation, auto-load recent chats, citation formatting.
 - [x] **Phase 4: Mobile Platform** — Capacitor Android integration with compiled standalone debug APK.
-- [ ] **Phase 5: Audio & Voice Expansion** — Multilingual voice synthesis (Arabic, English, Urdu, French, Indonesian).
-- [ ] **Phase 6: iOS App Store Release** — iOS native packaging via Xcode & TestFlight beta distribution.
-- [ ] **Phase 7: Community & Masjid Portals** — Multi-tenant admin dashboard for local mosque event and prayer time synchronization.
+- [x] **Phase 5: Audio & Notification Ecosystem** — HTML5 Hadith voice audio streaming with speed controls, cross-platform Web & Android notifications, and automated prayer time Adhan alerts.
+- [ ] **Phase 6: Multi-Lingual Speech Expansion** — Multi-dialect voice input/output (Urdu, French, Indonesian, Turkish).
+- [ ] **Phase 7: iOS App Store Release** — iOS native packaging via Xcode & TestFlight beta distribution.
+- [ ] **Phase 8: Community & Masjid Portals** — Multi-tenant admin dashboard for local mosque event and prayer time synchronization.
 
 ---
 
