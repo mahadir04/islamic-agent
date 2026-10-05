@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateProfile } from '../api';
+import AppNavigation from '../components/AppNavigation';
 
 export default function Settings({ isDarkMode, user, setUser }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('profile');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Profile State
   const [name, setName] = useState('');
@@ -248,16 +250,31 @@ export default function Settings({ isDarkMode, user, setUser }) {
          }}>
       
       {/* ── Top Header Navigation ── */}
-      <header className="sticky top-0 z-30 w-full bg-[#070a0e]/85 backdrop-blur-md border-b border-white/[0.06] px-6 lg:px-12 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
-          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+      <header className="sticky top-0 z-30 w-full bg-[#070a0e]/85 backdrop-blur-md border-b border-white/[0.06] px-4 sm:px-6 lg:px-12 py-3.5 flex items-center justify-between">
+        
+        {/* Brand & Drawer Trigger */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 -ml-1 rounded-xl text-gray-300 hover:text-white hover:bg-white/[0.06] transition flex items-center justify-center"
+            title="Open Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
+          </button>
+
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+              </svg>
+            </div>
+            <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white">
+              Noor AI
+            </span>
           </div>
-          <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white">
-            Noor AI
-          </span>
         </div>
 
         {/* Center Nav Pills */}
@@ -306,7 +323,7 @@ export default function Settings({ isDarkMode, user, setUser }) {
       </header>
 
       {/* ── Main Layout ── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-10 flex flex-col md:flex-row gap-8 lg:gap-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-12 py-8 pb-24 sm:py-10 md:pb-12 flex flex-col md:flex-row gap-8 lg:gap-10">
         
         {/* ── Left Sidebar Tabs ── */}
         <aside className="w-full md:w-56 shrink-0 space-y-4">
@@ -1217,6 +1234,13 @@ export default function Settings({ isDarkMode, user, setUser }) {
 
         </div>
       </main>
+
+      {/* ── Responsive Sidebar & Navigation Drawer ── */}
+      <AppNavigation
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        user={user}
+      />
     </div>
   );
 }

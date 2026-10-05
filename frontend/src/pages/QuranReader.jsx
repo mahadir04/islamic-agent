@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getSurahs, getSurah, getAyahTafsir } from '../api';
+import AppNavigation from '../components/AppNavigation';
 
 export default function QuranReader({ isDarkMode, user }) {
   const navigate = useNavigate();
@@ -22,6 +23,10 @@ export default function QuranReader({ isDarkMode, user }) {
   const [bookmarkedVerses, setBookmarkedVerses] = useState({});
   const [readMode, setReadMode] = useState(false);
   const [mobileSurahOpen, setMobileSurahOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [arabicFontSize, setArabicFontSize] = useState(28);
+  const [showTranslation, setShowTranslation] = useState(true);
+  const [readingTheme, setReadingTheme] = useState('dark');
 
   // Load 114 Surahs
   useEffect(() => {
@@ -286,99 +291,182 @@ export default function QuranReader({ isDarkMode, user }) {
       )}
 
       {/* ── Top Header Navigation Bar ── */}
-      <header className="sticky top-0 z-30 w-full bg-[#070a0e]/90 backdrop-blur-md border-b border-white/[0.06] px-4 sm:px-6 lg:px-12 py-3 flex items-center justify-between shrink-0 gap-2">
-        
-        {/* Left: Brand + Mobile Surah Switcher */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate('/dashboard')}>
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+      {readMode ? (
+        <header className="sticky top-0 z-30 w-full bg-[#070b10]/95 backdrop-blur-xl border-b border-emerald-500/20 px-3 sm:px-6 py-2.5 flex items-center justify-between shrink-0 gap-2 shadow-2xl">
+          {/* Left: Surah Title & Quick Drawer */}
+          <div className="flex items-center gap-2 min-w-0">
+            <button
+              type="button"
+              onClick={() => setMobileSurahOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/25 transition shrink-0"
+              title="Change Surah"
+            >
+              <span>📖</span>
+              <span className="truncate max-w-[120px] sm:max-w-none">{selectedSurahId}. {currentSurah?.englishName}</span>
+              <span className="font-arabic text-sm text-emerald-400 hidden sm:inline">({currentSurah?.name})</span>
+              <svg className="w-3.5 h-3.5 opacity-70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
-            <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white hidden sm:inline">
-              Noor AI
-            </span>
+            </button>
           </div>
 
-          {/* Mobile Surah Switcher Button */}
+          {/* Center: Font Size & Translation Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Font size adjustments */}
+            <div className="flex items-center bg-white/[0.05] border border-white/[0.08] rounded-xl p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setArabicFontSize(prev => Math.max(18, prev - 3))}
+                className="px-2 py-1 hover:text-emerald-400 text-gray-300 transition"
+                title="Decrease Arabic font size"
+              >
+                A-
+              </button>
+              <span className="px-1.5 text-[11px] text-gray-400 font-mono">{arabicFontSize}px</span>
+              <button
+                type="button"
+                onClick={() => setArabicFontSize(prev => Math.min(46, prev + 3))}
+                className="px-2 py-1 hover:text-emerald-400 text-gray-300 transition font-bold"
+                title="Increase Arabic font size"
+              >
+                A+
+              </button>
+            </div>
+
+            {/* Translation Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowTranslation(!showTranslation)}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                showTranslation
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                  : 'bg-white/[0.04] border-white/[0.08] text-gray-400'
+              }`}
+            >
+              <span className="hidden sm:inline">{showTranslation ? 'Translation: On' : 'Arabic Only'}</span>
+              <span className="sm:hidden">{showTranslation ? 'EN' : 'AR'}</span>
+            </button>
+
+            {/* Theme Toggle */}
+            <button
+              type="button"
+              onClick={() => setReadingTheme(readingTheme === 'dark' ? 'sepia' : readingTheme === 'sepia' ? 'navy' : 'dark')}
+              className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.04] text-xs text-gray-300 hover:text-white transition"
+              title="Reading theme"
+            >
+              <span>{readingTheme === 'dark' ? '🖤 Dark' : readingTheme === 'sepia' ? '📜 Sepia' : '🌙 Navy'}</span>
+            </button>
+          </div>
+
+          {/* Right: Exit Read Mode Button */}
           <button
             type="button"
-            onClick={() => setMobileSurahOpen(true)}
-            className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium transition shrink-0"
-            title="Browse all 114 Surahs"
+            onClick={() => setReadMode(false)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 text-xs font-semibold transition shrink-0"
           >
-            <span>📖</span>
-            <span className="font-semibold truncate max-w-[110px]">{currentSurah?.englishName || "Surahs"}</span>
-            <svg className="w-3.5 h-3.5 opacity-70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <span>✕</span>
+            <span className="hidden sm:inline">Exit Read Mode</span>
           </button>
-        </div>
+        </header>
+      ) : (
+        <header className="sticky top-0 z-30 w-full bg-[#070a0e]/90 backdrop-blur-md border-b border-white/[0.06] px-4 sm:px-6 lg:px-12 py-3 flex items-center justify-between shrink-0 gap-2">
+          {/* Left: Hamburger & Brand + Mobile Surah Switcher */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-1 rounded-xl text-gray-300 hover:text-white hover:bg-white/[0.08] transition flex items-center justify-center border border-white/[0.08] shrink-0"
+              title="Open Features Menu"
+              aria-label="Open Navigation Sidebar"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
 
-        {/* Center Nav Pills */}
-        <div className="hidden sm:flex items-center p-1 rounded-xl border border-white/[0.08] bg-[#0c1219]">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
-          >
-            Dashboard
-          </button>
-          <button
-            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 shadow-sm"
-          >
-            Quran
-          </button>
-          <button
-            onClick={() => navigate('/hadith')}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
-          >
-            Hadith
-          </button>
-          <button
-            onClick={() => navigate('/duas')}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
-          >
-            Daily Duas
-          </button>
-          <button
-            onClick={() => navigate('/chat')}
-            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
-          >
-            Ask Noor
-          </button>
-        </div>
+            <div className="flex items-center gap-2 cursor-pointer shrink-0" onClick={() => navigate('/dashboard')}>
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+                </svg>
+              </div>
+              <span className="font-semibold text-lg tracking-tight font-serif-luxury text-white hidden sm:inline">
+                Noor AI
+              </span>
+            </div>
 
-        {/* Right: Quick Links & Avatar */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button
-            onClick={() => navigate('/chat')}
-            className="sm:hidden px-2.5 py-1.5 rounded-xl border border-white/[0.08] hover:border-emerald-500/30 text-xs text-gray-300 hover:text-emerald-300 transition flex items-center gap-1"
-          >
-            <span>💬</span>
-            <span>Chat</span>
-          </button>
-
-          <button
-            onClick={() => navigate('/duas')}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/[0.08] hover:border-emerald-500/30 text-xs text-gray-300 hover:text-emerald-300 transition"
-          >
-            <span>🤲</span>
-            <span>Duas</span>
-          </button>
-
-          <div
-            onClick={() => navigate('/settings')}
-            className="w-8 h-8 rounded-full border border-emerald-500/40 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-500/40 transition shrink-0"
-          >
-            <img
-              src={user?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || user?.email || 'User'}&backgroundColor=00b875`}
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
+            {/* Mobile Surah Switcher Button */}
+            <button
+              type="button"
+              onClick={() => setMobileSurahOpen(true)}
+              className="lg:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-medium transition shrink-0"
+              title="Browse all 114 Surahs"
+            >
+              <span>📖</span>
+              <span className="font-semibold truncate max-w-[110px]">{currentSurah?.englishName || "Surahs"}</span>
+              <svg className="w-3.5 h-3.5 opacity-70 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
-        </div>
-      </header>
+
+          {/* Center Nav Pills */}
+          <div className="hidden sm:flex items-center p-1 rounded-xl border border-white/[0.08] bg-[#0c1219]">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+            >
+              Dashboard
+            </button>
+            <button
+              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 shadow-sm"
+            >
+              Quran
+            </button>
+            <button
+              onClick={() => navigate('/hadith')}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+            >
+              Hadith
+            </button>
+            <button
+              onClick={() => navigate('/duas')}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+            >
+              Daily Duas
+            </button>
+            <button
+              onClick={() => navigate('/chat')}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition"
+            >
+              Ask Noor
+            </button>
+          </div>
+
+          {/* Right: Quick Links & Avatar */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <button
+              onClick={() => setReadMode(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-xs font-medium hover:bg-emerald-500/20 transition"
+              title="Enter full Read Mode"
+            >
+              <span>📖</span>
+              <span className="hidden sm:inline">Read Mode</span>
+            </button>
+
+            <div
+              onClick={() => navigate('/settings')}
+              className="w-8 h-8 rounded-full border border-emerald-500/40 overflow-hidden cursor-pointer hover:ring-2 hover:ring-emerald-500/40 transition shrink-0"
+            >
+              <img
+                src={user?.picture || `https://api.dicebear.com/7.x/initials/svg?seed=${user?.name || user?.email || 'User'}&backgroundColor=00b875`}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* ── Main Body Split: Surah Sidebar & Verses Reader ── */}
       <div className="flex-1 flex overflow-hidden min-h-0 relative">
@@ -496,8 +584,11 @@ export default function QuranReader({ isDarkMode, user }) {
                         : 'bg-[#0b1017]/70 border border-white/[0.05] hover:border-white/[0.12]'
                     }`}
                   >
-                    {/* Arabic Text (Full width with diacritics) */}
-                    <div className="text-right font-arabic text-xl sm:text-2xl md:text-3xl text-gray-100 leading-loose break-words mb-3 sm:mb-4">
+                    {/* Arabic Text (Full width with diacritics & adjustable size) */}
+                    <div
+                      className="text-right font-arabic text-gray-100 leading-loose break-words mb-3 sm:mb-4 select-text"
+                      style={{ fontSize: `${arabicFontSize}px`, lineHeight: 1.85 }}
+                    >
                       {verse.text_ar}
                     </div>
 
@@ -564,11 +655,13 @@ export default function QuranReader({ isDarkMode, user }) {
                     </div>
 
                     {/* English Translation */}
-                    <div className="pt-2">
-                      <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-normal">
-                        {verse.text_en}
-                      </p>
-                    </div>
+                    {showTranslation && (
+                      <div className="pt-2">
+                        <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-normal">
+                          {verse.text_en}
+                        </p>
+                      </div>
+                    )}
 
                     {/* Collapsible Noor Insights / Tafsir card */}
                     {isInsightOpen && (
@@ -655,6 +748,13 @@ export default function QuranReader({ isDarkMode, user }) {
         </main>
       </div>
 
+      {/* ── Global Responsive Navigation Drawer & Bottom Nav ── */}
+      <AppNavigation
+        isOpen={sidebarOpen}
+        onClose={(v) => setSidebarOpen(typeof v === 'boolean' ? v : false)}
+        user={user}
+        readMode={readMode}
+      />
     </div>
   );
 }
