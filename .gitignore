@@ -26,3 +26,9 @@ Thumbs.db
 # Build outputs (Optional but recommended)
 frontend/build/
 frontend/dist/
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*

@@ -742,7 +742,7 @@ async def ask_question(
             if sources:
                 session.sources = sources
             session.suggested_actions = suggested_actions
-            session_manager.save_sessions()
+            session_manager.save_sessions(session)
         
         return {
             "answer": answer,

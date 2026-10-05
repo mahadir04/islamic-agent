@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { askQuestion, getSession, createNewSession, getSessions, deleteSession } from "./api";
+import { askQuestion, getSession, getSessions, deleteSession } from "./api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -40,8 +40,13 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
   const urlSession = searchParams.get('session');
   const urlNew = searchParams.get('new') === '1';
 
-  // If ?new=1, always start a fresh session (ignore any existing session)
-  const [sessionId, setSessionId] = useState(urlNew ? null : (urlSession || propSessionId || null));
+  // Initialize from URL, prop, or localStorage so refreshes always restore the active chat
+  const [sessionId, setSessionId] = useState(() => {
+    if (urlNew) return null;
+    if (urlSession) return urlSession;
+    if (propSessionId) return propSessionId;
+    return localStorage.getItem('noor_active_session_id') || null;
+  });
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState(urlQuery || "");
   const [loading, setLoading] = useState(false);
@@ -82,20 +87,49 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
     scrollToBottom(true);
   }, [messages, loading]);
 
-  // Load recent sessions — and auto-load the most recent one if no session is active
-  const loadRecentSessions = useCallback(async () => {
+  // Sync URL search params and localStorage with active sessionId
+  useEffect(() => {
+    if (sessionId) {
+      localStorage.setItem('noor_active_session_id', sessionId);
+      const curParam = new URLSearchParams(window.location.search).get('session');
+      if (curParam !== sessionId) {
+        navigate(`/chat?session=${sessionId}`, { replace: true });
+      }
+    } else {
+      localStorage.removeItem('noor_active_session_id');
+      const curParam = new URLSearchParams(window.location.search).get('session');
+      if (curParam) {
+        navigate('/chat', { replace: true });
+      }
+    }
+  }, [sessionId, navigate]);
+
+  // Respond to browser back/forward and deep link URL param changes
+  useEffect(() => {
+    if (urlNew) {
+      setSessionId(null);
+    } else if (urlSession && urlSession !== sessionId) {
+      setSessionId(urlSession);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlSession, urlNew]);
+
+  // Load recent sessions — preserving active selection or selecting latest if none active
+  const loadRecentSessions = useCallback(async (activeIdToPreserve = null) => {
     try {
       const data = await getSessions();
       setRecentSessions(data || []);
-      // Auto-load the most recent session when opening the chat with no session
-      if (!sessionId && !urlNew && data && data.length > 0) {
-        setSessionId(data[0].id);
+      const currentTarget = activeIdToPreserve || sessionId;
+      if (!currentTarget && !urlNew && data && data.length > 0) {
+        const savedId = localStorage.getItem('noor_active_session_id');
+        const exists = savedId && data.some(s => s.id === savedId);
+        const toSelect = exists ? savedId : data[0].id;
+        setSessionId(toSelect);
       }
     } catch (e) {
       console.error(e);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [sessionId, urlNew]);
 
   useEffect(() => {
     loadRecentSessions();
@@ -104,9 +138,29 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
   // Load active session messages and metadata
   useEffect(() => {
     if (sessionId) {
+      // Check client-side message cache for instant rendering without flicker
+      try {
+        const cached = localStorage.getItem(`noor_msgs_${sessionId}`);
+        if (cached) {
+          const parsedMsgs = JSON.parse(cached);
+          if (Array.isArray(parsedMsgs) && parsedMsgs.length > 0) {
+            setMessages(parsedMsgs);
+          }
+        }
+      } catch (_) {}
+
       getSession(sessionId).then(sess => {
         if (sess?.messages) {
           setMessages(sess.messages);
+          try {
+            localStorage.setItem(`noor_msgs_${sessionId}`, JSON.stringify(sess.messages));
+          } catch (_) {}
+        } else if (!sess) {
+          // If session was deleted on server, reset clean state
+          setSessionId(null);
+          localStorage.removeItem('noor_active_session_id');
+          navigate('/chat', { replace: true });
+          return;
         }
 
         // Topic Progress: load saved topic or compute dynamically from messages
@@ -140,7 +194,7 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
         }
       }).catch(console.error);
     } else {
-      // Default welcome message from Noor
+      // Clean welcome screen for New Conversation
       setMessages([
         {
           id: 'welcome',
@@ -151,7 +205,7 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
       setCurrentTopic(null);
       setRelatedSources([]);
     }
-  }, [sessionId, user]);
+  }, [sessionId, user, navigate]);
 
   // Handle URL query parameter trigger
   useEffect(() => {
@@ -164,29 +218,27 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlQuery]);
 
-  const handleNewConversation = async () => {
-    try {
-      const newId = await createNewSession();
-      if (newId) {
-        setSessionId(newId);
-        setRelatedSources([]);
-        setCurrentTopic(null);
-        setSuggestedActions([]);
-        setMessages([
-          {
-            id: 'welcome',
-            role: 'bot',
-            content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
-          }
-        ]);
-        if (onSessionUpdate) onSessionUpdate();
-        loadRecentSessions();
+  // Modern chat assistant "+ New Conversation" (instant clean slate, no dummy sessions)
+  const handleNewConversation = () => {
+    setSessionId(null);
+    localStorage.removeItem('noor_active_session_id');
+    navigate('/chat', { replace: true });
+    setRelatedSources([]);
+    setCurrentTopic(null);
+    setSuggestedActions([]);
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'bot',
+        content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
       }
-    } catch (e) {
-      console.error(e);
+    ]);
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
+  // Permanent Delete Conversation (Optimistic UI + SQLite deletion + cache purge)
   const handleDeleteSession = async (e, idToDelete) => {
     e.stopPropagation();
     if (deleteConfirmId !== idToDelete) {
@@ -200,24 +252,32 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
     setDeletingId(idToDelete);
     setDeleteConfirmId(null);
     try {
-      const success = await deleteSession(idToDelete);
-      if (success) {
-        setRecentSessions((prev) => prev.filter((s) => s.id !== idToDelete));
-        if (sessionId === idToDelete) {
-          setSessionId(null);
-          setMessages([
-            {
-              id: 'welcome',
-              role: 'bot',
-              content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
-            }
-          ]);
-          setRelatedSources([]);
-          setCurrentTopic(null);
-          setSuggestedActions([]);
-        }
-        if (onSessionUpdate) onSessionUpdate();
+      // 1. Optimistically remove from recent sessions list immediately
+      setRecentSessions((prev) => prev.filter((s) => s.id !== idToDelete));
+      try {
+        localStorage.removeItem(`noor_msgs_${idToDelete}`);
+      } catch (_) {}
+
+      // 2. If deleting currently active chat, reset to clean new conversation
+      if (sessionId === idToDelete) {
+        setSessionId(null);
+        localStorage.removeItem('noor_active_session_id');
+        navigate('/chat', { replace: true });
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'bot',
+            content: `Assalamu Alaikum, ${user?.name ? user.name.split(' ')[0] : 'seeker'}. How can I assist you on your spiritual journey today?`
+          }
+        ]);
+        setRelatedSources([]);
+        setCurrentTopic(null);
+        setSuggestedActions([]);
       }
+
+      // 3. Permanently delete from backend SQLite
+      await deleteSession(idToDelete);
+      if (onSessionUpdate) onSessionUpdate();
     } catch (err) {
       console.error("Failed to delete conversation:", err);
     } finally {
@@ -242,8 +302,11 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
 
     try {
       const response = await askQuestion(text, sessionId);
-      if (response?.session_id && !sessionId) {
-        setSessionId(response.session_id);
+      const activeId = response?.session_id || sessionId;
+      if (activeId && activeId !== sessionId) {
+        setSessionId(activeId);
+        localStorage.setItem('noor_active_session_id', activeId);
+        navigate(`/chat?session=${activeId}`, { replace: true });
       }
 
       const botMsg = {
@@ -253,7 +316,15 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
         timestamp: new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, botMsg]);
+      setMessages(prev => {
+        const next = [...prev, botMsg];
+        if (activeId) {
+          try {
+            localStorage.setItem(`noor_msgs_${activeId}`, JSON.stringify(next));
+          } catch (_) {}
+        }
+        return next;
+      });
 
       // If backend returned RAG sources, update Spiritual Context sidebar
       if (response.sources && response.sources.length > 0) {
@@ -276,7 +347,7 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
       }
 
       if (onSessionUpdate) onSessionUpdate();
-      loadRecentSessions();
+      loadRecentSessions(activeId);
     } catch (err) {
       console.error(err);
       setMessages(prev => [
@@ -677,6 +748,8 @@ export default function Chat({ isDarkMode, sessionId: propSessionId, onSessionUp
                     key={sess.id}
                     onClick={() => {
                       setSessionId(sess.id);
+                      localStorage.setItem('noor_active_session_id', sess.id);
+                      navigate(`/chat?session=${sess.id}`, { replace: true });
                       if (isDrawer) setMobileNavOpen(false);
                     }}
                     className={`group relative flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs cursor-pointer transition-all border ${

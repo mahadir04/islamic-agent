@@ -28,42 +28,6 @@
     "sources": [],
     "suggested_actions": []
   },
-  "91e8352d-a6ce-498b-853a-6371267a0ae3": {
-    "id": "91e8352d-a6ce-498b-853a-6371267a0ae3",
-    "user_id": "hadimrahaman@gmail.com",
-    "name": "New Conversation",
-    "created_at": "2026-05-22T22:51:32.684736",
-    "updated_at": "2026-05-22T22:51:32.684736",
-    "message_count": 0,
-    "preview": "No messages yet",
-    "messages": [],
-    "topic": {
-      "name": "Spiritual Inquiries & Learning",
-      "explored": 1,
-      "total": 7,
-      "percentage": 15
-    },
-    "sources": [],
-    "suggested_actions": []
-  },
-  "beffebd5-125d-4fa5-a78c-7027120e478b": {
-    "id": "beffebd5-125d-4fa5-a78c-7027120e478b",
-    "user_id": "hadimrahaman@gmail.com",
-    "name": "New Conversation",
-    "created_at": "2026-05-22T22:51:32.708218",
-    "updated_at": "2026-05-22T22:51:32.708218",
-    "message_count": 0,
-    "preview": "No messages yet",
-    "messages": [],
-    "topic": {
-      "name": "Spiritual Inquiries & Learning",
-      "explored": 1,
-      "total": 7,
-      "percentage": 15
-    },
-    "sources": [],
-    "suggested_actions": []
-  },
   "9bd832ca-ec7b-4df6-b68b-f50ac130e8e0": {
     "id": "9bd832ca-ec7b-4df6-b68b-f50ac130e8e0",
     "user_id": "mahadir.cse.20220104046@aust.edu",

@@ -312,7 +312,6 @@ export default function App() {
             <ProtectedRoute user={user}>
               <Chat
                 isDarkMode={isDarkMode}
-                sessionId={currentSessionId}
                 onSessionUpdate={fetchSessions}
                 user={user}
               />
