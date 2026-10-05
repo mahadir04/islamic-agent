@@ -99,6 +99,29 @@ class IslamicAgent:
         """Answer a question strictly following the enriched prompt template and answer design, integrating RAG context"""
         local_results = []
         try:
+            # 0. Instant greeting handler for casual greetings
+            q_clean = question.strip().lower().rstrip("!.? ")
+            greetings = {
+                "hi", "hii", "hiii", "hello", "hey", "salam", "salaam", 
+                "assalam", "assalamu alaikum", "as-salamu alaykum", "peace", 
+                "good morning", "good evening", "good day", "salam alaikum"
+            }
+            if q_clean in greetings:
+                return {
+                    "answer": (
+                        "As-salamu alaykum wa rahmatullahi wa barakatuh! 🌟\n\n"
+                        "Welcome to **Noor AI**. I am your dedicated Islamic spiritual companion and knowledge guide, "
+                        "grounded in the Holy Quran, authentic Sunnah (Sahih al-Bukhari, Sahih Muslim), and sound scholarship.\n\n"
+                        "How may I assist your spiritual journey today? You can ask me:\n"
+                        "- 📖 **Quranic Verses & Tafsir** (e.g., *'Explain Ayat al-Kursi (2:255)'*)\n"
+                        "- 📜 **Authentic Prophetic Hadiths** (e.g., *'Hadith on good manners'* or *'Actions by intentions'*)\n"
+                        "- ⚖️ **Islamic Fiqh Rulings** (e.g., *'Rulings on prayer, fasting, or zakat'*)\n"
+                        "- 💡 **Contemporary Questions** (e.g., *'Islamic perspective on life outside Earth, science, or finance'*)\n\n"
+                        "What would you like to explore?"
+                    ),
+                    "sources": []
+                }
+
             # 1. Contextualize query with conversation history for accurate RAG retrieval
             search_query, detected_entity = self._contextualize_query(question, conversation_history)
             
