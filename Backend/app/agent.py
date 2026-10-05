@@ -27,7 +27,8 @@ class IslamicAgent:
     def _initialize_gemini(self):
         """Configure Google Gemini AI client with API key from environment"""
         try:
-            api_key = os.getenv("GEMINI_API_KEY")
+            raw_key = os.getenv("GEMINI_API_KEY", "")
+            api_key = raw_key.strip().strip('"').strip("'")
             if not api_key:
                 logger.warning("⚠️ GEMINI_API_KEY not found in environment")
                 return False

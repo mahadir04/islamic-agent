@@ -67,7 +67,8 @@ def health():
 def diagnostic():
     """Live diagnostic for Gemini model availability and quota."""
     import google.generativeai as genai
-    api_key = os.getenv("GEMINI_API_KEY")
+    raw_key = os.getenv("GEMINI_API_KEY", "")
+    api_key = raw_key.strip().strip('"').strip("'")
     if not api_key:
         return {"error": "GEMINI_API_KEY is not set"}
     masked = f"{api_key[:6]}...{api_key[-4:]} (len: {len(api_key)})"
