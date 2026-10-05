@@ -20,40 +20,23 @@ logger = logging.getLogger(__name__)
 
 class IslamicAgent:
     def __init__(self):
-        self.model_name = "gemini-3.8-flash"
+        self.model_name = "gemini-3.5-flash-lite"
         self.gemini_available = self._initialize_gemini()
         self.retriever = EnhancedRetriever()
     
     def _initialize_gemini(self):
-        """Initialize Google Gemini AI with active generation model"""
+        """Configure Google Gemini AI client with API key from environment"""
         try:
             api_key = os.getenv("GEMINI_API_KEY")
             if not api_key:
-                logger.error("❌ GEMINI_API_KEY not found in environment")
+                logger.warning("⚠️ GEMINI_API_KEY not found in environment")
                 return False
             genai.configure(api_key=api_key)
-            models_to_try = [
-                "gemini-3.5-flash-lite",
-                "gemini-3.6-flash",
-                "gemini-3.1-flash-lite",
-                "gemini-flash-lite-latest",
-                "gemini-3-flash-preview",
-                "gemini-3.8-flash",
-                "gemini-3.7-flash"
-            ]
-            for m_name in models_to_try:
-                try:
-                    model = genai.GenerativeModel(m_name)
-                    response = model.generate_content("Salam")
-                    if response and response.text:
-                        self.model_name = m_name
-                        logger.info(f"✅ Gemini initialized successfully with model {self.model_name}")
-                        return True
-                except Exception as inner_e:
-                    logger.warning(f"Failed to initialize {m_name}: {inner_e}")
-            return False
+            self.model_name = "gemini-3.5-flash-lite"
+            logger.info("✅ Gemini AI client successfully configured")
+            return True
         except Exception as e:
-            logger.error(f"❌ Gemini init failed: {e}")
+            logger.error(f"❌ Gemini config error: {e}")
             return False
     
     def _contextualize_query(self, question: str, conversation_history: list = None) -> tuple:

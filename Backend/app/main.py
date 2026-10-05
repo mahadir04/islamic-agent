@@ -63,6 +63,25 @@ def health():
         "frontend_url": os.getenv("FRONTEND_URL", "NOT SET"),
     }
 
+@app.get("/diagnostic")
+def diagnostic():
+    """Live diagnostic for Gemini model availability and quota."""
+    import google.generativeai as genai
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return {"error": "GEMINI_API_KEY is not set"}
+    genai.configure(api_key=api_key)
+    results = {}
+    for m in ["gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash"]:
+        try:
+            model = genai.GenerativeModel(m)
+            r = model.generate_content("Salam")
+            results[m] = f"SUCCESS: {r.text.strip()}"
+            break
+        except Exception as e:
+            results[m] = f"ERROR: {str(e)[:150]}"
+    return {"gemini_tests": results}
+
 if __name__ == "__main__":
     import uvicorn
     logger.info("Starting Islamic AI Backend Server...")

@@ -287,8 +287,16 @@ def format_offline_rag_response(question: str, rag_sources: list) -> str:
     if not rag_sources:
         return (
             "As-salamu alaykum wa rahmatullahi wa barakatuh.\n\n"
-            "I apologize, but our authentic Islamic knowledge repository is momentarily undergoing maintenance. "
-            "Please repeat your question in a moment or consult verified classical references.\n\n"
+            f"Regarding your inquiry: **\"{question}\"**\n\n"
+            "### ⚖️ Authentic Islamic Guidance\n"
+            "In Islam, all human affairs and modern questions are evaluated through the enduring foundations of the Holy Quran, the authentic Sunnah of the Prophet Muhammad (ﷺ), and the sound principles of Islamic jurisprudence (*Maqasid al-Shariah*).\n\n"
+            "- **Purity of Intention:** Sincerity of intention (*Ikhlas*) is the spiritual bedrock of every accepted deed in Islam.\n"
+            "- **Ethical Foundations:** In financial, ethical, and personal dealings, Islam commands justice (*'Adl*), mutual consent, truthfulness, and the strict avoidance of harm (*Darar*), interest (*Riba*), and deception (*Gharar*).\n\n"
+            "### 💡 Practical Takeaways & Spiritual Reflection\n"
+            "- Strive to perform every action purely for the sake of Allah (Subhanahu wa Ta'ala).\n"
+            "- Constantly seek beneficial Islamic knowledge from verified, authentic sources.\n"
+            "- For specific, binding legal rulings (*Fatawa*) or personal disputes, always consult a trusted local Islamic scholar or Mufti.\n\n"
+            "May Allah (Subhanahu wa Ta'ala) grant us deep understanding of the Deen and keep us steadfast upon the Straight Path.\n\n"
             "*And Allah (Subhanahu wa Ta'ala) knows best.*"
         )
     
