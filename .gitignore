@@ -26,6 +26,7 @@ Thumbs.db
 # Build outputs (Optional but recommended)
 frontend/build/
 frontend/dist/
+*.apk
 
 # SQLite databases
 *.db
